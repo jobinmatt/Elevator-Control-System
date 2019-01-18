@@ -1,0 +1,89 @@
+13:03:05 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1
+Floor Subsystem
+13:03:05 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:03:05 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Impossible to locate Configuration.xml
+	at main.ConfigurationParser.LoadConfig(ConfigurationParser.java:65)
+	at main.ConfigurationParser.getInstance(ConfigurationParser.java:52)
+	at main.FloorSubsystem.main(FloorSubsystem.java:24)
+
+13:05:16 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1
+Floor Subsystem
+13:05:16 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:05:16 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Impossible to locate Configuration.xml
+	at main.ConfigurationParser.LoadConfig(ConfigurationParser.java:65)
+	at main.ConfigurationParser.getInstance(ConfigurationParser.java:52)
+	at main.FloorSubsystem.main(FloorSubsystem.java:24)
+
+13:07:38 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1
+Floor Subsystem
+13:07:38 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:07:38 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Impossible to locate Configuration.xml
+	at main.ConfigurationParser.LoadConfig(ConfigurationParser.java:65)
+	at main.ConfigurationParser.getInstance(ConfigurationParser.java:52)
+	at main.FloorSubsystem.main(FloorSubsystem.java:24)
+
+13:08:12 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+13:08:12 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:08:13 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Impossible to locate Configuration.xml
+	at main.ConfigurationParser.LoadConfig(ConfigurationParser.java:65)
+	at main.ConfigurationParser.getInstance(ConfigurationParser.java:52)
+	at main.FloorSubsystem.main(FloorSubsystem.java:24)
+
+13:08:23 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:08:23 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:08:23 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Impossible to locate Configuration.xml
+	at main.ConfigurationParser.LoadConfig(ConfigurationParser.java:65)
+	at main.ConfigurationParser.getInstance(ConfigurationParser.java:52)
+	at main.FloorSubsystem.main(FloorSubsystem.java:24)
+
+13:12:11 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:12:11 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:12:11 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Impossible to locate Configuration.xml
+	at main.ConfigurationParser.LoadConfig(ConfigurationParser.java:65)
+	at main.ConfigurationParser.getInstance(ConfigurationParser.java:52)
+	at main.FloorSubsystem.main(FloorSubsystem.java:24)
+
+13:12:36 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:12:36 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:13:27 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:13:27 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:14:03 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:14:03 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:14:03 - green_info (ConfigurationParser.java:78) - Success
+
+13:14:03 - error (FloorSubsystem.java:28) - Exceptions.ConfigurationParserException: Key '//Config/ElevatorDoorTimeSeconds' cannot be converted to class java.lang.Boolean. Value is: '[1, 1]'.: Element not of type Boolean: 'true' or 'false' 
+	at main.ConfigurationParser.getBoolean(ConfigurationParser.java:109)
+	at main.FloorSubsystem.main(FloorSubsystem.java:25)
+Caused by: org.apache.commons.configuration2.ex.ConversionException: Key '//Config/ElevatorDoorTimeSeconds' cannot be converted to class java.lang.Boolean. Value is: '[1, 1]'.
+	at org.apache.commons.configuration2.AbstractConfiguration.getAndConvertProperty(AbstractConfiguration.java:1772)
+	at org.apache.commons.configuration2.AbstractConfiguration.convert(AbstractConfiguration.java:1795)
+	at org.apache.commons.configuration2.AbstractConfiguration.getBoolean(AbstractConfiguration.java:1174)
+	at main.ConfigurationParser.getBoolean(ConfigurationParser.java:105)
+	... 1 more
+
+13:14:47 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:14:47 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:14:47 - green_info (ConfigurationParser.java:78) - Success
+
+13:25:09 - info  (FloorSubsystem.java:20) - 
+Elevator Simulator v0.1: Floor Subsystem
+
+13:25:09 - info  (ConfigurationParser.java:60) - Loading Configuration File...
+13:25:09 - green_info (ConfigurationParser.java:78) - Success
+
