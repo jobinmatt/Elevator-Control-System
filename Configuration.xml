@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration>
+
+    <Config>
+
+        <NumberOfElevators>1</NumberOfElevators>
+
+        <NumberOfFloors>10</NumberOfFloors>
+
+        <ElevatorDoorTimeSeconds>1</ElevatorDoorTimeSeconds>
+
+        <ElevatorFloorTravelTimeSeconds>5</ElevatorFloorTravelTimeSeconds>
+
+    </Config>
+
+</Configuration>
+
+<!--
+      In order to add another tag, simply add the tag here and create a constant in ConfigurationParser with
+      the correct new tag name. Make it static, so the tags can be accessed anywhere
+      (ex. ConfigurationParser.NUMBER_OF_ELEVATORS)
+ -->
