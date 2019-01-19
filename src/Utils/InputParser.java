@@ -30,7 +30,7 @@ public class InputParser {
 	private static final Logger inputParserLog = LogManager.getLogger(InputParser.class.getName());
 	
 	@SuppressWarnings("unchecked")
-	private List<SimulationParameters> parseCVSFile(String fileName) {
+	public static List<SimulationParameters> parseCVSFile(String fileName) {
 		List<SimulationParameters> simulationEvents = new ArrayList<>();
 		try {
 			File inputFile = new File(fileName);
@@ -39,25 +39,23 @@ public class InputParser {
 			CsvMapper csvMapper = new CsvMapper();
 			List<Object> inputEvents = csvMapper.readerFor(Map.class).with(csvSchema)
 					.readValues(inputFile).readAll();
-			inputEvents.toString();
-			for(Object event : inputEvents) {
-				if(event instanceof LinkedHashMap) {
+			for (Object event : inputEvents) {
+				if (event instanceof LinkedHashMap) {
 					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
 					String timeString = eventInfo.get("Time");
 					Date simulationDate = df.parse(timeString);
 					boolean floorButtonDirection;
-					if(eventInfo.get("Floor Button").equalsIgnoreCase("Up")) {
+					if (eventInfo.get("Floor Button").equalsIgnoreCase("Up")) {
 						floorButtonDirection = true;
-					}
-					else if(eventInfo.get("Floor Button").equalsIgnoreCase("Down")) {
+					} else if (eventInfo.get("Floor Button").equalsIgnoreCase("Down")) {
 						floorButtonDirection = false;
-					}
-					else {
+					} else {
 						throw new GeneralExceptions("Floor Button string is not valid");
 					}
-					
-					simulationEvents.add(new SimulationParameters(simulationDate, Integer.valueOf(eventInfo.get("Floor")), floorButtonDirection,
-							Integer.valueOf(eventInfo.get("Car Button"))));
+
+					simulationEvents
+							.add(new SimulationParameters(simulationDate, Integer.valueOf(eventInfo.get("Floor")),
+									floorButtonDirection, Integer.valueOf(eventInfo.get("Car Button"))));
 				} else {
 					throw new GeneralExceptions("File not in correct format");
 				}
