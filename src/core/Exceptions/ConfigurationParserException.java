@@ -1,17 +1,3 @@
-//****************************************************************************
-//
-// Filename: ConfigurationParserException.java
-//
-// Description: Generic Exception to throw during configuration file parsing
-//
-// Copyright 2018 SafeNet. All rights reserved.
-//
-// All rights reserved. This file contains information that is
-// proprietary to SafeNet and may not be distributed
-// or copied without written consent from SafeNet.
-//
-//***************************************************************************
-
 package core.Exceptions;
 
 public class ConfigurationParserException extends GeneralExceptions {
