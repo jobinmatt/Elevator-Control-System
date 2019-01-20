@@ -7,7 +7,7 @@
 //***************************************************************************
 package Exceptions;
 
-public class InputParserException extends Exception {
+public class InputParserException extends GeneralExceptions {
 
 	private static final long serialVersionUID = -1913340013266999447L;
 

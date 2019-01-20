@@ -43,43 +43,53 @@ public class InputParser {
 
 	@SuppressWarnings("unchecked")
 	public static List<SimulationEvent> parseCVSFile(String fileName)
-			throws URISyntaxException, IOException, InputParserException, ParseException {
+			throws InputParserException {
 		List<SimulationEvent> simulationEvents = new ArrayList<>();
 		long baseIntervalTime = -1;
-		File inputFile = new File(Utils.getBuildDirURI(fileName).getPath());
-		DateFormat df = new SimpleDateFormat(TIME_FORMAT);
-		CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).build();
-		CsvMapper csvMapper = new CsvMapper();
-		List<Object> inputEvents = csvMapper.readerFor(Map.class).with(csvSchema).readValues(inputFile).readAll();
-		for (Object event : inputEvents) {
-			if (event instanceof LinkedHashMap) {
-				LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
-				if (isValidData(eventInfo)) {
-					String timeString = eventInfo.get(TIME_HEADER);
-					Date simulationDate = df.parse(timeString);
-					boolean floorButtonDirection;
-					if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Up")) {
-						floorButtonDirection = true;
-					} else if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Down")) {
-						floorButtonDirection = false;
-					} else {
-						throw new InputParserException("Floor Button string is not valid");
+		try {
+			File inputFile = new File(Utils.getBuildDirURI(fileName).getPath());
+			DateFormat df = new SimpleDateFormat(TIME_FORMAT);
+			CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).build();
+			CsvMapper csvMapper = new CsvMapper();
+			List<Object> inputEvents = csvMapper.readerFor(Map.class).with(csvSchema).readValues(inputFile).readAll();
+			for (Object event : inputEvents) {
+				if (event instanceof LinkedHashMap) {
+					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
+					if (isValidData(eventInfo)) {
+						String timeString = eventInfo.get(TIME_HEADER);
+						Date simulationDate = df.parse(timeString);
+						boolean floorButtonDirection;
+						if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Up")) {
+							floorButtonDirection = true;
+						} else if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Down")) {
+							floorButtonDirection = false;
+						} else {
+							throw new InputParserException("Floor Button string is not valid");
+						}
+						simulationEvents
+						.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
+						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
-					simulationEvents
-					.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
-							floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
-					logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
+				} else {
+					throw new InputParserException("File not in correct format");
 				}
-			} else {
-				throw new InputParserException("File not in correct format");
 			}
+			Collections.sort(simulationEvents);
+			baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
+			for (SimulationEvent e : simulationEvents) {
+				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
+			}
+			return simulationEvents;
+		} catch (NumberFormatException e) {
+			throw new InputParserException(e.getLocalizedMessage());
+		} catch (URISyntaxException e1) {
+			throw new InputParserException(e1.getLocalizedMessage());
+		} catch (IOException e1) {
+			throw new InputParserException(e1.getLocalizedMessage());
+		} catch (ParseException e1) {
+			throw new InputParserException(e1.getLocalizedMessage());
 		}
-		Collections.sort(simulationEvents);
-		baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
-		for (SimulationEvent e : simulationEvents) {
-			e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
-		}
-		return simulationEvents;
 	}
 
 	private static boolean isValidData(LinkedHashMap<String, String> eventInfo) throws InputParserException {
