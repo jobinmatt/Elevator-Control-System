@@ -1,3 +1,10 @@
+//****************************************************************************
+//
+// Filename: ElevatorCar.java
+//
+// Description: hold the states for components of the elevator
+//
+//***************************************************************************
 package core.Subsystems.ElevatorSubsystem;
 
 public enum ElevatorComponentStates {
@@ -11,7 +18,6 @@ public enum ElevatorComponentStates {
 	//doors 
 	ELEV_DOORS_OPEN, 
 	ELEV_DOORS_CLOSE, 
-	ELEV_DOORS_IN_PROGRESS, //can be failed state too
 	ELEV_DOORS_ERROR
 	
 }

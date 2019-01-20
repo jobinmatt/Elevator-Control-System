@@ -1,3 +1,10 @@
+//****************************************************************************
+//
+// Filename: ElevatorSubsystem.java
+//
+// Description: update elevator states 
+//
+//***************************************************************************
 package core.Subsystems.ElevatorSubsystem;
 /**
  * 
@@ -17,7 +24,9 @@ public class ElevatorSubsystem {
 			this.carPool[i]= new ElevatorCar(numFloors);
 		}
 	}
-	
+	/**
+	 * Starts the thread (powering on elevator)
+	 * */
 	public void activateElevators() {
 		for (ElevatorCar cars : this.carPool) {
 			cars.start();

@@ -28,7 +28,7 @@ public class ElevatorSubsystemMain {
 			ElevatorSubsystem eSystem = new ElevatorSubsystem(numElev, numFloors);
 			eSystem.activateElevators();
 		} catch (Exception e) {
-			logger.error("Unknown error occured", e);
+			logger.error("", e);
             System.exit(-1);
 		}
 		

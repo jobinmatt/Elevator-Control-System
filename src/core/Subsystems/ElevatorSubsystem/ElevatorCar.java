@@ -1,3 +1,10 @@
+//****************************************************************************
+//
+// Filename: ElevatorCar.java
+//
+// Description: This creates an elevator car, and handles the properties and states for the car
+//
+//***************************************************************************
 package core.Subsystems.ElevatorSubsystem;
 
 import java.net.DatagramSocket;
