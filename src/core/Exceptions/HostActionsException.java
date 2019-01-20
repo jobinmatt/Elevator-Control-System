@@ -5,7 +5,9 @@ package core.Exceptions;
  */
 public class HostActionsException extends GeneralExceptions {
 
-    public HostActionsException(String message) {
+	private static final long serialVersionUID = 1278214378079736536L;
+
+	public HostActionsException(String message) {
         super(message);
     }
 
