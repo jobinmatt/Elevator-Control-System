@@ -1,24 +1,22 @@
 //****************************************************************************
 //
-// Filename: ElevatorControlSystems.java
+// Filename: Elevator_Subsystem.java
 //
-// Description: Elevator Control Systems Class
+// Description: Elevator Subsystem Class
 //
 //***************************************************************************
-
-package main;
+package core.main;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ElevatorControlSubSystems {
-	
-	private static Logger logger = LogManager.getLogger(ElevatorControlSubSystems.class);
-	
+public class ElevatorSubsystemMain {
+
+	private static Logger logger = LogManager.getLogger(ElevatorSubsystemMain.class);
 	
 	public static void main(String[] args) {
 		
-		logger.info(LoggingManager.BANNER + "Control Subsystem\n");
+		logger.info(LoggingManager.BANNER + "Elevator Subsystem\n");
 		
 		try {
 			
@@ -28,6 +26,7 @@ public class ElevatorControlSubSystems {
 		}
 		
 		System.exit(0);
+		
 	}
 
 }

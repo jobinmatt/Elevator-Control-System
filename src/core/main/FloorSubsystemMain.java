@@ -6,14 +6,14 @@
 //
 //***************************************************************************
 
-package main;
+package core.main;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class FloorSubsystem {
+public class FloorSubsystemMain {
 
-	private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
+	private static Logger logger = LogManager.getLogger(FloorSubsystemMain.class);
 	
 	public static void main(String[] args) {
 		
