@@ -1,8 +1,8 @@
 //****************************************************************************
 //
-// Filename: Floor_Subsystem.java
+// Filename: FloorSubsystemMain.java
 //
-// Description: Floor Subsystem Class
+// Description: Floor Subsystem Main Class
 //
 //***************************************************************************
 
