@@ -41,7 +41,7 @@ public class FloorSubsystem {
 
     private void addEvents() {
         for(SimulationEvent e: events) {
-           floors.get(e.getFloor()).add(new Event(e.getStartTime(), e.getFloorButton(), e.getCarButton(), e.getIntervalTime()));
+           floors.get(e.getFloor()).addEvent(new Event(e.getStartTime(), e.getFloorButton(), e.getCarButton(), e.getIntervalTime()));
         }
     }
 

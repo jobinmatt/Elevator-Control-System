@@ -31,7 +31,7 @@ public class FloorThread extends Thread{
         sendReceiveSocket = new DatagramSocket(port);
     }
 
-    public void add(Event e) {
+    public void addEvent(Event e) {
         events.add(e);
     }
 
@@ -42,12 +42,13 @@ public class FloorThread extends Thread{
             Event e = events.peek(); //first event in the queue
             logger.info(e.toString());
             serviceRequest(e);
+            events.remove(); //remove already serviced event from the queue
             try {
                 this.sleep(e.getIntervalTime());
             } catch (InterruptedException e1) {
                 e1.printStackTrace(); //***will be changed to throw an exception
             }
-            events.remove(); //remove already serviced event from the queue
+
         }
 
     }
