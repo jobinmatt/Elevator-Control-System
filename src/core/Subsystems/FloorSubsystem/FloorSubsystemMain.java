@@ -8,6 +8,7 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.Subsystems.FloorSubsystem.FloorSubsystem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,21 +19,22 @@ public class FloorSubsystemMain {
 
 	private static Logger logger = LogManager.getLogger(FloorSubsystemMain.class);
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		
 		logger.info(LoggingManager.BANNER + "Floor Subsystem\n");
 		
 		try {
 			
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-			//test
-			System.out.println(configurationParser.getString(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS));
+            FloorSubsystem floorSystem = new FloorSubsystem("filename", Integer.getInteger(configurationParser.NUMBER_OF_FLOORS));
+            floorSystem.readFile();
+            //send List<SimulationEvent> events to the scheduler ?
+            floorSystem.startFloorThreads();
 			
 		} catch (Exception e) {
 			logger.error("", e);
             System.exit(-1);
 		}
-		
-		System.exit(0);	
+
 	}
 }
