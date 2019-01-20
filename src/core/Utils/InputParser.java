@@ -4,7 +4,9 @@
 //
 // Description: Takes in a CVS files and converts it into SimulationParameters
 //
+// @author Brij Patel
 //***************************************************************************
+
 package core.Utils;
 
 import java.io.File;
@@ -27,14 +29,13 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
+import core.LoggingManager;
 import core.Exceptions.InputParserException;
 
-/**
- * @author Brij Patel
- *
- */
 public class InputParser {
+	
 	private static Logger logger = LogManager.getLogger(InputParser.class);
+	
 	private static final String TIME_FORMAT = "hh:mm:ss.SSS";
 	private static final String TIME_HEADER = "Time";
 	private static final String FLOOR_BUTTON_HEADER = "Floor Button";
@@ -42,23 +43,30 @@ public class InputParser {
 	private static final String FLOOR_HEADER = "Floor";
 
 	@SuppressWarnings("unchecked")
-	public static List<SimulationEvent> parseCVSFile(String fileName)
-			throws InputParserException {
+	public static List<SimulationEvent> parseCVSFile(String fileName) throws InputParserException {
+		
+		logger.info("Parsing CVS File... ");
 		List<SimulationEvent> simulationEvents = new ArrayList<>();
 		long baseIntervalTime = -1;
+		
 		try {
-			File inputFile = new File(Utils.getBuildDirURI(fileName).getPath());
+			File inputFile = new File(Utils.getBuildDirURI(fileName));
 			DateFormat df = new SimpleDateFormat(TIME_FORMAT);
 			CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).build();
 			CsvMapper csvMapper = new CsvMapper();
 			List<Object> inputEvents = csvMapper.readerFor(Map.class).with(csvSchema).readValues(inputFile).readAll();
+			
 			for (Object event : inputEvents) {
+				
 				if (event instanceof LinkedHashMap) {
+					
 					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
-					if (isValidData(eventInfo)) {
+					
+					if (isValidData(eventInfo)) {				
 						String timeString = eventInfo.get(TIME_HEADER);
 						Date simulationDate = df.parse(timeString);
 						boolean floorButtonDirection;
+						
 						if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Up")) {
 							floorButtonDirection = true;
 						} else if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Down")) {
@@ -66,39 +74,41 @@ public class InputParser {
 						} else {
 							throw new InputParserException("Floor Button string is not valid");
 						}
-						simulationEvents
-						.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
-								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
+						
+						simulationEvents.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+								             floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
+						
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
 				} else {
 					throw new InputParserException("File not in correct format");
 				}
 			}
+			
 			Collections.sort(simulationEvents);
 			baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
+			
 			for (SimulationEvent e : simulationEvents) {
 				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
 			}
+			
+			logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 			return simulationEvents;
-		} catch (NumberFormatException e) {
-			throw new InputParserException(e.getLocalizedMessage());
-		} catch (URISyntaxException e1) {
-			throw new InputParserException(e1.getLocalizedMessage());
-		} catch (IOException e1) {
-			throw new InputParserException(e1.getLocalizedMessage());
-		} catch (ParseException e1) {
-			throw new InputParserException(e1.getLocalizedMessage());
+		} catch (NumberFormatException | URISyntaxException | IOException | ParseException e) {
+			throw new InputParserException("Unable to parse file");
 		}
 	}
 
 	private static boolean isValidData(LinkedHashMap<String, String> eventInfo) throws InputParserException {
-		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER)
-				&& eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER)) {
-			if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER))
-					&& !StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER))
-					&& !StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER))
-					&& !StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER))) {
+		
+		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) && 
+			eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER)) {
+			
+			if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER)) &&
+				!StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER)) &&
+				!StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER)) &&
+				!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER))) {
+				
 				if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER))) {
 					return true;
 				}
@@ -108,6 +118,7 @@ public class InputParser {
 	}
 
 	private static boolean isNumber(String s) {
+		
 		boolean isNumber = true;
 		for (char c : s.toCharArray()) {
 			isNumber = isNumber && Character.isDigit(c);

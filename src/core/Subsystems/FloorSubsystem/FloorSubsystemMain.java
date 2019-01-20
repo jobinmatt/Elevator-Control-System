@@ -6,10 +6,13 @@
 //
 //***************************************************************************
 
-package core.main;
+package core.Subsystems.FloorSubsystem;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import core.ConfigurationParser;
+import core.LoggingManager;
 
 public class FloorSubsystemMain {
 

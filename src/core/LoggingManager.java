@@ -6,7 +6,7 @@
 //
 //***************************************************************************
 
-package core.main;
+package core;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,17 +30,16 @@ public class LoggingManager {
 
     static {
 
-        deactivateGlobalPlatformPackageLogging();
         ansiConsoleSystemInstall();
     }
 
-    public static final String SUCCESS_MESSAGE =  "Success" + System.lineSeparator();
+    public static final String SUCCESS_MESSAGE = "Success" + System.lineSeparator();
     public static final int MAJOR_VERSION = 0;
     public static final int MINOR_VERSION = 1;
 
     public static String BANNER = System.lineSeparator() +
-            "Elevator Simulator v" + MAJOR_VERSION + "." +
-             MINOR_VERSION + ": ";
+                                  "Elevator Simulator v" + MAJOR_VERSION + "." +
+                                  MINOR_VERSION + ": ";
 
 
     public static void ansiConsoleSystemInstall() {
@@ -52,12 +51,7 @@ public class LoggingManager {
 
         System.setProperty("log4j.skipJansi", "true");
     }
-
-    public static void deactivateGlobalPlatformPackageLogging() {
-
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
-    }
-
+    
     public static Level getSuccessLevel() {
 
         return Level.getLevel("GREEN_INFO");
