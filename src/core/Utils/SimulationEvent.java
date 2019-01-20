@@ -6,7 +6,7 @@
 //              to cause.
 //
 //***************************************************************************
-package Utils;
+package core.Utils;
 
 import java.util.Date;
 

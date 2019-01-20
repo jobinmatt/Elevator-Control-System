@@ -5,7 +5,7 @@
 // Description: Input Parser Exception class
 //
 //***************************************************************************
-package Exceptions;
+package core.Exceptions;
 
 public class InputParserException extends GeneralExceptions {
 
