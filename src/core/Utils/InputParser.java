@@ -5,7 +5,7 @@
 // Description: Takes in a CVS files and converts it into SimulationParameters
 //
 //***************************************************************************
-package Utils;
+package core.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
-import Exceptions.InputParserException;
+import core.Exceptions.InputParserException;
 
 /**
  * @author Brij Patel
