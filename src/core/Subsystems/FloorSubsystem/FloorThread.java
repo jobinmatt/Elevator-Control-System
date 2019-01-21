@@ -16,23 +16,21 @@ public class FloorThread extends Thread{
 
     private static Logger logger = LogManager.getLogger(FloorThread.class);
 
+    private static final int PORT = 23;
+
     private Queue<SimulationEvent> events;
     private int floorNumber;
     private boolean directionButton;
     private boolean lampStatus;
-    private int port;
 
     /**
      * Creates a floor thread
-     * @param port Port Number on which to communicate with the scheduler.
-     * @throws SocketException
      */
-    public FloorThread(int port) {
+    public FloorThread() {
         super();
         events = new LinkedList<>();
         directionButton = true; //going up by default
         lampStatus = false; //off
-        this.port = port;
     }
 
     /**

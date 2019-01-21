@@ -45,7 +45,7 @@ public class FloorSubsystem {
     private void createFloorThreads() throws SocketException {
 
         for(int i = 1; i <= numOfFloors; i++ ) {
-            floors.put(i,new FloorThread(23));
+            floors.put(i,new FloorThread());
         }
     }
 
