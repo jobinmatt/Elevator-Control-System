@@ -10,6 +10,7 @@ import java.util.*;
 import static core.Utils.InputParser.parseCVSFile;
 
 /**
+ * The floor subsystem handles the initialization of each floor thread and the events to be simulated.
  * @author Dharina H.
  */
 public class FloorSubsystem {
@@ -18,16 +19,25 @@ public class FloorSubsystem {
     private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
 
     private Map<Integer, FloorThread> floors;
-    String filename;
-    List<SimulationEvent> events;
-    int numOfFloors;
+    private String filename;
+    private List<SimulationEvent> events;
+    private int numOfFloors;
 
+    /**
+     * Creates a floorSubsystem obj
+     * @param filename
+     * @param numOfFloors
+     */
     public FloorSubsystem(String filename, int numOfFloors) {
         floors = new HashMap<>();
         this.filename = filename;
         this.numOfFloors = numOfFloors;
     }
 
+    /**
+     * Reads the input file to obtain the list of simulation events
+     * @throws InputParserException
+     */
     public void readFile() throws InputParserException {
         events = parseCVSFile(filename);
     }
@@ -41,10 +51,14 @@ public class FloorSubsystem {
 
     private void addEvents() {
         for(SimulationEvent e: events) {
-           floors.get(e.getFloor()).addEvent(new Event(e.getStartTime(), e.getFloorButton(), e.getCarButton(), e.getIntervalTime()));
+           floors.get(e.getFloor()).addEvent(e);
         }
     }
 
+    /**
+     * Creates the floor threads.
+     * @throws SocketException
+     */
     public void startFloorThreads() throws SocketException {
         createFloorThreads();
         addEvents();

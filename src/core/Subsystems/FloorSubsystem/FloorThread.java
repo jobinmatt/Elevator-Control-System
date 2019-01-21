@@ -1,5 +1,6 @@
 package core.Subsystems.FloorSubsystem;
 
+import core.Utils.SimulationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.net.DatagramSocket;
@@ -8,38 +9,51 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 /**
+ * The FloorThread represents a floor on which a person can request an elevator. Maintains a queue of events.
  * @author Dharina H.
  */
 public class FloorThread extends Thread{
 
-    private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
+    private static Logger logger = LogManager.getLogger(FloorThread.class);
 
-    Queue<Event> events;
-    DatagramSocket sendReceiveSocket;
-    int floorNumber;
-    boolean directionButton;
-    boolean lampStatus;
-    int port;
+    private Queue<SimulationEvent> events;
+    private DatagramSocket sendReceiveSocket;
+    private int floorNumber;
+    private boolean directionButton;
+    private boolean lampStatus;
+    private int port;
 
+    /**
+     * Creates a floor thread
+     * @param port Port Number on which to communicate with the scheduler.
+     * @throws SocketException
+     */
     public FloorThread(int port) throws SocketException {
         super();
         events = new LinkedList<>();
-        directionButton = false; //going down by default
+        directionButton = true; //going up by default
         lampStatus = false; //off
         this.port = port;
 
         sendReceiveSocket = new DatagramSocket(port);
     }
 
-    public void addEvent(Event e) {
+    /**
+     * Add a SimulationEvent to the queue
+     * @param e
+     */
+    public void addEvent(SimulationEvent e) {
         events.add(e);
     }
 
+    /**
+     *Services each floor request
+     */
     @Override
     public void run() {
 
         while(!events.isEmpty()) {
-            Event e = events.peek(); //first event in the queue
+            SimulationEvent e = events.peek(); //first event in the queue
             logger.info(e.toString());
             serviceRequest(e);
             events.remove(); //remove already serviced event from the queue
@@ -53,7 +67,7 @@ public class FloorThread extends Thread{
 
     }
 
-    private void serviceRequest(Event event) {
+    private void serviceRequest(SimulationEvent event) {
         /**
          * 1. Set direction lamp based on event and print out this info
          * 2. Send request to scheduler including the direction pressed by user and the floorNumber

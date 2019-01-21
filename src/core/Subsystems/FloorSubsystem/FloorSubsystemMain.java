@@ -8,7 +8,6 @@
 
 package core.Subsystems.FloorSubsystem;
 
-import core.Subsystems.FloorSubsystem.FloorSubsystem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,7 +27,7 @@ public class FloorSubsystemMain {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
             FloorSubsystem floorSystem = new FloorSubsystem("filename", Integer.getInteger(configurationParser.NUMBER_OF_FLOORS));
             floorSystem.readFile();
-            //send List<SimulationEvent> events to the scheduler ?
+            //****** send List<SimulationEvent> events to the scheduler ? ****
             floorSystem.startFloorThreads();
 			
 		} catch (Exception e) {
