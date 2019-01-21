@@ -10,8 +10,10 @@ package core.Subsystems.SchedulerSubsystem;
 
 import java.util.Queue;
 
+import core.Exceptions.SchedulerPipelineException;
+
 /**
- * 
+ *
  * This creates SchedulerThreads based on the number of elevators and floors and starts it.
  * @author Jobin Mathew
  * */
@@ -22,7 +24,7 @@ public class SchedulerSubsystem {
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 
-	public SchedulerSubsystem(int numElevators, int numFloors) {
+	public SchedulerSubsystem(int numElevators, int numFloors) throws SchedulerPipelineException {
 		SchedulerSubsystem.numberOfElevators = numElevators;
 		SchedulerSubsystem.numberOfFloors = numFloors;
 		this.listeners = new Thread[numberOfElevators+numberOfFloors];
@@ -37,7 +39,7 @@ public class SchedulerSubsystem {
 		}
 	}
 
-	public synchronized static void addEvent(SchedulerEvent e) {		
+	public synchronized static void addEvent(SchedulerEvent e) {
 		events.add(e);
 	}
 }

@@ -15,6 +15,9 @@ import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.LoggingManager;
+import core.Exceptions.SchedulerPipelineException;
+
 /**
  *
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
@@ -27,8 +30,17 @@ public class SchedulerPipeline extends Thread{
 	private DatagramSocket receiveSocket;
 	private static final int DATA_SIZE = 50;
 
-	public SchedulerPipeline() {
+	public SchedulerPipeline() throws SchedulerPipelineException{
 		super("SchedulerThread");
+
+		logger.info(LoggingManager.BANNER + "Scheduler Pipeline Thread\n");
+
+		try {
+			this.receiveSocket = new DatagramSocket();
+		}
+		catch(SocketException e) {
+			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
+		}
 	}
 
 	/**
@@ -36,35 +48,31 @@ public class SchedulerPipeline extends Thread{
 	 * @return DatagramPacket
 	 * @throws Exception
 	 */
-	private DatagramPacket receive() throws Exception {
+	private DatagramPacket receive() throws SchedulerPipelineException {
 		//need to decide the length later
 		DatagramPacket receivePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
 			logger.info("Waiting for data...");
 			receiveSocket.receive(receivePacket);
 		}catch (IOException e) {
-			throw new IOException("Receive Socket Timed Out on Scheduler", e);
+			throw new SchedulerPipelineException("Receive Socket Timed Out on Scheduler", e);
 		}
 		return receivePacket;
 	}
 
 	@Override
 	public void run() {
-		try {
-			this.receiveSocket = new DatagramSocket();
-			while(true) {
-				DatagramPacket packet = null;
-				try {
-					packet = receive();
-				} catch (Exception e) {
-					logger.error("Failed to receive packet", e);
-				}
-				//parse packet
-				SchedulerSubsystem.addEvent(parsePacket(packet));
+		while(true) {
+			DatagramPacket packet = null;
+			try {
+				packet = receive();
+			} catch (Exception e) {
+				//need to fix this
+				//throw new SchedulerPipelineException("Failed to receive packet", e);
+				logger.error("Failed to receive packet", e);
 			}
-		}
-		catch(SocketException e) {
-
+			//parse packet
+			SchedulerSubsystem.addEvent(parsePacket(packet));
 		}
 	}
 

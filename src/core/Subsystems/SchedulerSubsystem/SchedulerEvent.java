@@ -29,4 +29,24 @@ public class SchedulerEvent {
 		receivedAddress = packet.getAddress();
 		// use packet.getData()
 	}
+
+	public SimulationEvent getSimulationEvent() {
+		return simulationEvent;
+	}
+
+	public int getElevatorNumber() {
+		return elevatorNumber;
+	}
+
+	public int getFloorNumber() {
+		return floorNumber;
+	}
+
+	public int getReceivedPort() {
+		return receivedPort;
+	}
+
+	public InetAddress getReceivedAddress() {
+		return receivedAddress;
+	}
 }
