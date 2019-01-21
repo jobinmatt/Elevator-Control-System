@@ -52,15 +52,9 @@ public class InputParser {
 	private static final String CAR_BUTTON_HEADER = "Car Button";
 	private static final String FLOOR_HEADER = "Floor";
 
-	public synchronized static InputParser getInstance() {
-		if (inputParserInstance == null) {
-			inputParserInstance = new InputParser();
-		}
-		return inputParserInstance;
-	}
 
 	@SuppressWarnings("unchecked")
-	public List<SimulationEvent> parseCVSFile() throws InputParserException {
+	public static List<SimulationEvent> parseCVSFile() throws InputParserException {
 
 		logger.info("Parsing CVS File... ");
 		List<SimulationEvent> simulationEvents = new ArrayList<>();
@@ -121,7 +115,7 @@ public class InputParser {
 		}
 	}
 
-	private boolean isValidData(LinkedHashMap<String, String> eventInfo) throws InputParserException {
+	private static boolean isValidData(LinkedHashMap<String, String> eventInfo) throws InputParserException {
 
 		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) &&
 				eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER)) {
@@ -139,7 +133,7 @@ public class InputParser {
 		throw new InputParserException(eventInfo.toString() + ": not in the proper format or empty");
 	}
 
-	private boolean isNumber(String s) {
+	private static boolean isNumber(String s) {
 
 		boolean isNumber = true;
 		for (char c : s.toCharArray()) {

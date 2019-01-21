@@ -24,7 +24,6 @@ public class FloorSubsystem {
 	private Map<Integer, FloorThread> floors;
 	private List<SimulationEvent> events;
 	private int numOfFloors;
-	private InputParser inputParser;
 
 	/**
 	 * Creates a floorSubsystem obj
@@ -34,7 +33,6 @@ public class FloorSubsystem {
 	public FloorSubsystem(int numOfFloors) {
 		floors = new HashMap<>();
 		this.numOfFloors = numOfFloors;
-		inputParser = InputParser.getInstance();
 	}
 
 	/**
@@ -42,7 +40,7 @@ public class FloorSubsystem {
 	 * @throws InputParserException
 	 */
 	public void readFile() throws InputParserException {
-		events = inputParser.parseCVSFile();
+		events = InputParser.parseCVSFile();
 	}
 
 	private void createFloorThreads() throws SocketException {
