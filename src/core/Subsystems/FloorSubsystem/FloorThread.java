@@ -17,7 +17,6 @@ public class FloorThread extends Thread{
     private static Logger logger = LogManager.getLogger(FloorThread.class);
 
     private Queue<SimulationEvent> events;
-    private DatagramSocket sendReceiveSocket;
     private int floorNumber;
     private boolean directionButton;
     private boolean lampStatus;
@@ -28,14 +27,12 @@ public class FloorThread extends Thread{
      * @param port Port Number on which to communicate with the scheduler.
      * @throws SocketException
      */
-    public FloorThread(int port) throws SocketException {
+    public FloorThread(int port) {
         super();
         events = new LinkedList<>();
         directionButton = true; //going up by default
         lampStatus = false; //off
         this.port = port;
-
-        sendReceiveSocket = new DatagramSocket(port);
     }
 
     /**
@@ -70,7 +67,7 @@ public class FloorThread extends Thread{
     private void serviceRequest(SimulationEvent event) {
         /**
          * 1. Set direction lamp based on event and print out this info
-         * 2. Send request to scheduler including the direction pressed by user and the floorNumber
+         * 2. Using HostActions.send(), Send request to scheduler including the direction pressed by user and the floorNumber
          * 3. Get timer from scheduler and poll
          * 4. Send message to scheduler saying that the elevator is here
          * 5. Print out that elevator is on the floor
