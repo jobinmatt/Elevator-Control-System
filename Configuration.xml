@@ -12,7 +12,7 @@
 
         <ElevatorFloorTravelTimeSeconds>5</ElevatorFloorTravelTimeSeconds>
         
-        <CsvFileName>testing_2.csv</CsvFileName>
+        <SimulationEventListFile>testing_2.csv</SimulationEventListFile>
 
     </Config>
 

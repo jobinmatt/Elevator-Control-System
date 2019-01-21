@@ -37,7 +37,7 @@ public class ConfigurationParser {
 	public static final String NUMBER_OF_FLOORS= "NumberOfFloors";
 	public static final String ELEVATOR_DOOR_TIME_SECONDS = "ElevatorDoorTimeSeconds";
 	public static final String ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS = "ElevatorFloorTravelTimeSeconds";
-	public static final String CVS_FILENAME = "CsvFileName";
+	public static final String CVS_FILENAME = "SimulationEventListFile";
 
 	public static String initialPath = "//Config/";
 
