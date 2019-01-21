@@ -23,85 +23,86 @@ import org.apache.commons.configuration2.tree.xpath.XPathExpressionEngine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import core.Utils.Utils;
 import core.Exceptions.ConfigurationParserException;
+import core.Utils.Utils;
 
 public class ConfigurationParser {
 
-    private static Logger logger = LogManager.getLogger(ConfigurationParser.class);
+	private static Logger logger = LogManager.getLogger(ConfigurationParser.class);
 
-    private static ConfigurationParser configurationParserInstance = null;
-    private static XMLConfiguration configuration = null;
-    
-    public static final String NUMBER_OF_ELEVATORS = "NumberOfElevators";
-    public static final String NUMBER_OF_FLOORS= "NumberOfFloors";
-    public static final String ELEVATOR_DOOR_TIME_SECONDS = "ElevatorDoorTimeSeconds";
-    public static final String ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS = "ElevatorFloorTravelTimeSeconds";
+	private static ConfigurationParser configurationParserInstance = null;
+	private static XMLConfiguration configuration = null;
 
-    public static String initialPath = "//Config/";
+	public static final String NUMBER_OF_ELEVATORS = "NumberOfElevators";
+	public static final String NUMBER_OF_FLOORS= "NumberOfFloors";
+	public static final String ELEVATOR_DOOR_TIME_SECONDS = "ElevatorDoorTimeSeconds";
+	public static final String ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS = "ElevatorFloorTravelTimeSeconds";
+	public static final String CVS_FILENAME = "SimulationEventListFile";
 
-    public synchronized static ConfigurationParser getInstance() throws ConfigurationParserException {
+	public static String initialPath = "//Config/";
 
-        if (configurationParserInstance == null) {
-            configurationParserInstance = new ConfigurationParser();
-            configurationParserInstance.LoadConfig();
-        }
-        return configurationParserInstance;
-    }
+	public synchronized static ConfigurationParser getInstance() throws ConfigurationParserException {
 
-    protected void LoadConfig() throws ConfigurationParserException {
+		if (configurationParserInstance == null) {
+			configurationParserInstance = new ConfigurationParser();
+			configurationParserInstance.LoadConfig();
+		}
+		return configurationParserInstance;
+	}
 
-        try {
-            logger.info("Loading Configuration File...");
+	protected void LoadConfig() throws ConfigurationParserException {
 
-            configuration = new XMLConfiguration();
-            URI configFileURI= Utils.getBuildDirURI("Configuration.xml");
-            if (configFileURI == null) {
-                throw new ConfigurationParserException("Impossible to locate Configuration.xml");
-            }
+		try {
+			logger.info("Loading Configuration File...");
 
-            Parameters params = new Parameters();
-            File configFile = new File(configFileURI);
-            FileBasedConfigurationBuilder<XMLConfiguration> fileConfigurationBuilder = new FileBasedConfigurationBuilder<XMLConfiguration>(XMLConfiguration.class);
-            fileConfigurationBuilder.configure(params.fileBased().setFile(configFile));
+			configuration = new XMLConfiguration();
+			URI configFileURI= Utils.getBuildDirURI("Configuration.xml");
+			if (configFileURI == null) {
+				throw new ConfigurationParserException("Impossible to locate Configuration.xml");
+			}
 
-            configuration = fileConfigurationBuilder.getConfiguration();
-            configuration.setThrowExceptionOnMissing(true);
-            configuration.setExpressionEngine(new XPathExpressionEngine());
-            configuration.read(new File(configFileURI).toURI().toURL().openStream());
+			Parameters params = new Parameters();
+			File configFile = new File(configFileURI);
+			FileBasedConfigurationBuilder<XMLConfiguration> fileConfigurationBuilder = new FileBasedConfigurationBuilder<XMLConfiguration>(XMLConfiguration.class);
+			fileConfigurationBuilder.configure(params.fileBased().setFile(configFile));
 
-            logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
-        } catch (ConfigurationException | URISyntaxException | IOException e) {
-            throw new ConfigurationParserException(e);
-        }
-     }
+			configuration = fileConfigurationBuilder.getConfiguration();
+			configuration.setThrowExceptionOnMissing(true);
+			configuration.setExpressionEngine(new XPathExpressionEngine());
+			configuration.read(new File(configFileURI).toURI().toURL().openStream());
 
-    public String getString(String str) throws ConfigurationParserException {
+			logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
+		} catch (ConfigurationException | URISyntaxException | IOException e) {
+			throw new ConfigurationParserException(e);
+		}
+	}
 
-        try {
-            return configuration.getString(initialPath + str);
-        } catch (NoSuchElementException | ConversionException e) {
-            throw new ConfigurationParserException(e);
-        }
-    }
+	public String getString(String str) throws ConfigurationParserException {
 
-    public int getInt(String str) throws ConfigurationParserException {
+		try {
+			return configuration.getString(initialPath + str);
+		} catch (NoSuchElementException | ConversionException e) {
+			throw new ConfigurationParserException(e);
+		}
+	}
 
-        try {
-            return configuration.getInt(initialPath + str);
-        } catch (NoSuchElementException | ConversionException e) {
-            throw new ConfigurationParserException(e);
-        }
-    }
+	public int getInt(String str) throws ConfigurationParserException {
 
-    public boolean getBoolean(String str) throws ConfigurationParserException {
+		try {
+			return configuration.getInt(initialPath + str);
+		} catch (NoSuchElementException | ConversionException e) {
+			throw new ConfigurationParserException(e);
+		}
+	}
 
-        try {
-            return configuration.getBoolean(initialPath + str);
-        } catch (NoSuchElementException nse) {
-            throw new ConfigurationParserException(nse);
-        } catch (ConversionException ce) {
-            throw new ConfigurationParserException("Element not of type Boolean: 'true' or 'false' ", ce);
-        }
-    }
+	public boolean getBoolean(String str) throws ConfigurationParserException {
+
+		try {
+			return configuration.getBoolean(initialPath + str);
+		} catch (NoSuchElementException nse) {
+			throw new ConfigurationParserException(nse);
+		} catch (ConversionException ce) {
+			throw new ConfigurationParserException("Element not of type Boolean: 'true' or 'false' ", ce);
+		}
+	}
 }

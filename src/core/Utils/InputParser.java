@@ -2,9 +2,9 @@
 //
 // Filename: InputParser.java
 //
-// Description: Takes in a CVS files and converts it into SimulationParameters
+// Description: Class gets the CVS file defined in the configuration and
+//              parses it to create a list of SimulationEvents
 //
-// @author Brij Patel
 //***************************************************************************
 
 package core.Utils;
@@ -29,44 +29,58 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
+import core.ConfigurationParser;
 import core.LoggingManager;
+import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.InputParserException;
 
+/**
+ * Class gets the CVS file defined in the configuration and parses it to create
+ * a list of SimulationEvents
+ * 
+ * @author Brij Patel
+ */
 public class InputParser {
-	
+
 	private static Logger logger = LogManager.getLogger(InputParser.class);
-	
+
+	private static InputParser inputParserInstance = null;
+
 	private static final String TIME_FORMAT = "hh:mm:ss.SSS";
 	private static final String TIME_HEADER = "Time";
 	private static final String FLOOR_BUTTON_HEADER = "Floor Button";
 	private static final String CAR_BUTTON_HEADER = "Car Button";
 	private static final String FLOOR_HEADER = "Floor";
 
+
 	@SuppressWarnings("unchecked")
-	public static List<SimulationEvent> parseCVSFile(String fileName) throws InputParserException {
-		
+	public static List<SimulationEvent> parseCVSFile() throws InputParserException {
+
 		logger.info("Parsing CVS File... ");
 		List<SimulationEvent> simulationEvents = new ArrayList<>();
 		long baseIntervalTime = -1;
-		
+
 		try {
+			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
+			String fileName = configurationParser.getString(ConfigurationParser.CVS_FILENAME);
+			logger.debug("CVS File Name: " + fileName);
 			File inputFile = new File(Utils.getBuildDirURI(fileName));
 			DateFormat df = new SimpleDateFormat(TIME_FORMAT);
 			CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).build();
 			CsvMapper csvMapper = new CsvMapper();
 			List<Object> inputEvents = csvMapper.readerFor(Map.class).with(csvSchema).readValues(inputFile).readAll();
-			
+
 			for (Object event : inputEvents) {
-				
+
 				if (event instanceof LinkedHashMap) {
-					
+
 					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
-					
-					if (isValidData(eventInfo)) {				
+
+					if (isValidData(eventInfo)) {
 						String timeString = eventInfo.get(TIME_HEADER);
 						Date simulationDate = df.parse(timeString);
 						boolean floorButtonDirection;
-						
+
 						if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Up")) {
 							floorButtonDirection = true;
 						} else if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Down")) {
@@ -74,9 +88,9 @@ public class InputParser {
 						} else {
 							throw new InputParserException("Floor Button string is not valid");
 						}
-						
+
 						simulationEvents.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
-								             floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
+								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
 
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
@@ -84,31 +98,33 @@ public class InputParser {
 					throw new InputParserException("File not in correct format");
 				}
 			}
-			
+
 			Collections.sort(simulationEvents);
 			baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
-			
+
 			for (SimulationEvent e : simulationEvents) {
 				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
 			}
-			
+
 			logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 			return simulationEvents;
 		} catch (NumberFormatException | URISyntaxException | IOException | ParseException e) {
 			throw new InputParserException("Unable to parse file");
+		} catch (ConfigurationParserException e1) {
+			throw new InputParserException("Error with the configuration file");
 		}
 	}
 
 	private static boolean isValidData(LinkedHashMap<String, String> eventInfo) throws InputParserException {
-		
-		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) && 
-			eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER)) {
-			
+
+		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) &&
+				eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER)) {
+
 			if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER)) &&
-				!StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER)) &&
-				!StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER)) &&
-				!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER))) {
-				
+					!StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER)) &&
+					!StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER)) &&
+					!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER))) {
+
 				if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER))) {
 					return true;
 				}
@@ -118,7 +134,7 @@ public class InputParser {
 	}
 
 	private static boolean isNumber(String s) {
-		
+
 		boolean isNumber = true;
 		for (char c : s.toCharArray()) {
 			isNumber = isNumber && Character.isDigit(c);
