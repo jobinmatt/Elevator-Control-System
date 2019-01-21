@@ -1,6 +1,6 @@
 //****************************************************************************
 //
-// Filename: SchedulerThread.java
+// Filename: SchedulerPipeline.java
 //
 // Description: Thread that waits to receive incoming packets
 //
@@ -16,58 +16,65 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * 
- * SchedulerThread is a receives incoming packets to the Scheduler and parses the data to a QueuedEvent
+ *
+ * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
  * @author Jobin Mathew
  * */
-public class SchedulerThread extends Thread{
+public class SchedulerPipeline extends Thread{
 
-	private static Logger logger = LogManager.getLogger(SchedulerThread.class);
+	private static Logger logger = LogManager.getLogger(SchedulerPipeline.class);
 
 	private DatagramSocket receiveSocket;
+	private static final int DATA_SIZE = 50;
 
-	public SchedulerThread() {
+	public SchedulerPipeline() {
 		super("SchedulerThread");
 	}
 
 	/**
 	 * Waits till a DatagramPacket is received
 	 * @return DatagramPacket
+	 * @throws Exception
 	 */
-	private DatagramPacket receive() {
+	private DatagramPacket receive() throws Exception {
 		//need to decide the length later
-		DatagramPacket receivePacket = new DatagramPacket(new byte[50], 50);
+		DatagramPacket receivePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
-			logger.info("Waiting for data from...");
+			logger.info("Waiting for data...");
 			receiveSocket.receive(receivePacket);
 		}catch (IOException e) {
-			logger.error("Receive Socket Timed Out on Host.\n" , e);
-			e.printStackTrace();
+			throw new IOException("Receive Socket Timed Out on Scheduler", e);
 		}
 		return receivePacket;
 	}
 
-	public void run() {		
-		try {			
+	@Override
+	public void run() {
+		try {
 			this.receiveSocket = new DatagramSocket();
 			while(true) {
-				DatagramPacket packet = receive();
+				DatagramPacket packet = null;
+				try {
+					packet = receive();
+				} catch (Exception e) {
+					logger.error("Failed to receive packet", e);
+				}
 				//parse packet
 				SchedulerSubsystem.addEvent(parsePacket(packet));
 			}
 		}
 		catch(SocketException e) {
-			logger.error("Error creating the socket", e);
-		}		
+
+		}
 	}
 
 	/**
-	 * Creates and returns a QueuedEvent based on the DatagramPacket 
-	 * @return QueuedEvent
+	 * Creates and returns a SchedulerEvent based on the DatagramPacket
+	 * @return SchedulerEvent
 	 */
-	private QueuedEvent parsePacket(DatagramPacket packet) {
+	private SchedulerEvent parsePacket(DatagramPacket packet) {
 
-		return new QueuedEvent(packet);
+		return new SchedulerEvent(packet);
 	}
 
 }

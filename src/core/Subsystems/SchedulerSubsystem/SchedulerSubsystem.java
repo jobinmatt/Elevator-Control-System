@@ -18,7 +18,7 @@ import java.util.Queue;
 public class SchedulerSubsystem {
 
 	private Thread[] listeners;
-	private static Queue<QueuedEvent> events;
+	private static Queue<SchedulerEvent> events;
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 
@@ -27,7 +27,7 @@ public class SchedulerSubsystem {
 		SchedulerSubsystem.numberOfFloors = numFloors;
 		this.listeners = new Thread[numberOfElevators+numberOfFloors];
 		for (int i = 0; i < numberOfElevators+numberOfFloors; i++) {
-			this.listeners[i]= new SchedulerThread();
+			this.listeners[i]= new SchedulerPipeline();
 		}
 	}
 
@@ -37,7 +37,7 @@ public class SchedulerSubsystem {
 		}
 	}
 
-	public synchronized static void addEvent(QueuedEvent e) {		
+	public synchronized static void addEvent(SchedulerEvent e) {		
 		events.add(e);
 	}
 }

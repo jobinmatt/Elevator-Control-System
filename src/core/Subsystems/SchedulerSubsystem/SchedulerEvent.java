@@ -1,8 +1,8 @@
 //****************************************************************************
 //
-// Filename: QueuedEvent.java
+// Filename: SchedulerEvent.java
 //
-// Description: QueuedEvent that can be used by the scheduler
+// Description: SchedulerEvent that can be used by the scheduler
 //
 //***************************************************************************
 package core.Subsystems.SchedulerSubsystem;
@@ -13,18 +13,18 @@ import java.net.InetAddress;
 import core.Utils.SimulationEvent;
 
 /**
- * 
- * This creates a QueuedEvent based on a DatagramPacket 
+ *
+ * This creates a SchedulerEvent based on a DatagramPacket
  * @author Jobin Mathew
  * */
-public class QueuedEvent {
+public class SchedulerEvent {
 	private SimulationEvent simulationEvent;
 	private int elevatorNumber = -1;
 	private int floorNumber = -1;
 	private int receivedPort;
 	private InetAddress receivedAddress;
 
-	public QueuedEvent(DatagramPacket packet) {
+	public SchedulerEvent(DatagramPacket packet) {
 		receivedPort = packet.getPort();
 		receivedAddress = packet.getAddress();
 		// use packet.getData()
