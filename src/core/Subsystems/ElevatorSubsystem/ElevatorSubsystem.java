@@ -6,6 +6,9 @@
 //
 //***************************************************************************
 package core.Subsystems.ElevatorSubsystem;
+
+import java.net.SocketException;
+
 /**
  * 
  * This creates an elevator car thread pool, and powers them on. Will also handle elevator cars 
@@ -16,7 +19,7 @@ public class ElevatorSubsystem {
 	
 	private int numFloors, numElev;
 	private ElevatorCar[] carPool; //lol
-	public ElevatorSubsystem(int numElev, int numFloors) {
+	public ElevatorSubsystem(int numElev, int numFloors) throws SocketException {
 		this.numElev = numElev;
 		this.numFloors = numFloors;
 		this.carPool = new ElevatorCar[numElev];
@@ -34,5 +37,5 @@ public class ElevatorSubsystem {
 	}
 	
 	//other elevator stuff goes here
-	
+
 }

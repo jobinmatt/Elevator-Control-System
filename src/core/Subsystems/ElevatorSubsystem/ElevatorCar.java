@@ -16,7 +16,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import core.main.FloorSubsystemMain;
 /**
  * 
  * This creates an elevator car, and handles the properties and states for the car
@@ -24,7 +23,7 @@ import core.main.FloorSubsystemMain;
  * */
 public class ElevatorCar extends Thread {
 
-	private static Logger logger = LogManager.getLogger(FloorSubsystemMain.class);
+	private static Logger logger = LogManager.getLogger(ElevatorCar.class);
 	private boolean[] floors; //if true then its is pressed
 	private Map<ElevatorComponentConstants, ElevatorComponentStates> carProperties;
 	private int floorNum;
@@ -35,7 +34,7 @@ public class ElevatorCar extends Thread {
 	 * Constructor for elevator car
 	 * @param numFloors
 	 * */
-	public ElevatorCar(int numFloors){
+	public ElevatorCar(int numFloors) throws SocketException{
 		//init floors
 		this.floorNum = numFloors;
 		floors = new boolean[this.floorNum];
@@ -45,14 +44,10 @@ public class ElevatorCar extends Thread {
 		carProperties.put(ElevatorComponentConstants.ELEV_DOORS, ElevatorComponentStates.ELEV_DOORS_CLOSE);
 		carProperties.put(ElevatorComponentConstants.ELEV_MOTOR, ElevatorComponentStates.ELEV_MOTOR_IDLE);
 		
-		//init comms stuff
-		try {			
-			this.sckElevator = new DatagramSocket();
-		}
-		catch(SocketException e) {
-			logger.error("Error creating the socket", e);
-		}
-		
+		//init comms stuff		
+		this.sckElevator = new DatagramSocket();
+	
+
 	}
 	/**
 	 * checks if the specified floor button is pressed
