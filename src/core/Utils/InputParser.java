@@ -77,7 +77,7 @@ public class InputParser {
 						
 						simulationEvents.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
 								             floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
-						
+
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
 				} else {

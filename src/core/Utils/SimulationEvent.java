@@ -76,5 +76,12 @@ public class SimulationEvent implements Comparable<SimulationEvent> {
 		return getStartTime().compareTo(o.getStartTime());
 	}
 
+	@Override
+	public String toString() {
+		if(floorButton) {
+			return "Time: " + startTime + " Floor: " + floor + " Direction: UP." + " Destination floor: " + carButton;
+		}
+		return "Time: " + startTime + " Floor: " + floor + " Direction: DOWN." + " Destination floor: " + carButton;
+	}
 
 }
