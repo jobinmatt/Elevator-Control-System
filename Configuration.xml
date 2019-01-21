@@ -11,6 +11,8 @@
         <ElevatorDoorTimeSeconds>1</ElevatorDoorTimeSeconds>
 
         <ElevatorFloorTravelTimeSeconds>5</ElevatorFloorTravelTimeSeconds>
+        
+        <CsvFileName>testing_2.csv</CsvFileName>
 
     </Config>
 
