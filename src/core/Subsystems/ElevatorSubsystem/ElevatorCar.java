@@ -71,14 +71,14 @@ public class ElevatorCar extends Thread {
 	 * Get state of the motor
 	 * @return ElevatorComponentStates
 	 * */
-	public ElevatorComponentStates getMotorStatus() {
+	public synchronized ElevatorComponentStates getMotorStatus() {
 		return carProperties.get(ElevatorComponentConstants.ELEV_MOTOR);
 	}
 	/**
 	 * Get state of the door 
 	 * @return ElevatorComponentStates
 	 * */
-	public ElevatorComponentStates getDoorStatus() {
+	public synchronized ElevatorComponentStates getDoorStatus() {
 		return carProperties.get(ElevatorComponentConstants.ELEV_MOTOR);
 	}
 	/**
@@ -86,14 +86,14 @@ public class ElevatorCar extends Thread {
 	 * @param state
 	 * 
 	 * */
-	public void updateMotorStatus(ElevatorComponentStates state) {
+	public synchronized void updateMotorStatus(ElevatorComponentStates state) {
 		carProperties.replace(ElevatorComponentConstants.ELEV_MOTOR, state);
 	}
 	/**
 	 * Updates the elevator car's door status
 	 * @param state
 	 * */
-	public void updateDoorStatus(ElevatorComponentStates state) {
+	public synchronized void updateDoorStatus(ElevatorComponentStates state) {
 		carProperties.replace(ElevatorComponentConstants.ELEV_DOORS, state);
 	}
 	
