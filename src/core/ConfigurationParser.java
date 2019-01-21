@@ -4,14 +4,9 @@
 //
 // Description: Parser for configuration file
 //
-// Copyright 2018 SafeNet. All rights reserved.
-//
-// All rights reserved. This file contains information that is
-// proprietary to SafeNet and may not be distributed
-// or copied without written consent from SafeNet.
-//
 //***************************************************************************
-package core.main;
+
+package core;
 
 import java.io.File;
 import java.io.IOException;

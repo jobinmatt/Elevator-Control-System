@@ -6,6 +6,7 @@
 //              to cause.
 //
 //***************************************************************************
+
 package core.Utils;
 
 import java.util.Date;
@@ -19,6 +20,7 @@ public class SimulationEvent implements Comparable<SimulationEvent> {
 	private long intervalTime;
 
 	public SimulationEvent(Date startTime, int floor, boolean floorButton, int carButton) {
+		
 		super();
 		this.startTime = startTime;
 		this.floor = floor;
@@ -27,6 +29,7 @@ public class SimulationEvent implements Comparable<SimulationEvent> {
 	}
 
 	public SimulationEvent(Date startTime, int floor, boolean floorButton, int carButton, long intervalTime) {
+		
 		super();
 		this.startTime = startTime;
 		this.floor = floor;
@@ -36,31 +39,38 @@ public class SimulationEvent implements Comparable<SimulationEvent> {
 	}
 
 	public Date getStartTime() {
+		
 		return startTime;
 	}
 
 	public int getFloor() {
+		
 		return floor;
 	}
 
 	public boolean getFloorButton() {
+		
 		return floorButton;
 	}
 
 	public int getCarButton() {
+		
 		return carButton;
 	}
 
 	public void setIntervalTime(long i) {
+		
 		this.intervalTime = i;
 	}
 
 	public long getIntervalTime() {
+		
 		return this.intervalTime;
 	}
 
 	@Override
 	public int compareTo(SimulationEvent o) {
+		
 		if (getStartTime() == null || o.getStartTime() == null)
 			return 0;
 		return getStartTime().compareTo(o.getStartTime());

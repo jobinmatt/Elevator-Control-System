@@ -1,6 +1,14 @@
+//****************************************************************************
+//
+// Filename: ConfigurationParserException.java
+//
+// Description: Configuration Parser Exception class
+//
+//***************************************************************************
+
 package core.Exceptions;
 
-public class ConfigurationParserException extends GeneralExceptions {
+public class ConfigurationParserException extends GeneralException {
 
     private static final long serialVersionUID = -4002692838353295206L;
 

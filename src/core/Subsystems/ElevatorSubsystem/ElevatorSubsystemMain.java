@@ -1,14 +1,17 @@
 //****************************************************************************
 //
-// Filename: Elevator_Subsystem.java
+// Filename: ElevatorSubsystemMain.java
 //
-// Description: Elevator Subsystem Class
+// Description: Elevator Subsystem Main Class
 //
 //***************************************************************************
-package core.main;
+
+package core.Subsystems.ElevatorSubsystem;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import core.LoggingManager;
 
 public class ElevatorSubsystemMain {
 

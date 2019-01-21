@@ -1,3 +1,12 @@
+//****************************************************************************
+//
+// Filename: HostActions.java
+//
+// Description: Main functionalities for sending and receiving datagram packets.
+//
+// @author Dharina H.
+//***************************************************************************
+
 package core.HostActions;
 
 import core.Exceptions.HostActionsException;
@@ -7,17 +16,9 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Optional;
 
-/**
- * Filename: core.HostActions
- *
- * Description: main functionalities for sending and receiving datagram packets.
- *
- * @author Dharina H.
- */
 public class HostActions {
 
     /**
-     *
      * @param packet
      * @param socket
      * @throws HostActionsException
@@ -30,6 +31,7 @@ public class HostActions {
         } catch (SocketException e) {
             throw new HostActionsException("Socket creation failure.", e);
         }
+        
         try {
             hostSocket.send(packet);
         } catch (IOException e) {
@@ -39,13 +41,13 @@ public class HostActions {
     }
 
     /**
-     *
      * @param packet
      * @param socket
      * @throws HostActionsException
      */
     protected void receive(DatagramPacket packet, DatagramSocket socket) throws HostActionsException {
-        try {
+        
+    	try {
             socket.receive(packet);
         } catch (IOException e) {
             throw new HostActionsException("Data packet not received.", e);
