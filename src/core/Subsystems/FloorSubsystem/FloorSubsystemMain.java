@@ -23,13 +23,11 @@ public class FloorSubsystemMain {
 		logger.info(LoggingManager.BANNER + "Floor Subsystem\n");
 
 		try {
-
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-			FloorSubsystem floorSystem = new FloorSubsystem(Integer.getInteger(configurationParser.NUMBER_OF_FLOORS));
-			floorSystem.readFile();
-			//****** send List<SimulationEvent> events to the scheduler ? ****
+			
+			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
+			FloorSubsystem floorSystem = new FloorSubsystem(numFloors);
 			floorSystem.startFloorThreads();
-
 		} catch (Exception e) {
 			logger.error("", e);
 			System.exit(-1);

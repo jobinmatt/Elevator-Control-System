@@ -4,6 +4,7 @@
 //
 // Description: Parser for configuration file
 //
+// @author Rajat Bansal
 //***************************************************************************
 
 package core;

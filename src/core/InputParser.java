@@ -5,9 +5,10 @@
 // Description: Class gets the CVS file defined in the configuration and
 //              parses it to create a list of SimulationEvents
 //
+// @author Brij Patel
 //***************************************************************************
 
-package core.Utils;
+package core;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,22 +30,18 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
-import core.ConfigurationParser;
-import core.LoggingManager;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.InputParserException;
+import core.Utils.SimulationEvent;
+import core.Utils.Utils;
 
 /**
  * Class gets the CVS file defined in the configuration and parses it to create
  * a list of SimulationEvents
- * 
- * @author Brij Patel
  */
 public class InputParser {
 
 	private static Logger logger = LogManager.getLogger(InputParser.class);
-
-	private static InputParser inputParserInstance = null;
 
 	private static final String TIME_FORMAT = "hh:mm:ss.SSS";
 	private static final String TIME_HEADER = "Time";
@@ -62,9 +59,11 @@ public class InputParser {
 
 		try {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
+			
 			String fileName = configurationParser.getString(ConfigurationParser.CVS_FILENAME);
-			logger.debug("CVS File Name: " + fileName);
+			logger.debug("CVS File Name: " + fileName);		
 			File inputFile = new File(Utils.getBuildDirURI(fileName));
+			
 			DateFormat df = new SimpleDateFormat(TIME_FORMAT);
 			CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).build();
 			CsvMapper csvMapper = new CsvMapper();

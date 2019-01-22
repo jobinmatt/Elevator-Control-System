@@ -71,17 +71,26 @@ public class SimulationEvent implements Comparable<SimulationEvent> {
 	@Override
 	public int compareTo(SimulationEvent o) {
 		
-		if (getStartTime() == null || o.getStartTime() == null)
+		if (getStartTime() == null || o.getStartTime() == null) {
+			
 			return 0;
+		}
 		return getStartTime().compareTo(o.getStartTime());
 	}
 
 	@Override
 	public String toString() {
-		if(floorButton) {
+		
+		if (floorButton) {
 			return "Time: " + startTime + " Floor: " + floor + " Direction: UP." + " Destination floor: " + carButton;
 		}
 		return "Time: " + startTime + " Floor: " + floor + " Direction: DOWN." + " Destination floor: " + carButton;
+	}
+	
+	public byte[] toBytes() {
+		
+		//must be implemented
+		return null;
 	}
 
 }

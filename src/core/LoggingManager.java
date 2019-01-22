@@ -4,6 +4,7 @@
 //
 // Description: logging class
 //
+// @author Rajat Bansal
 //***************************************************************************
 
 package core;

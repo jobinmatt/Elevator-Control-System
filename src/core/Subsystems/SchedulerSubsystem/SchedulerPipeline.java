@@ -19,9 +19,7 @@ import core.LoggingManager;
 import core.Exceptions.SchedulerPipelineException;
 
 /**
- *
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
- * @author Jobin Mathew
  * */
 public class SchedulerPipeline extends Thread{
 
@@ -49,6 +47,7 @@ public class SchedulerPipeline extends Thread{
 	 * @throws Exception
 	 */
 	private DatagramPacket receive() throws SchedulerPipelineException {
+		
 		//need to decide the length later
 		DatagramPacket receivePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
@@ -62,13 +61,12 @@ public class SchedulerPipeline extends Thread{
 
 	@Override
 	public void run() {
+		
 		while(true) {
 			DatagramPacket packet = null;
 			try {
 				packet = receive();
 			} catch (Exception e) {
-				//need to fix this
-				//throw new SchedulerPipelineException("Failed to receive packet", e);
 				logger.error("Failed to receive packet", e);
 			}
 			//parse packet
@@ -83,6 +81,11 @@ public class SchedulerPipeline extends Thread{
 	private SchedulerEvent parsePacket(DatagramPacket packet) {
 
 		return new SchedulerEvent(packet);
+	}
+
+	public void terminate() {
+
+		//cleanup goes here
 	}
 
 }

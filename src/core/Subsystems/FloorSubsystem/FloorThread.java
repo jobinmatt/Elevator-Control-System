@@ -1,18 +1,26 @@
+//****************************************************************************
+//
+// Filename: FloorThread.java
+//
+// Description: Floor thread Class
+//
+// @author Dharina H.
+//***************************************************************************
+
 package core.Subsystems.FloorSubsystem;
 
 import core.Utils.SimulationEvent;
+import core.Utils.Utils;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.net.DatagramSocket;
-import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Queue;
 
 /**
  * The FloorThread represents a floor on which a person can request an elevator. Maintains a queue of events.
- * @author Dharina H.
  */
-public class FloorThread extends Thread{
+public class FloorThread extends Thread {
 
     private static Logger logger = LogManager.getLogger(FloorThread.class);
 
@@ -27,6 +35,7 @@ public class FloorThread extends Thread{
      * Creates a floor thread
      */
     public FloorThread() {
+    	
         super();
         events = new LinkedList<>();
         directionButton = true; //going up by default
@@ -38,6 +47,7 @@ public class FloorThread extends Thread{
      * @param e
      */
     public void addEvent(SimulationEvent e) {
+    	
         events.add(e);
     }
 
@@ -48,14 +58,15 @@ public class FloorThread extends Thread{
     public void run() {
 
         while(!events.isEmpty()) {
-            SimulationEvent e = events.peek(); //first event in the queue
-            logger.info(e.toString());
-            serviceRequest(e);
+            SimulationEvent event = events.peek(); //first event in the queue
+            logger.info(event.toString());
+            serviceRequest(event);
             events.remove(); //remove already serviced event from the queue
+            
             try {
-                this.sleep(e.getIntervalTime());
-            } catch (InterruptedException e1) {
-                e1.printStackTrace(); //***will be changed to throw an exception
+            	Utils.Sleep(event.getIntervalTime());
+            } catch (Exception e) {
+                logger.error("", e);
             }
 
         }
@@ -63,6 +74,7 @@ public class FloorThread extends Thread{
     }
 
     private void serviceRequest(SimulationEvent event) {
+    	
         /**
          * 1. Set direction lamp based on event and print out this info
          * 2. Using HostActions.send(), Send request to scheduler including the direction pressed by user and the floorNumber
@@ -71,4 +83,9 @@ public class FloorThread extends Thread{
          * 5. Print out that elevator is on the floor
          */
     }
+
+	public void terminate() {
+		
+		//cleanup goes here
+	}
 }
