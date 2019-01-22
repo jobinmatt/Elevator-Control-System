@@ -20,7 +20,7 @@ import core.Exceptions.SchedulerPipelineException;
 public class SchedulerSubsystem {
 
 	private Thread[] listeners;
-	private static Queue<SchedulerEvent> events;
+	private static Queue<SchedulerRequest> events;
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 
@@ -39,7 +39,7 @@ public class SchedulerSubsystem {
 		}
 	}
 
-	public synchronized static void addEvent(SchedulerEvent e) {
+	public synchronized static void addEvent(SchedulerRequest e) {
 		events.add(e);
 	}
 }

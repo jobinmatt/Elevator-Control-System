@@ -1,6 +1,6 @@
 package core.Subsystems.FloorSubsystem;
 
-import core.Utils.SimulationEvent;
+import core.Utils.SimulationRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.net.DatagramSocket;
@@ -18,7 +18,7 @@ public class FloorThread extends Thread{
 
     private static final int PORT = 23;
 
-    private Queue<SimulationEvent> events;
+    private Queue<SimulationRequest> events;
     private int floorNumber;
     private boolean directionButton;
     private boolean lampStatus;
@@ -37,7 +37,7 @@ public class FloorThread extends Thread{
      * Add a SimulationEvent to the queue
      * @param e
      */
-    public void addEvent(SimulationEvent e) {
+    public void addEvent(SimulationRequest e) {
         events.add(e);
     }
 
@@ -48,7 +48,7 @@ public class FloorThread extends Thread{
     public void run() {
 
         while(!events.isEmpty()) {
-            SimulationEvent e = events.peek(); //first event in the queue
+            SimulationRequest e = events.peek(); //first event in the queue
             logger.info(e.toString());
             serviceRequest(e);
             events.remove(); //remove already serviced event from the queue
@@ -62,7 +62,7 @@ public class FloorThread extends Thread{
 
     }
 
-    private void serviceRequest(SimulationEvent event) {
+    private void serviceRequest(SimulationRequest event) {
         /**
          * 1. Set direction lamp based on event and print out this info
          * 2. Using HostActions.send(), Send request to scheduler including the direction pressed by user and the floorNumber
