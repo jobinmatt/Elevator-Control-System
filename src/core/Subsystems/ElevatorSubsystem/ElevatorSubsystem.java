@@ -35,9 +35,10 @@ public class ElevatorSubsystem {
 		this.carPool = new HashMap<String, ElevatorCarThread>();
 		
 		try {
+			String curr_name;
 			for (int i=0; i< this.numberOfElev;i++) {
-				
-				this.carPool.put(ELEVATOR_NAME+(i+1), new ElevatorCarThread(ELEVATOR_NAME+i+1, this.numberOfFloors));
+				curr_name = ELEVATOR_NAME+(i+1);
+				this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors));
 			}
 		} catch (SocketException e) {
 			throw new ElevatorSubystemException(e);
