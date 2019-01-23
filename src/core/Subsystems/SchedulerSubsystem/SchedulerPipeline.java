@@ -78,9 +78,9 @@ public class SchedulerPipeline extends Thread{
 	 * Creates and returns a SchedulerEvent based on the DatagramPacket
 	 * @return SchedulerEvent
 	 */
-	private SchedulerEvent parsePacket(DatagramPacket packet) {
+	private SchedulerRequest parsePacket(DatagramPacket packet) {
 
-		return new SchedulerEvent(packet);
+		return new SchedulerRequest(packet);
 	}
 
 	public void terminate() {

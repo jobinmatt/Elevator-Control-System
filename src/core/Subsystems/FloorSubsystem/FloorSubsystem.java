@@ -20,7 +20,8 @@ import core.InputParser;
 import core.LoggingManager;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.InputParserException;
-import core.Utils.SimulationEvent;
+import core.Utils.SimulationRequest;
+
 
 /**
  * The floor subsystem handles the initialization of each floor thread and the events to be simulated.
@@ -30,7 +31,7 @@ public class FloorSubsystem {
 	private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
 
 	private Map<Integer, FloorThread> floors;
-	private List<SimulationEvent> events;
+	private List<SimulationRequest> events;
 	private int numberOfFloors;
 
 	/**
@@ -78,7 +79,7 @@ public class FloorSubsystem {
 	}
 
 	private void addEvents() {
-		for(SimulationEvent e: events) {
+		for(SimulationRequest e: events) {
 			floors.get(e.getFloor()).addEvent(e);
 		}
 	}

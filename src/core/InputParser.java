@@ -32,7 +32,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.InputParserException;
-import core.Utils.SimulationEvent;
+import core.Utils.SimulationRequest;
 import core.Utils.Utils;
 
 /**
@@ -51,10 +51,10 @@ public class InputParser {
 
 
 	@SuppressWarnings("unchecked")
-	public static List<SimulationEvent> parseCVSFile() throws InputParserException {
+	public static List<SimulationRequest> parseCVSFile() throws InputParserException {
 
 		logger.info("Parsing CVS File... ");
-		List<SimulationEvent> simulationEvents = new ArrayList<>();
+		List<SimulationRequest> simulationEvents = new ArrayList<>();
 		long baseIntervalTime = -1;
 
 		try {
@@ -88,7 +88,7 @@ public class InputParser {
 							throw new InputParserException("Floor Button string is not valid");
 						}
 
-						simulationEvents.add(new SimulationEvent(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+						simulationEvents.add(new SimulationRequest(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
 								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
 
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
@@ -101,7 +101,7 @@ public class InputParser {
 			Collections.sort(simulationEvents);
 			baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
 
-			for (SimulationEvent e : simulationEvents) {
+			for (SimulationRequest e : simulationEvents) {
 				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
 			}
 
