@@ -37,7 +37,7 @@ public class ElevatorSubsystem {
 		try {
 			for (int i=0; i< this.numberOfElev;i++) {
 				
-				this.carPool.put(ELEVATOR_NAME+i+1, new ElevatorCarThread(ELEVATOR_NAME+i+1, this.numberOfFloors));
+				this.carPool.put(ELEVATOR_NAME+(i+1), new ElevatorCarThread(ELEVATOR_NAME+i+1, this.numberOfFloors));
 			}
 		} catch (SocketException e) {
 			throw new ElevatorSubystemException(e);
