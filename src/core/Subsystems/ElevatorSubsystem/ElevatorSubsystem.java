@@ -11,6 +11,8 @@
 package core.Subsystems.ElevatorSubsystem;
 
 import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,22 +21,23 @@ import core.LoggingManager;
 import core.Exceptions.ElevatorSubystemException;
 
 public class ElevatorSubsystem {
-	
+	private final String ELEVATOR_NAME = "ElevatorCar"; 
 	private static Logger logger = LogManager.getLogger(ElevatorCarThread.class);
 	
 	private int numberOfFloors;
 	private int numberOfElev;
-	private ElevatorCarThread[] carPool;
+	private Map<String, ElevatorCarThread> carPool;
 	
 	public ElevatorSubsystem(int numElev, int numFloors) throws ElevatorSubystemException {
 		
 		this.numberOfElev = numElev;
 		this.numberOfFloors = numFloors;
-		this.carPool = new ElevatorCarThread[numElev];
+		this.carPool = new HashMap<String, ElevatorCarThread>();
 		
 		try {
 			for (int i=0; i< this.numberOfElev;i++) {
-				this.carPool[i] = new ElevatorCarThread(numFloors);
+				
+				this.carPool.put(ELEVATOR_NAME+i+1, new ElevatorCarThread(ELEVATOR_NAME+i+1, this.numberOfFloors));
 			}
 		} catch (SocketException e) {
 			throw new ElevatorSubystemException(e);
@@ -42,9 +45,9 @@ public class ElevatorSubsystem {
 		
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-            	for (ElevatorCarThread car: carPool) {
+            	for (Map.Entry<String, ElevatorCarThread> car : carPool.entrySet()) { 
                     if (car != null) {
-                        car.terminate();
+                        car.getValue().terminate();
                     }
             	}
                 LoggingManager.terminate();
@@ -58,8 +61,8 @@ public class ElevatorSubsystem {
 	public void activateElevators() {
 		
 		logger.info("Activating Elevators...");
-		for (ElevatorCarThread cars : this.carPool) {
-			cars.start();
+		for (Map.Entry<String, ElevatorCarThread> car : carPool.entrySet()) { 
+			car.getValue().start();
 		}
 		logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 	}
