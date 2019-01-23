@@ -75,7 +75,7 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 	@Override
 	public int compareTo(SimulationRequest o) {
 
-		if (getStartTime() == null || o.getStartTime() == null)
+		if (getStartTime() == null || o.getStartTime() == null) {
 			return 0;
 		}
 		return getStartTime().compareTo(o.getStartTime());
