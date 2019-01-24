@@ -16,7 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.Exceptions.SchedulerPipelineException;
-import core.Utils.TypeConstants;
+import core.Utils.SubsystemConstants;
 
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
@@ -33,10 +33,10 @@ public class SchedulerPipeline extends Thread{
 	private DatagramSocket receiveSocket;
 
 
-	public SchedulerPipeline(TypeConstants objectType, int portOffset) throws SchedulerPipelineException{
+	public SchedulerPipeline(SubsystemConstants objectType, int portOffset) throws SchedulerPipelineException{
 		String threadName;
 		int portNumber = -1;
-		if(objectType == TypeConstants.ELEVATOR) {
+		if(objectType == SubsystemConstants.ELEVATOR) {
 			threadName = ELEVATOR_PIPELINE + portOffset;
 			portNumber = DEFAULT_ELEVATOR_PORT_VALUE + portOffset;
 		}

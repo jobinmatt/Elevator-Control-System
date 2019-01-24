@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 import core.LoggingManager;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
-import core.Utils.TypeConstants;
+import core.Utils.SubsystemConstants;
 
 /**
  * This creates SchedulerThreads based on the number of elevators and floors and starts it.
@@ -54,10 +54,10 @@ public class SchedulerSubsystem {
 		this.listeners = new SchedulerPipeline[numberOfElevators + numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.listeners[i]= new SchedulerPipeline(TypeConstants.ELEVATOR, i+1);
+			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.listeners[numberOfElevators + i]= new SchedulerPipeline(TypeConstants.FLOOR, i+1);
+			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1);
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -117,7 +117,7 @@ public class SchedulerSubsystem {
 		byte sendingData[] = createDataArray(request);
 
 		InetAddress address;
-		if(request.getType() == TypeConstants.ELEVATOR) {
+		if(request.getType() == SubsystemConstants.ELEVATOR) {
 			address = this.elevatorSubsystemAddress;
 		}
 		else {

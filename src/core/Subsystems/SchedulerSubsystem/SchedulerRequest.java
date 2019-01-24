@@ -11,7 +11,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 
 import core.Utils.SimulationRequest;
-import core.Utils.TypeConstants;
+import core.Utils.SubsystemConstants;
 
 /**
  *
@@ -20,7 +20,7 @@ import core.Utils.TypeConstants;
  * */
 public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private SimulationRequest simulationEvent;
-	private TypeConstants type;
+	private SubsystemConstants type;
 	private int typeNumber = -1;
 	private InetAddress receivedAddress;
 	private int receivedPort;
@@ -35,7 +35,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	public SchedulerRequest() {
 	}
 
-	public SchedulerRequest(SimulationRequest simulationEvent, InetAddress receivedAddress, int receivedPort, TypeConstants type, int typeNumber, SchedulerPriorityConstants priority) {
+	public SchedulerRequest(SimulationRequest simulationEvent, InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber, SchedulerPriorityConstants priority) {
 		this.simulationEvent = simulationEvent;
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
@@ -94,7 +94,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 * @param
 	 * @return TypeConstants
 	 */
-	public TypeConstants getType() {
+	public SubsystemConstants getType() {
 		return type;
 	}
 
