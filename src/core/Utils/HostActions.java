@@ -25,7 +25,7 @@ public class HostActions {
 	 * @param socket
 	 * @throws HostActionsException
 	 */
-	protected void send(DatagramPacket packet, Optional<DatagramSocket> socket) throws HostActionsException {
+	public static void send(DatagramPacket packet, Optional<DatagramSocket> socket) throws HostActionsException {
 
 		DatagramSocket hostSocket = null;
 		try {
@@ -47,7 +47,7 @@ public class HostActions {
 	 * @param socket
 	 * @throws HostActionsException
 	 */
-	protected void receive(DatagramPacket packet, DatagramSocket socket) throws HostActionsException {
+	public static void receive(DatagramPacket packet, DatagramSocket socket) throws HostActionsException {
 
 		try {
 			socket.receive(packet);

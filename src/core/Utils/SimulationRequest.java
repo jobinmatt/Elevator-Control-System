@@ -9,6 +9,10 @@
 
 package core.Utils;
 
+import core.Exceptions.GeneralException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -90,10 +94,19 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		return "Time: " + startTime + " Floor: " + floor + " Direction: DOWN." + " Destination floor: " + carButton;
 	}
 	
-	public byte[] toBytes() {
+	public byte[] toBytes() throws GeneralException {
 		
-		//must be implemented
-		return null;
+		////The order:Date startTime, int floor, boolean floorButton, int carButton
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		try {
+			data.write(Utils.toByteArray(startTime.toString()));
+			data.write(Utils.toByteArray(String.valueOf(floor)));
+			data.write(Utils.toByteArray(floorButton));
+			data.write(Utils.toByteArray(String.valueOf(carButton)));
+		} catch (IOException e) {
+		throw new GeneralException(e);
+	}
+		return data.toByteArray();
 	}
 
 }
