@@ -45,8 +45,8 @@ public class InputParser {
 
 	private static final String TIME_FORMAT = "hh:mm:ss.SSS";
 	private static final String TIME_HEADER = "Time";
-	private static final String FLOOR_BUTTON_HEADER = "Floor Button";
-	private static final String CAR_BUTTON_HEADER = "Car Button";
+	private static final String FLOOR_BUTTON_HEADER = "Floor_Button";
+	private static final String CAR_BUTTON_HEADER = "Car_Button";
 	private static final String FLOOR_HEADER = "Floor";
 
 
@@ -59,13 +59,12 @@ public class InputParser {
 
 		try {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-			
+
 			String fileName = configurationParser.getString(ConfigurationParser.CVS_FILENAME);
-			logger.debug("CVS File Name: " + fileName);		
+			logger.debug("CVS File Name: " + fileName);
 			File inputFile = new File(Utils.getBuildDirURI(fileName));
-			
 			DateFormat df = new SimpleDateFormat(TIME_FORMAT);
-			CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).build();
+			CsvSchema csvSchema = CsvSchema.builder().setUseHeader(true).setColumnSeparator(' ').build();
 			CsvMapper csvMapper = new CsvMapper();
 			List<Object> inputEvents = csvMapper.readerFor(Map.class).with(csvSchema).readValues(inputFile).readAll();
 
@@ -107,9 +106,9 @@ public class InputParser {
 
 			logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 			return simulationEvents;
-		} catch (NumberFormatException | URISyntaxException | IOException | ParseException e) {
+		} catch (NumberFormatException | IOException | ParseException e) {
 			throw new InputParserException("Unable to parse file");
-		} catch (ConfigurationParserException e1) {
+		} catch (ConfigurationParserException | URISyntaxException e1) {
 			throw new InputParserException("Error with the configuration file");
 		}
 	}
@@ -139,6 +138,10 @@ public class InputParser {
 			isNumber = isNumber && Character.isDigit(c);
 		}
 		return isNumber;
+	}
+
+	public static void main(String[] args) throws InputParserException {
+		parseCVSFile();
 	}
 
 }
