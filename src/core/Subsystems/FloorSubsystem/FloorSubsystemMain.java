@@ -26,7 +26,8 @@ public class FloorSubsystemMain {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
 			
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
-			FloorSubsystem floorSystem = new FloorSubsystem(numFloors);
+			int numShafts = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
+			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, numShafts);
 			floorSystem.startFloorThreads();
 		} catch (Exception e) {
 			logger.error("", e);

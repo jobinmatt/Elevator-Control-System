@@ -93,7 +93,7 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		}
 		return "Time: " + startTime + " Floor: " + floor + " Direction: DOWN." + " Destination floor: " + carButton;
 	}
-	
+
 	public byte[] toBytes() throws GeneralException {
 		
 		////The order:Date startTime, int floor, boolean floorButton, int carButton
@@ -104,8 +104,8 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 			data.write(Utils.toByteArray(floorButton));
 			data.write(Utils.toByteArray(String.valueOf(carButton)));
 		} catch (IOException e) {
-		throw new GeneralException(e);
-	}
+			throw new GeneralException(e);
+		}
 		return data.toByteArray();
 	}
 
