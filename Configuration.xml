@@ -13,6 +13,12 @@
         <ElevatorFloorTravelTimeSeconds>5</ElevatorFloorTravelTimeSeconds>
         
         <SimulationEventListFile>testing_2.csv</SimulationEventListFile>
+        
+        <SchedulerAddress>localhost</SchedulerAddress>
+        
+        <ElevatorAddress>cb5107-09.labs.sce.carleton.ca</ElevatorAddress>
+        
+        <FloorAddress>cb5107-10.labs.sce.carleton.ca</FloorAddress>
 
     </Config>
 

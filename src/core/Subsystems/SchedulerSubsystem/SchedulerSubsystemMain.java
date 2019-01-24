@@ -29,11 +29,11 @@ public class SchedulerSubsystemMain {
 
 			int numElevators = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
-			//InetAddress elevatorSubsystemAddress = configurationParser.getAddress(TypeConstants.ELEVATOR);
-			//InetAddress floorSubsystemAddress = configurationParser.getAddress(TypeConstants.FLOOR);
+			InetAddress elevatorSubsystemAddress = InetAddress.getByName(configurationParser.getString(ConfigurationParser.ELEVATOR_ADDRESS));
+			InetAddress floorSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.FLOOR_ADDRESS));
 
 			//input the right address
-			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors, InetAddress.getLocalHost(), InetAddress.getLocalHost());
+			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors, elevatorSubsystemAddress, floorSubsystemAddress);
 			scheduler.startListeners();
 			scheduler.startScheduling();
 		} catch (Exception e) {
