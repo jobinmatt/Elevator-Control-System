@@ -43,7 +43,9 @@ public class SchedulerSubsystem {
 
 	private DatagramSocket sendSocket;
 
-	public SchedulerSubsystem(int numElevators, int numFloors, InetAddress elevatorSubsystemAddress, InetAddress floorSubsystemAddress) throws SchedulerPipelineException, SchedulerSubsystemException {
+	public SchedulerSubsystem(int numElevators, int numFloors,
+			InetAddress elevatorSubsystemAddress, InetAddress floorSubsystemAddress,
+			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException {
 
 		numberOfElevators = numElevators;
 		numberOfFloors = numFloors;
@@ -54,10 +56,10 @@ public class SchedulerSubsystem {
 		this.listeners = new SchedulerPipeline[numberOfElevators + numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1);
+			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1);
+			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort);
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {

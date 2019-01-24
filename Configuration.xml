@@ -19,7 +19,11 @@
         <ElevatorAddress>cb5107-09.labs.sce.carleton.ca</ElevatorAddress>
         
         <FloorAddress>cb5107-10.labs.sce.carleton.ca</FloorAddress>
-
+        
+		<FloorInitPort>4000</FloorInitPort>
+		
+		<EelevatorInitPort>5000</EelevatorInitPort>
+		
     </Config>
 
 </Configuration>

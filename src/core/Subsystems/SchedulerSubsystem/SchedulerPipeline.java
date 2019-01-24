@@ -26,23 +26,21 @@ public class SchedulerPipeline extends Thread{
 	private static Logger logger = LogManager.getLogger(SchedulerPipeline.class);
 	private static final String ELEVATOR_PIPELINE = "Elevator pipeline ";
 	private static final String FLOOR_PIPELINE = "Floor pipeline ";
-	private static final int DEFAULT_ELEVATOR_PORT_VALUE = 5000;
-	private static final int DEFAULT_FLOOR_PORT_VALUE = 4000;
 	private static final int DATA_SIZE = 50;
 
 	private DatagramSocket receiveSocket;
 
 
-	public SchedulerPipeline(SubsystemConstants objectType, int portOffset) throws SchedulerPipelineException{
+	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort) throws SchedulerPipelineException{
 		String threadName;
 		int portNumber = -1;
 		if(objectType == SubsystemConstants.ELEVATOR) {
 			threadName = ELEVATOR_PIPELINE + portOffset;
-			portNumber = DEFAULT_ELEVATOR_PORT_VALUE + portOffset;
+			portNumber = elevatorPort + portOffset;
 		}
 		else {
 			threadName = FLOOR_PIPELINE + portOffset;
-			portNumber = DEFAULT_FLOOR_PORT_VALUE + portOffset;
+			portNumber = floorPort + portOffset;
 		}
 		this.setName(threadName);
 
