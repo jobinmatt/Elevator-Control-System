@@ -8,6 +8,8 @@
 
 package core.Subsystems.SchedulerSubsystem;
 
+import java.net.InetAddress;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,14 +29,18 @@ public class SchedulerSubsystemMain {
 
 			int numElevators = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
+			//InetAddress elevatorSubsystemAddress = configurationParser.getAddress(TypeConstants.ELEVATOR);
+			//InetAddress floorSubsystemAddress = configurationParser.getAddress(TypeConstants.FLOOR);
 
-			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors);
-			scheduler.startListeners();			
+			//input the right address
+			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors, InetAddress.getLocalHost(), InetAddress.getLocalHost());
+			scheduler.startListeners();
+			scheduler.startScheduling();
 		} catch (Exception e) {
 			logger.error("", e);
 			System.exit(-1);
-		}		
-		System.exit(0);		
+		}
+		System.exit(0);
 	}
 
 }
