@@ -34,8 +34,8 @@ public class ElevatorCarThread extends Thread {
 	 * Constructor for elevator car
 	 * @param numFloors
 	 * */
-	public ElevatorCarThread(int numFloors) throws SocketException {
-		
+	public ElevatorCarThread(String name, int numFloors) throws SocketException {
+		super (name);
 		this.numberOfFloors = numFloors;
 		selectedFloors = new boolean[this.numberOfFloors];
 		
