@@ -16,7 +16,6 @@ import core.Utils.Utils;
 import core.Utils.SimulationRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import java.io.ByteArrayOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -44,6 +43,7 @@ public class FloorThread extends Thread {
 
     private boolean up = false;
     private boolean down = false;
+
 
     /**
      * Creates a floor thread
@@ -101,6 +101,7 @@ public class FloorThread extends Thread {
                 logger.error(e);
             }
             events.remove(); //remove already serviced event from the queue
+
             try {
             	Utils.Sleep(event.getIntervalTime());
             } catch (Exception e) {
@@ -147,8 +148,6 @@ public class FloorThread extends Thread {
             logger.info("Floor: " + floorNumber + ": Sending message to scheduler that elevator " + shaftNumber + " is here.");
             HostActions.send(packetToSend, Optional.of(receiveSocket));
         }
-
-
     }
 
 	public void terminate() {

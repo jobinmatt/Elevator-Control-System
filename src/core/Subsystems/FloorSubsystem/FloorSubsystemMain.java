@@ -29,6 +29,7 @@ public class FloorSubsystemMain {
 			
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 			int numShafts = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
+
 			InetAddress floorSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.FLOOR_ADDRESS));
 			int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 

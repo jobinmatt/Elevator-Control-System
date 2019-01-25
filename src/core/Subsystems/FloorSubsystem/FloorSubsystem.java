@@ -44,7 +44,6 @@ public class FloorSubsystem {
 	 * @throws FloorSubsystemException 
 	 */
 	public FloorSubsystem(int numOfFloors, final int numOfShafts, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
-		
 		floors = new HashMap<>();
 		shafts = new HashMap<>();
 		this.numberOfFloors = numOfFloors;
@@ -53,7 +52,7 @@ public class FloorSubsystem {
 
 		try {
 			readFile();
-			
+
 			//****** ?? send List<SimulationEvent> events to the scheduler ?? ****
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
