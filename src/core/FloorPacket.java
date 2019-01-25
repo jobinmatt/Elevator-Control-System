@@ -16,21 +16,21 @@ public class FloorPacket {
 
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
-	
+
 	public final static byte[] UP = {1, 1};
 	public final static byte[] DOWN = {1, 2};
 	public final static byte[] STATIONARY = {1, 3};
-	
+
 	private int currentElevatorFloor = -1;
 	private int elevatorNumber = -1;
-	private Elevator_Direction direction; 
+	private Direction requestDirection;
 	private boolean isValid = true;
 
-	public FloorPacket(Elevator_Direction direction, int elevatorFloor, int number) {
+	public FloorPacket(Direction direction, int elevatorFloor, int number) {
 
 		this.currentElevatorFloor = elevatorFloor;
 		this.elevatorNumber = number;
-		this.direction = direction;
+		this.requestDirection = direction;
 	}
 
 	public FloorPacket(byte[] data, int dataLength) throws CommunicationException {
@@ -39,15 +39,15 @@ public class FloorPacket {
 
 		// extract read or write request
 		if (data[1] == UP[0] && data[2] == UP[1]) {
-			direction = Elevator_Direction.UP;
+			requestDirection = Direction.UP;
 		} else if (data[1] == DOWN[0] && data[2] == DOWN[1]) {
-			direction = Elevator_Direction.DOWN;
+			requestDirection = Direction.DOWN;
 		} else if (data[1] == STATIONARY[0] && data[2] == STATIONARY[1]) {
-			direction = Elevator_Direction.STATIONARY;
+			requestDirection = Direction.STATIONARY;
 		} else {
 			isValid = false;
 		}
-		
+
 		int i = 3;
 		// must be zero
 		if (data[i++] != SPACER) {
@@ -59,7 +59,7 @@ public class FloorPacket {
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
-		
+
 		elevatorNumber = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
@@ -75,9 +75,9 @@ public class FloorPacket {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(FLOOR_FLAG); // floor packet flag
-			
+
 			// write request bytes
-			switch (direction) {
+			switch (requestDirection) {
 			case UP:
 				stream.write(UP);
 				break;
@@ -90,7 +90,7 @@ public class FloorPacket {
 			default:
 				throw new CommunicationException("Unable to generate packet");
 			}
-			
+
 			// add spacer
 			stream.write(SPACER);
 
@@ -99,7 +99,7 @@ public class FloorPacket {
 			}
 			// add spacer
 			stream.write(SPACER);
-			
+
 			if (elevatorNumber != -1) {
 				stream.write(elevatorNumber);
 			}
@@ -117,7 +117,7 @@ public class FloorPacket {
 		if (!isValid) {
 			return false;
 		}
-		if (direction == null) {
+		if (requestDirection == null) {
 			return false;
 		}
 		if (currentElevatorFloor == -1) {
@@ -132,6 +132,20 @@ public class FloorPacket {
 
 	public String toString() {
 
-		return "Direction: " + direction.name() + " Elevator Location: " + currentElevatorFloor + " Elevator Number: " + elevatorNumber; 
+		return "Direction: " + requestDirection.name() + " Elevator Location: " + currentElevatorFloor
+				+ " Elevator Number: " + elevatorNumber;
 	}
+
+	public int getCurrentElevatorFloor() {
+		return currentElevatorFloor;
+	}
+
+	public int getElevatorNumber() {
+		return elevatorNumber;
+	}
+
+	public Direction getRequestDirection() {
+		return requestDirection;
+	}
+
 }

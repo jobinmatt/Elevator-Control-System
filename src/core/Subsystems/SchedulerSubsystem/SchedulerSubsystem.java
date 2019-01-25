@@ -81,17 +81,26 @@ public class SchedulerSubsystem {
 		}
 	}
 
-	/**
-	 * Continuous loop that keeps checking to see if there is a new event and creates and sends SchedulerRequest
+	/** @formatter:off
+	 * Continuous loop that keeps checking to see if there is a new event and
+	 * creates and sends SchedulerRequest
+	 * 
 	 * @throws SchedulerSubsystemException
+	 * 
+	 * 1) check if elev is empty, if empty get the highest priority assign it to closest elev
+	 * 2) Remove event from events queue, set elevator direction
+	 * 3) If elev has events in it, check if added event is in the same direction
+	 * 4) If it is and Elev going down check if floor is below current floor; if going up check if floor is above
+	 * 			current floor; if so add it to the elevator list
+	 * 5) If not keep in general events queue
+	 * 6) Send updated dest floor message to elevator
+	 * @formatter:on
 	 */
 	public void startScheduling() throws SchedulerSubsystemException {
 
 		while(true) {
 			if(!events.isEmpty()) {
-				//perform scheduling magic ***
 
-				//create a SchedulerRequest based on magic ***
 				sendRequest(new SchedulerRequest());
 			}
 		}

@@ -15,6 +15,10 @@ import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.Direction;
+import core.ElevatorPacket;
+import core.FloorPacket;
+import core.Exceptions.CommunicationException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Utils.SubsystemConstants;
 
@@ -84,17 +88,49 @@ public class SchedulerPipeline extends Thread{
 				logger.error("Failed to receive packet", e);
 			}
 			//parse packet
-			SchedulerSubsystem.addEvent(parsePacket(packet));
+			try {
+				SchedulerSubsystem.addEvent(parsePacket(packet));
+			} catch (CommunicationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
 	/**
 	 * Creates and returns a SchedulerEvent based on the DatagramPacket
+	 * 
 	 * @return SchedulerEvent
+	 * @throws CommunicationException
 	 */
-	private SchedulerRequest parsePacket(DatagramPacket packet) {
+	private SchedulerRequest parsePacket(DatagramPacket packet) throws CommunicationException {
+		SchedulerRequest $packet = null;
+		if (packet.getData()[0] == (byte) 0) { // Floor
+			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
+			$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
+					lFloorPacket.getCurrentElevatorFloor(), SchedulerPriorityConstants.HIGH_PRIORITY,
+					lFloorPacket.getRequestDirection());
+		}
+		else if (packet.getData()[0] == (byte) 1) {// Elev
+			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());
+			Direction lElevDir = null;
+			if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() < 0) {
+				lElevDir = Direction.DOWN;
+			} else if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() >= 0) {
+				lElevDir = Direction.UP;
+			}
+			if (lElevDir != null) {
+				$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.ELEVATOR,
+						lElevatorPacket.getElevator_Number(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
+						lElevatorPacket.getDestination_Floor());
+			} else {
+				throw new CommunicationException(
+						"Elevator packet direction not found. Current Floor:" + lElevatorPacket.getCurrent_Floor()
+						+ ", Destination Floor: " + lElevatorPacket.getDestination_Floor());
+			}
+		}
 
-		return new SchedulerRequest(packet);
+		return $packet;
 	}
 
 	public void terminate() {
