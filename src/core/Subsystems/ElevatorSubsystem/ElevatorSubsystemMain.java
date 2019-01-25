@@ -29,9 +29,12 @@ public class ElevatorSubsystemMain {
 			
 			int numElev = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
+			int initElevatorPort = configurationParser.getInt(ConfigurationParser.ELEVATOR_INIT_PORT);
 			
-			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors);
+			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors, initElevatorPort );
 			elevatorSystem.activateElevators();		
+			
+			elevatorSystem.listen();
 		} catch (Exception e) {
 			logger.error("", e);
             System.exit(-1);

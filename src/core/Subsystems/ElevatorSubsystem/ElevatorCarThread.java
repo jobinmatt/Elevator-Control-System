@@ -8,6 +8,8 @@
 //***************************************************************************
 package core.Subsystems.ElevatorSubsystem;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.HashMap;
@@ -15,6 +17,9 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import core.ElevatorPacket;
+import core.Exceptions.CommunicationException;
 
 /**
  * This creates an elevator car, and handles the properties and states for the car
@@ -28,16 +33,22 @@ public class ElevatorCarThread extends Thread {
 	private int numberOfFloors;
 	
 	private DatagramSocket elevatorSocket;
+	private DatagramPacket elevatorPacket;
+	
+	private ElevatorPacket ePacket; 
 	private int port;
 	
 	/**
 	 * Constructor for elevator car
 	 * @param numFloors
 	 * */
-	public ElevatorCarThread(String name, int numFloors) throws SocketException {
+	public ElevatorCarThread(String name, int numFloors, int port) throws SocketException {
 		super (name);
 		this.numberOfFloors = numFloors;
+		this.port = port;
 		selectedFloors = new boolean[this.numberOfFloors];
+		
+		
 		
 		//initialize component states
 		carProperties = new HashMap<ElevatorComponentConstants, ElevatorComponentStates>();
@@ -45,7 +56,10 @@ public class ElevatorCarThread extends Thread {
 		carProperties.put(ElevatorComponentConstants.ELEV_MOTOR, ElevatorComponentStates.ELEV_MOTOR_IDLE);
 		
 		//initialize communication stuff		
-		this.elevatorSocket = new DatagramSocket();
+		this.elevatorSocket = new DatagramSocket(this.port);
+		byte[] b = new byte[1024];
+		elevatorPacket = new DatagramPacket(b, b.length);
+
 	}
 	
 	/**
@@ -102,15 +116,80 @@ public class ElevatorCarThread extends Thread {
 		
 		carProperties.replace(ElevatorComponentConstants.ELEV_DOORS, state);
 	}
+	/**
+	 * Get the port that the socket is running on
+	 * @return port
+	 * */
+	public int getPort() {
+		return this.port;
+	}
 	
 	@Override
 	public void run() {
+		//init 
+		logger.debug(getName() + ": Powered On");
 
-		logger.debug("Powered On");
-	}
+		while(true) {
+			// if source >dest then going down
+			//if soure < dest doing up 
+			//if source = dest here 
+			try {
+				this.receivePacket(elevatorPacket);
+				int recPort = elevatorPacket.getPort();
+				
+				if (ePacket.getCurrentFloor()>ePacket.getDestinationFloor()) {
+					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {//means no one is in the ele dont need to openm doors
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN); 
+					}else {
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+						this.sleep(2000);// sleeps for seconds 
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN); 
+					}
+				}
+				else if (ePacket.getCurrentFloor()<ePacket.getDestinationFloor()) {
+					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP); 
+					}else {
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+						this.sleep(2000);// sleeps for seconds 
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP); 
+					}
+				}else {
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+					this.sleep(2000);// sleeps for seconds TODO addd to config file 
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+				}
+				
+				this.sendPacket(elevatorPacket, recPort);
+				
+			} catch (CommunicationException | IOException | InterruptedException e) {
+				logger.error(e);
+			}
+	
+			
 
-	public void terminate() {
+		}
 		
+		
+	}
+	public void receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
+		this.elevatorSocket.receive(packet);
+		this.ePacket = new ElevatorPacket(packet.getData(), packet.getLength());
+		if (!ePacket.isValid())
+			throw new CommunicationException("Invalid packet data, how you do?");
+		logger.debug("Received: "+ ePacket.toString());
+	}
+	
+	public void sendPacket(DatagramPacket packet, int port) throws CommunicationException, IOException {
+		packet.setData(ePacket.generatePacketData());
+		packet.setPort(port);
+		logger.debug("Sending: " + ePacket.toString());
+		this.elevatorSocket.send(packet);
+	}
+	public void terminate() {
+		this.elevatorSocket.close();
 		//cleanup items go here
 	}
 }

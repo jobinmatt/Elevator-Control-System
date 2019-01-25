@@ -28,7 +28,7 @@ public class ElevatorSubsystem {
 	private int numberOfElev;
 	private Map<String, ElevatorCarThread> carPool;
 
-	public ElevatorSubsystem(int numElev, int numFloors) throws ElevatorSubystemException {
+	public ElevatorSubsystem(int numElev, int numFloors, int initPort) throws ElevatorSubystemException {
 
 		this.numberOfElev = numElev;
 		this.numberOfFloors = numFloors;
@@ -38,7 +38,7 @@ public class ElevatorSubsystem {
 			String curr_name;
 			for (int i=0; i< this.numberOfElev;i++) {
 				curr_name = ELEVATOR_NAME+(i+1);
-				this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors));
+				this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors, initPort+(i+1)));
 			}
 		} catch (SocketException e) {
 			throw new ElevatorSubystemException(e);
@@ -67,5 +67,12 @@ public class ElevatorSubsystem {
 			 car.getValue().start();
 		 }
 		 logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
+	 }
+	 
+	 public void listen() {
+		 logger.debug("Listening for requests...");
+		 while(true) {
+			 
+		 }
 	 }
 }
