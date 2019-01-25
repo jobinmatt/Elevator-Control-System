@@ -121,7 +121,7 @@ public class ElevatorCarThread extends Thread {
 	 * @return port
 	 * */
 	public int getPort() {
-		return this.port;
+		return this.port; 
 	}
 	
 	@Override

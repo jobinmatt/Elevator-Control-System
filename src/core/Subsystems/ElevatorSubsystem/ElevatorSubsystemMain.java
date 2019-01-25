@@ -34,7 +34,7 @@ public class ElevatorSubsystemMain {
 			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors, initElevatorPort );
 			elevatorSystem.activateElevators();		
 			
-			elevatorSystem.listen();
+			elevatorSystem.listen(); 
 		} catch (Exception e) {
 			logger.error("", e);
             System.exit(-1);

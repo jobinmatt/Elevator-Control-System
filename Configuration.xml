@@ -22,7 +22,7 @@
         
 		<FloorInitPort>40000</FloorInitPort>
 		
-		<ElevatorInitPort>50000</ElevatorInitPort>
+		<ElevatorInitPort>50000</ElevatorInitPort> 
 		
     </Config>
 

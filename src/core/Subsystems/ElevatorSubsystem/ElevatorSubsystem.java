@@ -70,7 +70,7 @@ public class ElevatorSubsystem {
 	 }
 	 
 	 public void listen() {
-		 logger.debug("Listening for requests...");
+		 logger.debug("Listening for requests..."); 
 		 while(true) {
 			 
 		 }
