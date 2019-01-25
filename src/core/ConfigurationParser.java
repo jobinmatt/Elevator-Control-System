@@ -39,6 +39,11 @@ public class ConfigurationParser {
 	public static final String ELEVATOR_DOOR_TIME_SECONDS = "ElevatorDoorTimeSeconds";
 	public static final String ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS = "ElevatorFloorTravelTimeSeconds";
 	public static final String CVS_FILENAME = "SimulationEventListFile";
+	public static final String SCHEDULER_ADDRESS = "SchedulerAddress";
+	public static final String ELEVATOR_ADDRESS = "ElevatorAddress";
+	public static final String FLOOR_ADDRESS = "FloorAddress";
+	public static final String FLOOR_INIT_PORT = "FloorInitPort";
+	public static final String ELEVATOR_INIT_PORT = "ElevatorInitPort";
 
 	public static String initialPath = "//Config/";
 

@@ -15,8 +15,8 @@ import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import core.LoggingManager;
 import core.Exceptions.SchedulerPipelineException;
+import core.Utils.SubsystemConstants;
 
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
@@ -24,17 +24,29 @@ import core.Exceptions.SchedulerPipelineException;
 public class SchedulerPipeline extends Thread{
 
 	private static Logger logger = LogManager.getLogger(SchedulerPipeline.class);
-
-	private DatagramSocket receiveSocket;
+	private static final String ELEVATOR_PIPELINE = "Elevator pipeline ";
+	private static final String FLOOR_PIPELINE = "Floor pipeline ";
 	private static final int DATA_SIZE = 50;
 
-	public SchedulerPipeline() throws SchedulerPipelineException{
-		super("SchedulerThread");
+	private DatagramSocket receiveSocket;
 
-		logger.info(LoggingManager.BANNER + "Scheduler Pipeline Thread\n");
+
+	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort) throws SchedulerPipelineException{
+		String threadName;
+		int portNumber = -1;
+		if(objectType == SubsystemConstants.ELEVATOR) {
+			threadName = ELEVATOR_PIPELINE + portOffset;
+			portNumber = elevatorPort + portOffset;
+		}
+		else {
+			threadName = FLOOR_PIPELINE + portOffset;
+			portNumber = floorPort + portOffset;
+		}
+		this.setName(threadName);
 
 		try {
-			this.receiveSocket = new DatagramSocket();
+			//need to make sure data is received the same way, matching the ports
+			this.receiveSocket = new DatagramSocket(portNumber);
 		}
 		catch(SocketException e) {
 			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
@@ -47,12 +59,13 @@ public class SchedulerPipeline extends Thread{
 	 * @throws Exception
 	 */
 	private DatagramPacket receive() throws SchedulerPipelineException {
-		
+
 		//need to decide the length later
 		DatagramPacket receivePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
 			logger.info("Waiting for data...");
 			receiveSocket.receive(receivePacket);
+			logger.info("Data received.");
 		}catch (IOException e) {
 			throw new SchedulerPipelineException("Receive Socket Timed Out on Scheduler", e);
 		}
@@ -61,7 +74,8 @@ public class SchedulerPipeline extends Thread{
 
 	@Override
 	public void run() {
-		
+
+		logger.info("\n" + this.getName());
 		while(true) {
 			DatagramPacket packet = null;
 			try {
@@ -84,7 +98,7 @@ public class SchedulerPipeline extends Thread{
 	}
 
 	public void terminate() {
-
+		this.receiveSocket.close();
 		//cleanup goes here
 	}
 

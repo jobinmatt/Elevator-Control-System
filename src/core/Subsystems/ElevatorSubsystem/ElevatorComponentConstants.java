@@ -1,14 +1,14 @@
 //****************************************************************************
 //
-// Filename: ElevatorCar.java
+// Filename: ElevatorComponentConstants.java
 //
-// Description: holds the types of components in anelevator
+// Description: constants to distinguish ElevatorCar properties
 //
 //***************************************************************************
 package core.Subsystems.ElevatorSubsystem;
 
 public enum ElevatorComponentConstants {
-	
- ELEV_MOTOR,
- ELEV_DOORS
+
+	ELEV_MOTOR,
+	ELEV_DOORS
 }
