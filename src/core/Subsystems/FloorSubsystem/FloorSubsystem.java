@@ -9,10 +9,12 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import core.Exceptions.GeneralException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,29 +36,32 @@ public class FloorSubsystem {
 	private Map<Integer, Shaft> shafts;
 	private List<SimulationRequest> events;
 	private int numberOfFloors;
-
+	private InetAddress floorSubsystemAddress;
+	private int floorInitPort;
 	/**
 	 * Creates a floorSubsystem object
 	 * @param numOfFloors
 	 * @throws FloorSubsystemException 
 	 */
-	public FloorSubsystem(int numOfFloors, final int numOfShafts) throws FloorSubsystemException {
+	public FloorSubsystem(int numOfFloors, final int numOfShafts, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
 		
 		floors = new HashMap<>();
 		shafts = new HashMap<>();
 		this.numberOfFloors = numOfFloors;
-		
+		this.floorSubsystemAddress = floorSubsystemAddress;
+		this.floorInitPort = floorInitPort;
+
 		try {
 			readFile();
 			
-			//****** send List<SimulationEvent> events to the scheduler ? ****
+			//****** ?? send List<SimulationEvent> events to the scheduler ?? ****
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
-				floors.put(i,new FloorThread(i,shafts));
+				floors.put(i,new FloorThread(i,shafts, floorSubsystemAddress, floorInitPort+i));
 			}
 
 			for(int i = 1; i <= numOfShafts; i++) {
-				shafts.put(i, new Shaft());
+				shafts.put(i, new Shaft(i));
 			}
 			
 	        Runtime.getRuntime().addShutdownHook(new Thread() {

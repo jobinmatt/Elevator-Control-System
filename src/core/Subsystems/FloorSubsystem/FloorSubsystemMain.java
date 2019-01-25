@@ -14,6 +14,8 @@ import org.apache.logging.log4j.Logger;
 import core.ConfigurationParser;
 import core.LoggingManager;
 
+import java.net.InetAddress;
+
 public class FloorSubsystemMain {
 
 	private static Logger logger = LogManager.getLogger(FloorSubsystemMain.class);
@@ -27,7 +29,10 @@ public class FloorSubsystemMain {
 			
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 			int numShafts = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
-			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, numShafts);
+			InetAddress floorSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.FLOOR_ADDRESS));
+			int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
+
+			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, numShafts, floorSubsystemAddress, floorInitPort);
 			floorSystem.startFloorThreads();
 		} catch (Exception e) {
 			logger.error("", e);
