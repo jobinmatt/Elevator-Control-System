@@ -14,6 +14,9 @@ import core.Exceptions.CommunicationException;
 
 public class FloorPacket {
 
+	private byte FLOOR_FLAG = (byte) 0;
+	private byte SPACER = (byte) 0;
+	
 	public final static byte[] UP = {1, 1};
 	public final static byte[] DOWN = {1, 2};
 	public final static byte[] STATIONARY = {1, 3};
@@ -47,20 +50,20 @@ public class FloorPacket {
 		
 		int i = 3;
 		// must be zero
-		if (data[i++] != 0) {
+		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 
 		currentElevatorFloor = data[i++];
 		// must be zero
-		if (data[i++] != 0) {
+		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 		
 		elevatorNumber = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
-			if (data[i++] != 0) {
+			if (data[i++] != SPACER) {
 				isValid = false;
 				break;
 			}
@@ -71,7 +74,7 @@ public class FloorPacket {
 
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			stream.write((byte) 0); // elevator packet flag
+			stream.write(FLOOR_FLAG); // floor packet flag
 			
 			// write request bytes
 			switch (direction) {
@@ -88,20 +91,20 @@ public class FloorPacket {
 				throw new CommunicationException("Unable to generate packet");
 			}
 			
-			// add 0
-			stream.write(0);
+			// add spacer
+			stream.write(SPACER);
 
 			if (currentElevatorFloor != -1) {
 				stream.write(currentElevatorFloor);
 			}
-			// add 0
-			stream.write(0);
+			// add spacer
+			stream.write(SPACER);
 			
 			if (elevatorNumber != -1) {
 				stream.write(elevatorNumber);
 			}
-			// add 0
-			stream.write(0);
+			// add spacer
+			stream.write(SPACER);
 
 			return stream.toByteArray();
 		} catch (IOException | NullPointerException e) {

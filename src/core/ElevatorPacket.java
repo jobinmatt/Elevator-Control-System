@@ -13,6 +13,9 @@ import core.Exceptions.CommunicationException;
 
 public class ElevatorPacket {
 	
+	private byte ELEVATOR_FLAG = (byte) 1;
+	private byte SPACER = (byte) 0;
+	
 	private int current_Floor = -1;
 	private int destination_Floor = -1; 
 	private int requested_Floor = -1;
@@ -32,20 +35,20 @@ public class ElevatorPacket {
 		
 		current_Floor = data[i++];		
 		// must be zero
-		if (data[i++] != 0) {
+		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 
 		destination_Floor = data[i++];
 		// must be zero
-		if (data[i++] != 0) {
+		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 		
 		requested_Floor = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
-			if (data[i++] != 0) {
+			if (data[i++] != SPACER) {
 				isValid = false;
 				break;
 			}
@@ -56,25 +59,25 @@ public class ElevatorPacket {
 
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			stream.write((byte) 0); // elevator packet flag
+			stream.write(ELEVATOR_FLAG); // elevator packet flag
 
 			if (current_Floor != -1 ) {
 				stream.write(current_Floor);
 			}
-			// add 0
-			stream.write(0);
+			// add space
+			stream.write(SPACER);
 			
 			if (destination_Floor != -1 ) {
 				stream.write(destination_Floor);
 			}
-			// add 0
-			stream.write(0);
+			// add space
+			stream.write(SPACER);
 			
 			if (requested_Floor != -1 ) {
 				stream.write(requested_Floor);
 			}
-			// add 0
-			stream.write(0);
+			// add space
+			stream.write(SPACER);
 
 			return stream.toByteArray();
 		} catch (NullPointerException e) {
