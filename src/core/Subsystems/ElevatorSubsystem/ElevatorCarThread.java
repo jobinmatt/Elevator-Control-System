@@ -11,6 +11,7 @@ package core.Subsystems.ElevatorSubsystem;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,13 +38,14 @@ public class ElevatorCarThread extends Thread {
 	
 	private ElevatorPacket ePacket; 
 	private int port;
-	
+	private InetAddress schedulerDomain;
 	/**
 	 * Constructor for elevator car
 	 * @param numFloors
 	 * */
-	public ElevatorCarThread(String name, int numFloors, int port) throws SocketException {
+	public ElevatorCarThread(String name, int numFloors, int port, InetAddress schedulerDomain) throws SocketException {
 		super (name);
+		this.schedulerDomain = schedulerDomain;
 		this.numberOfFloors = numFloors;
 		this.port = port;
 		selectedFloors = new boolean[this.numberOfFloors];
@@ -162,7 +164,7 @@ public class ElevatorCarThread extends Thread {
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 				}
 				
-				this.sendPacket(elevatorPacket, recPort);
+				this.sendPacket(elevatorPacket, recPort,this.schedulerDomain);
 				
 			} catch (CommunicationException | IOException | InterruptedException e) {
 				logger.error(e);
@@ -182,8 +184,9 @@ public class ElevatorCarThread extends Thread {
 		logger.debug("Received: "+ ePacket.toString());
 	}
 	
-	public void sendPacket(DatagramPacket packet, int port) throws CommunicationException, IOException {
+	public void sendPacket(DatagramPacket packet, int port, InetAddress domain) throws CommunicationException, IOException {
 		packet.setData(ePacket.generatePacketData());
+		packet.setAddress(domain);
 		packet.setPort(port);
 		logger.debug("Sending: " + ePacket.toString());
 		this.elevatorSocket.send(packet);

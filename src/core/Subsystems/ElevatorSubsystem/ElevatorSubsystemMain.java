@@ -8,6 +8,8 @@
 
 package core.Subsystems.ElevatorSubsystem;
 
+import java.net.InetAddress;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,8 +32,8 @@ public class ElevatorSubsystemMain {
 			int numElev = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 			int initElevatorPort = configurationParser.getInt(ConfigurationParser.ELEVATOR_INIT_PORT);
-			
-			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors, initElevatorPort );
+			InetAddress schedulerSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
+			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors, initElevatorPort, schedulerSubsystemAddress  );
 			elevatorSystem.activateElevators();		
 			
 			elevatorSystem.listen(); 
