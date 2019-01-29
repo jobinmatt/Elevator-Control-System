@@ -23,7 +23,6 @@ import core.InputParser;
 import core.LoggingManager;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.InputParserException;
-import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Utils.SimulationRequest;
 
 
@@ -47,7 +46,6 @@ public class FloorSubsystem {
 	 */
 	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
 		floors = new HashMap<String, FloorThread>();
-//		shafts = new HashMap<String, Shaft>();
 		this.numberOfFloors = numOfFloors;
 		this.floorSubsystemAddress = floorSubsystemAddress;
 		this.floorInitPort = floorInitPort;

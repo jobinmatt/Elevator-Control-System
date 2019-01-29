@@ -12,20 +12,17 @@ package core.Subsystems.FloorSubsystem;
 import core.Elevator_Direction;
 import core.FloorPacket;
 import core.Exceptions.GeneralException;
-import core.Exceptions.HostActionsException;
 import core.Utils.HostActions;
-import core.Utils.Utils;
 import core.Utils.SimulationRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.io.ByteArrayOutputStream;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Timer;
@@ -41,9 +38,8 @@ public class FloorThread extends Thread {
     private Queue<SimulationRequest> events;
     private int floorNumber;
     DatagramSocket receiveSocket;
-    private InetAddress schedulerSubsystemAddress;
 
- 
+    private InetAddress schedulerSubsystemAddress;
     private Timer atFloorTimer;
     private final int DATA_SIZE = 1024;
 
@@ -106,10 +102,11 @@ public class FloorThread extends Thread {
         FloorPacket floorPacket = null;
         byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
-        if(event.getFloorButton() == true) {
+        
+        if (event.getFloorButton() == true) {
             floorPacket = new FloorPacket(Elevator_Direction.UP, event.getFloor(), event.getStartTime(), event.getCarButton());
             data = floorPacket.generatePacketData();
-        }else{
+        } else {
             floorPacket = new FloorPacket(Elevator_Direction.DOWN, event.getFloor(), event.getStartTime(), event.getCarButton());
             data = floorPacket.generatePacketData();
         }
