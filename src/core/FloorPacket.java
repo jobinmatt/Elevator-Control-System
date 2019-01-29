@@ -21,17 +21,19 @@ public class FloorPacket {
 
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
-	
+
 	public final static byte[] UP = {1, 1};
 	public final static byte[] DOWN = {1, 2};
 	public final static byte[] STATIONARY = {1, 3};
-	
+
+
 	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR
 	private int elevatorNumber = -1; //NOT USED
-	private Elevator_Direction direction;
+	private Direction direction;
 	private Date date;
 	private int carButtonPressed; //DESTINATION FLOOR
 	private boolean isValid = true;
+
 
 	/**
 	 *
@@ -40,7 +42,7 @@ public class FloorPacket {
 	 * @param date  The Date
 	 * @param carButtonPressed Button pressed in the elevator
 	 */
-	public FloorPacket(Elevator_Direction direction, int sourceFloor, Date date, int carButtonPressed) {
+	public FloorPacket(Direction direction, int sourceFloor, Date date, int carButtonPressed) {
 
 		this.sourceFloor = sourceFloor;
 		this.direction = direction;
@@ -62,15 +64,15 @@ public class FloorPacket {
 		//	0			1			2		3			4		5		6
 		// extract read or write request
 		if (data[1] == UP[0] && data[2] == UP[1]) {
-			direction = Elevator_Direction.UP;
+			direction = Direction.UP;
 		} else if (data[1] == DOWN[0] && data[2] == DOWN[1]) {
-			direction = Elevator_Direction.DOWN;
+			direction = Direction.DOWN;
 		} else if (data[1] == STATIONARY[0] && data[2] == STATIONARY[1]) {
-			direction = Elevator_Direction.STATIONARY;
+			direction = Direction.STATIONARY;
 		} else {
 			isValid = false;
 		}
-		
+
 		int i = 3;
 		// must be zero
 		if (data[i] != SPACER) {
@@ -82,7 +84,7 @@ public class FloorPacket {
 		if (data[i++] != SPACER) { //i = 5
 			isValid = false;
 		}
-		
+
 		/**elevatorNumber = data[i++];
 
 		if (data[i++] != SPACER) {
@@ -95,7 +97,8 @@ public class FloorPacket {
 			dateBytes.write(data[i]);
 			i++;
 		}
-		DateFormat format = new SimpleDateFormat("hh:mm:ss.SSS", Locale.ENGLISH);
+
+		DateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
 		try {
 			date = format.parse(dateBytes.toString());
 		} catch (ParseException e) {
@@ -126,7 +129,7 @@ public class FloorPacket {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(FLOOR_FLAG); // floor packet flag
-			
+
 			// write request bytes
 			switch (direction) {
 			case UP:
@@ -141,7 +144,7 @@ public class FloorPacket {
 			default:
 				throw new CommunicationException("Unable to generate packet");
 			}
-			
+
 			// add spacer
 			stream.write(SPACER);
 
@@ -150,7 +153,7 @@ public class FloorPacket {
 			}
 			// add spacer
 			stream.write(SPACER);
-			
+
 			/**if (elevatorNumber != -1) {
 				stream.write(elevatorNumber);
 			}
@@ -201,7 +204,7 @@ public class FloorPacket {
 		return date;
 	}
 
-	public Elevator_Direction getDirection() {
+	public Direction getDirection() {
 		return direction;
 	}
 
@@ -217,6 +220,7 @@ public class FloorPacket {
 	}
 
 	public String toString() {
+
 
 		return "Direction: " + direction.name() + " Elevator Location: " + sourceFloor + " Elevator Number: " + elevatorNumber;
 	}

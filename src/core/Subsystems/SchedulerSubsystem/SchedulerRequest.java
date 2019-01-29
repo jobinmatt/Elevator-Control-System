@@ -9,8 +9,9 @@ package core.Subsystems.SchedulerSubsystem;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.Date;
 
-import core.Utils.SimulationRequest;
+import core.Direction;
 import core.Utils.SubsystemConstants;
 
 /**
@@ -19,12 +20,15 @@ import core.Utils.SubsystemConstants;
  * @author Jobin Mathew
  * */
 public class SchedulerRequest implements Comparable<SchedulerRequest>{
-	private SimulationRequest simulationEvent;
 	private SubsystemConstants type;
-	private int typeNumber = -1;
+	private int currentFloor = -1;
 	private InetAddress receivedAddress;
 	private int receivedPort;
 	private SchedulerPriorityConstants priority;
+	private int destFloor = -1;
+	private Direction requestDirection;
+	private int elevatorNumber = -1;
+	private Date eventTime;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -35,22 +39,29 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	public SchedulerRequest() {
 	}
 
-	public SchedulerRequest(SimulationRequest simulationEvent, InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber, SchedulerPriorityConstants priority) {
-		this.simulationEvent = simulationEvent;
+	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
+			SchedulerPriorityConstants priority, Direction requestDirection, Date eventTime) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.typeNumber = typeNumber;
+		this.currentFloor = typeNumber;
 		this.priority = priority;
+		this.destFloor = Integer.MIN_VALUE;
+		this.requestDirection = requestDirection;
+		this.elevatorNumber = -1;
+		this.eventTime = eventTime;
 	}
 
-	/**
-	 * Gets the simulationEvent object
-	 * @param
-	 * @return SimulationRequest
-	 */
-	public SimulationRequest getSimulationEvent() {
-		return simulationEvent;
+	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
+			SchedulerPriorityConstants priority, Direction requestDirection, int destFloor, int elevNumber) {// Elev
+		this.receivedAddress = receivedAddress;
+		this.receivedPort = receivedPort;
+		this.type = type;
+		this.currentFloor = typeNumber;
+		this.priority = priority;
+		this.destFloor = destFloor;
+		this.requestDirection = requestDirection;
+		this.elevatorNumber = elevNumber;
 	}
 
 	/**
@@ -58,8 +69,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 * @param
 	 * @return int
 	 */
-	public int getTypeNumber() {
-		return typeNumber;
+	public int getCurrentFloor() {
+		return currentFloor;
 	}
 
 	/**
@@ -96,6 +107,22 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 */
 	public SubsystemConstants getType() {
 		return type;
+	}
+
+	public int getDestFloor() {
+		return destFloor;
+	}
+
+	public Direction getRequestDirection() {
+		return requestDirection;
+	}
+
+	public int getElevatorNumber() {
+		return elevatorNumber;
+	}
+
+	public Date getEventTime() {
+		return eventTime;
 	}
 
 	@Override

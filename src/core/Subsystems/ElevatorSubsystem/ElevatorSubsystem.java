@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.LoggingManager;
+import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubystemException;
 
 public class ElevatorSubsystem {
@@ -29,8 +30,10 @@ public class ElevatorSubsystem {
 	private int numberOfElev;
 	private Map<String, ElevatorCarThread> carPool;
 	private InetAddress schedulerAddress;
-	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubystemException {
-		
+
+	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress)
+			throws ElevatorSubystemException, ConfigurationParserException {
+
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfElev = numElev;
 		this.numberOfFloors = numFloors;
@@ -62,19 +65,19 @@ public class ElevatorSubsystem {
 	/**
 	 * Starts the thread (powering on elevator)
 	 **/
-	 public void activateElevators() {
+	public void activateElevators() {
 
-		 logger.info("Activating Elevators...");
-		 for (Map.Entry<String, ElevatorCarThread> car : carPool.entrySet()) {
-			 car.getValue().start();
-		 }
-		 logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
-	 }
-	 
-	 public void listen() {
-		 logger.debug("Listening for requests..."); 
-		 while(true) {
-			 
-		 }
-	 }
+		logger.info("Activating Elevators...");
+		for (Map.Entry<String, ElevatorCarThread> car : carPool.entrySet()) {
+			car.getValue().start();
+		}
+		logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
+	}
+
+	public void listen() {
+		logger.debug("Listening for requests...");
+		while(true) {
+
+		}
+	}
 }

@@ -7,7 +7,6 @@
 //***************************************************************************
 package core.Subsystems.SchedulerSubsystem;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -15,7 +14,13 @@ import java.net.SocketException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.Direction;
+import core.ElevatorPacket;
+import core.FloorPacket;
+import core.Exceptions.CommunicationException;
+import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
+import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
 /**
@@ -64,9 +69,9 @@ public class SchedulerPipeline extends Thread{
 		DatagramPacket receivePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
 			logger.info("Waiting for data...");
-			receiveSocket.receive(receivePacket);
-			logger.info("Data received.");
-		}catch (IOException e) {
+			HostActions.receive(receivePacket, receiveSocket);
+			logger.info("Data received..");
+		} catch (HostActionsException e) {
 			throw new SchedulerPipelineException("Receive Socket Timed Out on Scheduler", e);
 		}
 		return receivePacket;
@@ -77,24 +82,59 @@ public class SchedulerPipeline extends Thread{
 
 		logger.info("\n" + this.getName());
 		while(true) {
-			DatagramPacket packet = null;
+			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			try {
 				packet = receive();
 			} catch (Exception e) {
 				logger.error("Failed to receive packet", e);
 			}
 			//parse packet
-			SchedulerSubsystem.addEvent(parsePacket(packet));
+			try {
+				SchedulerSubsystem.addEvent(parsePacket(packet));
+			} catch (CommunicationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
 	/**
 	 * Creates and returns a SchedulerEvent based on the DatagramPacket
+	 * 
 	 * @return SchedulerEvent
+	 * @throws CommunicationException
 	 */
-	private SchedulerRequest parsePacket(DatagramPacket packet) {
-
-		return new SchedulerRequest(packet);
+	private SchedulerRequest parsePacket(DatagramPacket packet) throws CommunicationException {
+		SchedulerRequest $packet = null;
+		if (packet.getData()[0] == (byte) 0) { // Floor
+			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
+			$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
+					lFloorPacket.getSourceFloor(), SchedulerPriorityConstants.HIGH_PRIORITY,
+					lFloorPacket.getDirection(), lFloorPacket.getDate());
+			logger.debug("Recieved packet from floor: " + lFloorPacket.toString() + System.lineSeparator());
+			logger.debug("Recieved bytes from floor: " + new String(lFloorPacket.generatePacketData())
+					+ System.lineSeparator());
+		}
+		else if (packet.getData()[0] == (byte) 1) {// Elev
+			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());
+			Direction lElevDir = null;
+			if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() < 0) {
+				lElevDir = Direction.DOWN;
+			} else if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() >= 0) {
+				lElevDir = Direction.UP;
+			}
+			if (lElevDir != null) {
+				$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.ELEVATOR,
+						lElevatorPacket.getCurrent_Floor(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
+						lElevatorPacket.getDestination_Floor(), lElevatorPacket.getElevator_Number());
+				logger.debug("Recieved packet from elevator: " + lElevatorPacket.toString());
+			} else {
+				throw new CommunicationException(
+						"Error with Elevator packet. Current Floor:" + lElevatorPacket.getCurrent_Floor()
+						+ ", Destination Floor: " + lElevatorPacket.getDestination_Floor());
+			}
+		}
+		return $packet;
 	}
 
 	public void terminate() {
