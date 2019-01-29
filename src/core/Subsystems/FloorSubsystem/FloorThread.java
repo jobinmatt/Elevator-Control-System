@@ -100,17 +100,7 @@ public class FloorThread extends Thread {
             logger.info("Event request: " + event.toString());
 
             try {
-                if(event.getFloorButton() == true) {
-                    up = true;
-                    logger.info("Floor " + floorNumber + ": User request made. Direction button: UP" );
-                    serviceRequest(event);
-                    up = false;
-                }else {
-                    down = true;
-                    logger.info("Floor " + floorNumber + ": User request made. Direction button: DOWN" );
-                    serviceRequest(event);
-                    down = false;
-                }
+                serviceRequest(event);
             } catch (HostActionsException e) {
                 logger.error("", e);
             } catch (GeneralException e) {
@@ -133,6 +123,7 @@ public class FloorThread extends Thread {
         FloorPacket floorPacket = null;
         byte[] data = null; //data to be sent to the Scheduler
 
+
         if(event.getFloorButton() == true) {
             floorPacket = new FloorPacket(Elevator_Direction.UP, event.getFloor(), event.getStartTime(), event.getCarButton());
             data = floorPacket.generatePacketData();
@@ -140,6 +131,7 @@ public class FloorThread extends Thread {
             floorPacket = new FloorPacket(Elevator_Direction.DOWN, event.getFloor(), event.getStartTime(), event.getCarButton());
             data = floorPacket.generatePacketData();
         }
+
     }
 
 	public void terminate() {
