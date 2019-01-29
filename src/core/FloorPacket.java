@@ -39,7 +39,6 @@ public class FloorPacket {
 	 *
 	 * @param direction Direction
 	 * @param sourceFloor current floor, i.e. source floor when direction is pressed
-	 * @param number The elevator number (NOT USED RIGHT NOW)
 	 * @param date  The Date
 	 * @param carButtonPressed Button pressed in the elevator
 	 */
