@@ -35,7 +35,6 @@ public class FloorSubsystem {
 	private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
 	private final String FLOOR_NAME = "Floor";
 	private Map<String, FloorThread> floors;
-	private Map<String, Shaft> shafts;
 	private List<SimulationRequest> events;
 	private int numberOfFloors;
 	private InetAddress floorSubsystemAddress;
@@ -46,7 +45,7 @@ public class FloorSubsystem {
 	 * @param numOfFloors
 	 * @throws FloorSubsystemException 
 	 */
-	public FloorSubsystem(int numOfFloors, final int numOfShafts, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
+	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
 		floors = new HashMap<String, FloorThread>();
 //		shafts = new HashMap<String, Shaft>();
 		this.numberOfFloors = numOfFloors;

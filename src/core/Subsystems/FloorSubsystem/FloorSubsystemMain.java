@@ -28,12 +28,12 @@ public class FloorSubsystemMain {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
 			
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
-			int numShafts = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
+			
 
 			InetAddress schedulerSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
 			int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 
-			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, numShafts, schedulerSubsystemAddress, floorInitPort);
+			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, schedulerSubsystemAddress, floorInitPort);
 			floorSystem.startFloorThreads();
 		} catch (Exception e) {
 			logger.error("", e);
