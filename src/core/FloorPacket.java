@@ -9,6 +9,11 @@ package core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import core.Exceptions.CommunicationException;
 
@@ -23,20 +28,40 @@ public class FloorPacket {
 	
 	private int currentElevatorFloor = -1;
 	private int elevatorNumber = -1;
-	private Elevator_Direction direction; 
+	private Elevator_Direction direction;
+	private Date date;
+	private int carButtonPressed;
 	private boolean isValid = true;
 
-	public FloorPacket(Elevator_Direction direction, int elevatorFloor, int number) {
+	/**
+	 *
+	 * @param direction Direction
+	 * @param elevatorFloor current floor, i.e. source floor when direction is pressed
+	 * @param number The elevator number (NOT USED RIGHT NOW)
+	 * @param date  The Date
+	 * @param carButtonPressed Button pressed in the elevator
+	 */
+	public FloorPacket(Elevator_Direction direction, int elevatorFloor, int number, Date date, int carButtonPressed) {
 
 		this.currentElevatorFloor = elevatorFloor;
 		this.elevatorNumber = number;
 		this.direction = direction;
+		this.date = date;
+		this.carButtonPressed = carButtonPressed;
 	}
 
+	/**
+	 *
+	 * @param data
+	 * @param dataLength
+	 * @throws CommunicationException
+	 */
 	public FloorPacket(byte[] data, int dataLength) throws CommunicationException {
 
 		isValid = true;
-
+		//format:
+		// FLOOR_FLAG Direction Direction SPACER currentElevatorFloor SPACER elevatorNumber SPACER Date SPACER carButton SPACER
+		//	0			1			2		3			4				5		6				7	8
 		// extract read or write request
 		if (data[1] == UP[0] && data[2] == UP[1]) {
 			direction = Elevator_Direction.UP;
@@ -50,17 +75,42 @@ public class FloorPacket {
 		
 		int i = 3;
 		// must be zero
-		if (data[i++] != SPACER) {
+		if (data[i] != SPACER) {
 			isValid = false;
 		}
 
-		currentElevatorFloor = data[i++];
+		currentElevatorFloor = data[i++]; // i = 4
 		// must be zero
-		if (data[i++] != SPACER) {
+		if (data[i++] != SPACER) { //i = 5
 			isValid = false;
 		}
 		
-		elevatorNumber = data[i++];
+		elevatorNumber = data[i++]; //i = 6
+
+		if (data[i++] != SPACER) { //i = 7
+			isValid = false;
+		}
+
+		i++; //i = 8
+		ByteArrayOutputStream dateBytes = new ByteArrayOutputStream();
+		while (data[i] != SPACER) {
+			dateBytes.write(data[i]);
+			i++;
+		}
+		DateFormat format = new SimpleDateFormat("hh:mm:ss.SSS", Locale.ENGLISH);
+		try {
+			date = format.parse(dateBytes.toString());
+		} catch (ParseException e) {
+			isValid = false;
+			throw new CommunicationException("Could not parse the date.", e);
+		}
+
+		if (data[i] != SPACER) { //i = after the date bytes
+			isValid = false;
+		}
+
+		carButtonPressed = data[i++];
+
 		// must be zero at end
 		while (i < dataLength) {
 			if (data[i++] != SPACER) {
@@ -68,6 +118,8 @@ public class FloorPacket {
 				break;
 			}
 		}
+
+
 	}
 
 	public byte[] generatePacketData() throws CommunicationException {
@@ -104,6 +156,14 @@ public class FloorPacket {
 				stream.write(elevatorNumber);
 			}
 			// add spacer
+			stream.write(SPACER);
+
+			stream.write(date.toString().getBytes()); //add the Date object
+
+			stream.write(SPACER);
+
+			stream.write(carButtonPressed); //add the button pressed in the elevator
+
 			stream.write(SPACER);
 
 			return stream.toByteArray();
