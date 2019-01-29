@@ -180,7 +180,7 @@ public class SchedulerSubsystem {
 			return p.generatePacketData();
 		} else {
 			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(),
-					request.getCurrentFloor()); // TODO What is the currentElevatorFloor? Is the current floor? or floor
+					request.getDestFloor()); // TODO What is the currentElevatorFloor? Is the current floor? or floor
 			// number?
 			return p.generatePacketData();
 		}
@@ -207,8 +207,6 @@ public class SchedulerSubsystem {
 		else {
 			address = this.floorSubsystemAddress;
 		}
-
-		//modify port based on the request
 		DatagramPacket packet = new DatagramPacket(sendingData, sendingData.length, address, request.getReceivedPort());
 		try {
 			this.sendSocket.send(packet);
