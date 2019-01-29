@@ -108,8 +108,8 @@ public class SchedulerPipeline extends Thread{
 		if (packet.getData()[0] == (byte) 0) { // Floor
 			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
 			$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
-					lFloorPacket.getCurrentElevatorFloor(), SchedulerPriorityConstants.HIGH_PRIORITY,
-					lFloorPacket.getRequestDirection());
+					lFloorPacket.getSourceFloor(), SchedulerPriorityConstants.HIGH_PRIORITY,
+					lFloorPacket.getDirection(), lFloorPacket.getDate());
 		}
 		else if (packet.getData()[0] == (byte) 1) {// Elev
 			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());

@@ -9,6 +9,7 @@ package core.Subsystems.SchedulerSubsystem;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.Date;
 
 import core.Direction;
 import core.Utils.SubsystemConstants;
@@ -27,6 +28,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private int destFloor = -1;
 	private Direction requestDirection;
 	private int elevatorNumber = -1;
+	private Date eventTime;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -38,7 +40,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection) {// Floor
+			SchedulerPriorityConstants priority, Direction requestDirection, Date eventTime) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
@@ -47,6 +49,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = -1;
+		this.eventTime = eventTime;
 	}
 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
@@ -116,6 +119,10 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 	public int getElevatorNumber() {
 		return elevatorNumber;
+	}
+
+	public Date getEventTime() {
+		return eventTime;
 	}
 
 	@Override

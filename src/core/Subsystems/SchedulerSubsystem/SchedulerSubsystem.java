@@ -40,7 +40,6 @@ import core.Utils.SubsystemConstants;
 public class SchedulerSubsystem {
 
 	private static Logger logger = LogManager.getLogger(SchedulerSubsystem.class);
-	private static final int DATA_SIZE = 50;
 
 	private SchedulerPipeline[] listeners;
 	private static Queue<SchedulerRequest> events = new PriorityQueue<SchedulerRequest>();
@@ -180,8 +179,7 @@ public class SchedulerSubsystem {
 			return p.generatePacketData();
 		} else {
 			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(),
-					request.getDestFloor()); // TODO What is the currentElevatorFloor? Is the current floor? or floor
-			// number?
+					request.getEventTime(), request.getDestFloor());
 			return p.generatePacketData();
 		}
 
