@@ -121,11 +121,11 @@ public class SchedulerPipeline extends Thread{
 			}
 			if (lElevDir != null) {
 				$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.ELEVATOR,
-						lElevatorPacket.getElevator_Number(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
-						lElevatorPacket.getDestination_Floor());
+						lElevatorPacket.getCurrent_Floor(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
+						lElevatorPacket.getDestination_Floor(), lElevatorPacket.getElevator_Number());
 			} else {
 				throw new CommunicationException(
-						"Elevator packet direction not found. Current Floor:" + lElevatorPacket.getCurrent_Floor()
+						"Error with Elevator packet. Current Floor:" + lElevatorPacket.getCurrent_Floor()
 						+ ", Destination Floor: " + lElevatorPacket.getDestination_Floor());
 			}
 		}

@@ -20,12 +20,13 @@ import core.Utils.SubsystemConstants;
  * */
 public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private SubsystemConstants type;
-	private int typeNumber = -1; // floor num/ elev num
+	private int currentFloor = -1;
 	private InetAddress receivedAddress;
 	private int receivedPort;
 	private SchedulerPriorityConstants priority;
-	private int destFloor;
+	private int destFloor = -1;
 	private Direction requestDirection;
+	private int elevatorNumber = -1;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -41,21 +42,23 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.typeNumber = typeNumber;
+		this.currentFloor = typeNumber;
 		this.priority = priority;
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
+		this.elevatorNumber = -1;
 	}
 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection, int destFloor) {// Elev
+			SchedulerPriorityConstants priority, Direction requestDirection, int destFloor, int elevNumber) {// Elev
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.typeNumber = typeNumber;
+		this.currentFloor = typeNumber;
 		this.priority = priority;
 		this.destFloor = destFloor;
 		this.requestDirection = requestDirection;
+		this.elevatorNumber = elevNumber;
 	}
 
 	/**
@@ -63,8 +66,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 * @param
 	 * @return int
 	 */
-	public int getTypeNumber() {
-		return typeNumber;
+	public int getCurrentFloor() {
+		return currentFloor;
 	}
 
 	/**
@@ -109,6 +112,10 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 	public Direction getRequestDirection() {
 		return requestDirection;
+	}
+
+	public int getElevatorNumber() {
+		return elevatorNumber;
 	}
 
 	@Override

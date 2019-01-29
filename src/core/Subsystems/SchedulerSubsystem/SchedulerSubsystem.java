@@ -25,6 +25,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.Direction;
+import core.ElevatorPacket;
+import core.FloorPacket;
 import core.LoggingManager;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.SchedulerPipelineException;
@@ -116,19 +118,19 @@ public class SchedulerSubsystem {
 					if (r.getType().equals(SubsystemConstants.FLOOR)) {
 						Elevator lSelectedElevator = getBestElevator(r);
 						if (lSelectedElevator != null) {
-							elevatorEvents.get(lSelectedElevator).add(events.poll());
+							elevatorEvents.get(lSelectedElevator).add(r);
 							events.remove(r);
-							// TODO send packet to elevator
+							sendRequest(r);
 						}
 					}
 					else if (r.getType().equals(SubsystemConstants.ELEVATOR)) {
 						Elevator lSelectedElevator = getElevator(r);
 						if (lSelectedElevator != null) {
-							elevatorEvents.get(lSelectedElevator).add(events.poll());
+							elevatorEvents.get(lSelectedElevator).add(r);
 							events.remove(r);
-							// TODO send packet to elevator
+							sendRequest(r);
 						} else {
-							throw new CommunicationException("Elevator not found: " + r.getTypeNumber());
+							throw new CommunicationException("Elevator not found: " + r.getElevatorNumber());
 						}
 					}
 				}
@@ -157,7 +159,7 @@ public class SchedulerSubsystem {
 
 	private Elevator getElevator(SchedulerRequest request) {
 		for (Elevator e : elevatorEvents.keySet()) {
-			if (e.getElevatorId() == request.getTypeNumber()) {
+			if (e.getElevatorId() == request.getElevatorNumber()) {
 				return e;
 			}
 		}
@@ -167,21 +169,34 @@ public class SchedulerSubsystem {
 
 	/**
 	 * Creates the byte array that needs to be send via the DatagramPacket
+	 * 
 	 * @param SchedulerRequest
+	 * @throws CommunicationException
 	 */
-	private byte[] createDataArray(SchedulerRequest request) {
+	private byte[] createDataArray(SchedulerRequest request) throws CommunicationException {
+		if(request.getType().equals(SubsystemConstants.ELEVATOR)) {
+			ElevatorPacket p = new ElevatorPacket(request.getCurrentFloor(), request.getDestFloor(), -1,
+					request.getElevatorNumber());
+			return p.generatePacketData();
+		} else {
+			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(),
+					request.getCurrentFloor()); // TODO What is the currentElevatorFloor? Is the current floor? or floor
+			// number?
+			return p.generatePacketData();
+		}
 
-		//create a byte array based on the data structure
-		return new byte[DATA_SIZE];
 	}
 
 
 	/**
-	 * Send the created DatagramPacket to the appropriate address and port through the DatagramSocket
+	 * Send the created DatagramPacket to the appropriate address and port through
+	 * the DatagramSocket
+	 * 
 	 * @param SchedulerRequest
 	 * @throws SchedulerSubsystemException
+	 * @throws CommunicationException
 	 */
-	private void sendRequest(SchedulerRequest request) throws SchedulerSubsystemException {
+	private void sendRequest(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
 
 		byte sendingData[] = createDataArray(request);
 
