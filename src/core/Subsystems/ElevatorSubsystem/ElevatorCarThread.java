@@ -151,7 +151,6 @@ public class ElevatorCarThread extends Thread {
 				int recPort = elevatorPacket.getPort();
 				
 				if (ePacket.getCurrentFloor() > ePacket.getDestinationFloor()) {
-
 					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {//means no one is in the ele dont need to openm doors
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 					} else {
