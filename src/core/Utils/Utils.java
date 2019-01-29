@@ -160,7 +160,7 @@ public class Utils {
         if (file.exists()) {
             return file.toURI();
         } else {
-            file = new File(System.getProperty("user.dir") + File.separator + "build" + File.separator + fileName);
+            file = new File(System.getProperty("user.dir") + File.separator + "Testing_Files" + File.separator + fileName);
             if (file.exists()) {
                 return file.toURI();
             }
