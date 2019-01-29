@@ -36,12 +36,9 @@ import java.util.TimerTask;
 public class FloorThread extends Thread {
 
     private static Logger logger = LogManager.getLogger(FloorThread.class);
-    private static final int DATA_SIZE = 50;
-
     private int port; //port to communicate with the scheduler
     private Queue<SimulationRequest> events;
     private int floorNumber;
-    private Map<Integer, Shaft> shafts;
     DatagramSocket receiveSocket;
     private InetAddress floorSubsystemAddress;
 
@@ -96,23 +93,7 @@ public class FloorThread extends Thread {
     public void run() {
 
         while(true) {
-            SimulationRequest event = events.peek(); //first event in the queue
-            logger.info("Event request: " + event.toString());
-
-            try {
-                serviceRequest(event);
-            } catch (HostActionsException e) {
-                logger.error("", e);
-            } catch (GeneralException e) {
-                logger.error(e);
-            }
-            events.remove(); //remove already serviced event from the queue
-
-            try {
-            	Utils.Sleep(event.getIntervalTime());
-            } catch (Exception e) {
-                logger.error("", e);
-            }
+        		
 
         }
 
@@ -122,7 +103,6 @@ public class FloorThread extends Thread {
     	
         FloorPacket floorPacket = null;
         byte[] data = null; //data to be sent to the Scheduler
-
 
         if(event.getFloorButton() == true) {
             floorPacket = new FloorPacket(Elevator_Direction.UP, event.getFloor(), event.getStartTime(), event.getCarButton());
