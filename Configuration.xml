@@ -20,9 +20,9 @@
         
         <FloorAddress>cb5107-10.labs.sce.carleton.ca</FloorAddress>
         
-		<FloorInitPort>40000</FloorInitPort>
-		
-		<EelevatorInitPort>50000</EelevatorInitPort>
+		    <FloorInitPort>40000</FloorInitPort>
+      
+		    <EelevatorInitPort>50000</EelevatorInitPort>
 		
     </Config>
 
