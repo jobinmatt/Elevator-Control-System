@@ -102,7 +102,15 @@ public class ElevatorPacket {
 
 		return true;
 	}
-
+	public int getCurrentFloor() {
+		return this.current_Floor;
+	}
+	public int getDestinationFloor() {
+		return this.destination_Floor;
+	}
+	public int getRequestedFloor() {
+		return this.requested_Floor;
+	}
 	public String toString() {
 
 			return "Current Floor: " + current_Floor + " Destination Floor: " + destination_Floor + " Requested Floor: " + requested_Floor; 
