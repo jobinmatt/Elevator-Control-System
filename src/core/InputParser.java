@@ -50,7 +50,7 @@ public class InputParser {
 	private static final String FLOOR_HEADER = "Floor";
 
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public static List<SimulationRequest> parseCVSFile() throws InputParserException {
 
 		logger.info("Parsing CVS File... ");
@@ -77,6 +77,10 @@ public class InputParser {
 					if (isValidData(eventInfo)) {
 						String timeString = eventInfo.get(TIME_HEADER);
 						Date simulationDate = df.parse(timeString);
+						Date todayDate = new Date();
+						todayDate.setHours(simulationDate.getHours());
+						todayDate.setMinutes(simulationDate.getMinutes());
+						todayDate.setSeconds(simulationDate.getSeconds());
 						boolean floorButtonDirection;
 
 						if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Up")) {
@@ -87,7 +91,8 @@ public class InputParser {
 							throw new InputParserException("Floor Button string is not valid");
 						}
 
-						simulationEvents.add(new SimulationRequest(simulationDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+						simulationEvents
+								.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
 								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
 
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
