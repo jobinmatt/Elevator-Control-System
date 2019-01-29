@@ -26,25 +26,24 @@ public class FloorPacket {
 	public final static byte[] DOWN = {1, 2};
 	public final static byte[] STATIONARY = {1, 3};
 	
-	private int currentElevatorFloor = -1;
-	private int elevatorNumber = -1;
+	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR
+	private int elevatorNumber = -1; //NOT USED
 	private Elevator_Direction direction;
 	private Date date;
-	private int carButtonPressed;
+	private int carButtonPressed; //DESTINATION FLOOR
 	private boolean isValid = true;
 
 	/**
 	 *
 	 * @param direction Direction
-	 * @param elevatorFloor current floor, i.e. source floor when direction is pressed
+	 * @param sourceFloor current floor, i.e. source floor when direction is pressed
 	 * @param number The elevator number (NOT USED RIGHT NOW)
 	 * @param date  The Date
 	 * @param carButtonPressed Button pressed in the elevator
 	 */
-	public FloorPacket(Elevator_Direction direction, int elevatorFloor, int number, Date date, int carButtonPressed) {
+	public FloorPacket(Elevator_Direction direction, int sourceFloor, Date date, int carButtonPressed) {
 
-		this.currentElevatorFloor = elevatorFloor;
-		this.elevatorNumber = number;
+		this.sourceFloor = sourceFloor;
 		this.direction = direction;
 		this.date = date;
 		this.carButtonPressed = carButtonPressed;
@@ -60,8 +59,8 @@ public class FloorPacket {
 
 		isValid = true;
 		//format:
-		// FLOOR_FLAG Direction Direction SPACER currentElevatorFloor SPACER elevatorNumber SPACER Date SPACER carButton SPACER
-		//	0			1			2		3			4				5		6				7	8
+		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  Date SPACER carButton SPACER
+		//	0			1			2		3			4		5		6
 		// extract read or write request
 		if (data[1] == UP[0] && data[2] == UP[1]) {
 			direction = Elevator_Direction.UP;
@@ -79,19 +78,19 @@ public class FloorPacket {
 			isValid = false;
 		}
 
-		currentElevatorFloor = data[i++]; // i = 4
+		sourceFloor = data[i++]; // i = 4
 		// must be zero
 		if (data[i++] != SPACER) { //i = 5
 			isValid = false;
 		}
 		
-		elevatorNumber = data[i++]; //i = 6
+		/**elevatorNumber = data[i++];
 
-		if (data[i++] != SPACER) { //i = 7
+		if (data[i++] != SPACER) {
 			isValid = false;
-		}
+		}*/
 
-		i++; //i = 8
+		i++; //i = 6
 		ByteArrayOutputStream dateBytes = new ByteArrayOutputStream();
 		while (data[i] != SPACER) {
 			dateBytes.write(data[i]);
@@ -122,6 +121,7 @@ public class FloorPacket {
 
 	}
 
+
 	public byte[] generatePacketData() throws CommunicationException {
 
 		try {
@@ -146,17 +146,17 @@ public class FloorPacket {
 			// add spacer
 			stream.write(SPACER);
 
-			if (currentElevatorFloor != -1) {
-				stream.write(currentElevatorFloor);
+			if (sourceFloor != -1) {
+				stream.write(sourceFloor);
 			}
 			// add spacer
 			stream.write(SPACER);
 			
-			if (elevatorNumber != -1) {
+			/**if (elevatorNumber != -1) {
 				stream.write(elevatorNumber);
 			}
 			// add spacer
-			stream.write(SPACER);
+			stream.write(SPACER);*/
 
 			stream.write(date.toString().getBytes()); //add the Date object
 
@@ -180,18 +180,45 @@ public class FloorPacket {
 		if (direction == null) {
 			return false;
 		}
-		if (currentElevatorFloor == -1) {
+		if (sourceFloor == -1) {
 			return false;
 		}
-		if (elevatorNumber == -1) {
+		/**if (elevatorNumber == -1) {
 			return false;
-		}
+		}*/
 
 		return true;
 	}
 
+	public int getSourceFloor() {
+		return sourceFloor;
+	}
+
+	public int getDestinationFloor() {
+		return carButtonPressed;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public Elevator_Direction getDirection() {
+		return direction;
+	}
+
+	/**
+	 * Method usesd by the Scheduler to send the elevatorNumber of the elevator to the floor
+	 * @param elevatorNumber
+	 * @return
+	 */
+	public byte[] sendArrival(int elevatorNumber) {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		data.write(elevatorNumber);
+		return data.toByteArray();
+	}
+
 	public String toString() {
 
-		return "Direction: " + direction.name() + " Elevator Location: " + currentElevatorFloor + " Elevator Number: " + elevatorNumber; 
+		return "Direction: " + direction.name() + " Elevator Location: " + sourceFloor + " Elevator Number: " + elevatorNumber;
 	}
 }
