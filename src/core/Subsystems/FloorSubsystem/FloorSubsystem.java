@@ -13,6 +13,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 
 import core.Exceptions.GeneralException;
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +23,7 @@ import core.InputParser;
 import core.LoggingManager;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.InputParserException;
+import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Utils.SimulationRequest;
 
 
@@ -31,37 +33,35 @@ import core.Utils.SimulationRequest;
 public class FloorSubsystem {
 	
 	private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
-
-	private Map<Integer, FloorThread> floors;
-	private Map<Integer, Shaft> shafts;
+	private final String FLOOR_NAME = "Floor";
+	private Map<String, FloorThread> floors;
+	private Map<String, Shaft> shafts;
 	private List<SimulationRequest> events;
 	private int numberOfFloors;
 	private InetAddress floorSubsystemAddress;
 	private int floorInitPort;
+	private Timer sharedTimer;
 	/**
 	 * Creates a floorSubsystem object
 	 * @param numOfFloors
 	 * @throws FloorSubsystemException 
 	 */
 	public FloorSubsystem(int numOfFloors, final int numOfShafts, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
-		floors = new HashMap<>();
-		shafts = new HashMap<>();
+		floors = new HashMap<String, FloorThread>();
+//		shafts = new HashMap<String, Shaft>();
 		this.numberOfFloors = numOfFloors;
 		this.floorSubsystemAddress = floorSubsystemAddress;
 		this.floorInitPort = floorInitPort;
-
+		this.sharedTimer = new Timer();
 		try {
 			readFile();
 
 			//****** ?? send List<SimulationEvent> events to the scheduler ?? ****
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
-				floors.put(i,new FloorThread(i,shafts, floorSubsystemAddress, floorInitPort+i));
+				floors.put(FLOOR_NAME+i,new FloorThread(FLOOR_NAME+i, i, floorSubsystemAddress, floorInitPort+i, this.sharedTimer));
 			}
 
-			for(int i = 1; i <= numOfShafts; i++) {
-				shafts.put(i, new Shaft(i));
-			}
 			
 	        Runtime.getRuntime().addShutdownHook(new Thread() {
 	            public void run() {
@@ -70,12 +70,6 @@ public class FloorSubsystem {
 	                        floors.get(i).terminate();
 	                    }
 	            	}
-
-	            	for(int i = 1; i <= numOfShafts; i++) {
-	            		if(shafts.get(i) != null) {
-							floors.get(i).terminate();
-						}
-					}
 	                LoggingManager.terminate();
 	            }
 	        });
@@ -96,7 +90,7 @@ public class FloorSubsystem {
 
 	private void addEvents() {
 		for(SimulationRequest e: events) {
-			floors.get(e.getFloor()).addEvent(e);
+			floors.get(FLOOR_NAME+e.getFloor()).addEvent(e);
 		}
 	}
 

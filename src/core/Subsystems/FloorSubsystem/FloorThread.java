@@ -9,6 +9,8 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.Elevator_Direction;
+import core.FloorPacket;
 import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
 import core.Utils.HostActions;
@@ -25,6 +27,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * The FloorThread represents a floor on which a person can request an elevator. Maintains a queue of events.
@@ -43,20 +47,20 @@ public class FloorThread extends Thread {
 
     private boolean up = false;
     private boolean down = false;
-
+    private Timer atFloorTimer;
 
     /**
      * Creates a floor thread
      */
-    public FloorThread(int floorNumber, Map<Integer, Shaft> shafts, InetAddress floorSubsystemAddress, int port) throws GeneralException {
+    public FloorThread(String name, int floorNumber, InetAddress floorSubsystemAddress, int port, Timer sharedTimer) throws GeneralException {
     	
-        super("FloorThread " + Integer.toString(floorNumber));
+        super(name);
+        
         events = new LinkedList<>();
-        this.shafts = shafts;
         this.floorNumber = floorNumber;
         this.floorSubsystemAddress = floorSubsystemAddress;
         this.port = port;
-
+        this.atFloorTimer = sharedTimer;
         try {
             receiveSocket = new DatagramSocket(port);
         } catch (SocketException e) {
@@ -71,6 +75,18 @@ public class FloorThread extends Thread {
     public void addEvent(SimulationRequest e) {
 
         events.add(e);
+        
+        this.atFloorTimer.schedule(new TimerTask () {
+        	public void run() {
+        		try {
+					serviceRequest(e);
+				} catch (GeneralException e) {
+					// TODO Auto-generated catch block
+					logger.error(e);
+				}
+        	}
+        }, e.getStartTime());
+        
     }
 
     /**
@@ -79,7 +95,7 @@ public class FloorThread extends Thread {
     @Override
     public void run() {
 
-        while(!events.isEmpty()) {
+        while(true) {
             SimulationRequest event = events.peek(); //first event in the queue
             logger.info("Event request: " + event.toString());
 
@@ -114,39 +130,15 @@ public class FloorThread extends Thread {
 
     private void serviceRequest(SimulationRequest event) throws GeneralException {
     	
-        /**
-         * 1. Set direction lamp based on event and print out this info
-         * 2. Using HostActions.send(), Send request to scheduler including the direction pressed by user and the floorNumber
-         * 3. Get shaftNumber from Scheduler. Make shaft sleep, which then tells floor thread that shaft is awake
-         * 4. Send message to scheduler saying that the elevator is here
-         * 5. Print out that elevator is on the floor
-         */
+        FloorPacket floorPacket = null;
+        byte[] data = null; //data to be sent to the Scheduler
 
-        //1. send request to Scheduler
-        byte[] data = event.toBytes(); //@TODO change the SimulationRequest to a FloorPacket
-        DatagramPacket packet = new DatagramPacket(data, data.length, floorSubsystemAddress, port);
-        logger.info("Floor " + floorNumber + ": Sending request to scheduler..");
-        HostActions.send(packet, Optional.of(receiveSocket));
-
-        //2. Get reply from scheduler that elevator #? is on the way
-        byte[] returnedData = new byte[DATA_SIZE];
-        DatagramPacket receivedPacket = new DatagramPacket(returnedData, DATA_SIZE);
-        HostActions.receive(receivedPacket, receiveSocket);
-
-        //parse received packet
-        CharSequence shaftNumber = Utils.bytesToHex(returnedData);
-        Shaft shaft = shafts.get(Integer.getInteger(shaftNumber.toString()));
-        shaft.run();
-
-        //get ArrivalStatus from shaft and send arrival info to scheduler
-        if(shaft.getStatus()) {
-            //send to scheduler that: elevator #? is here
-            ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-            dataStream.write(floorNumber);
-            dataStream.write(Integer.getInteger(shaftNumber.toString()));
-            DatagramPacket packetToSend = new DatagramPacket(dataStream.toByteArray(), dataStream.toByteArray().length, floorSubsystemAddress, port);
-            logger.info("Floor: " + floorNumber + ": Sending message to scheduler that elevator " + shaftNumber + " is here.");
-            HostActions.send(packetToSend, Optional.of(receiveSocket));
+        if(event.getFloorButton() == true) {
+            floorPacket = new FloorPacket(Elevator_Direction.UP, event.getFloor(), event.getStartTime(), event.getCarButton());
+            data = floorPacket.generatePacketData();
+        }else{
+            floorPacket = new FloorPacket(Elevator_Direction.DOWN, event.getFloor(), event.getStartTime(), event.getCarButton());
+            data = floorPacket.generatePacketData();
         }
     }
 
