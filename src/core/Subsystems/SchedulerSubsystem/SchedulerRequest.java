@@ -107,7 +107,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		return destFloor;
 	}
 
-	public Direction getFloorDirection() {
+	public Direction getRequestDirection() {
 		return requestDirection;
 	}
 

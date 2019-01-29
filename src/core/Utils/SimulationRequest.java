@@ -9,11 +9,11 @@
 
 package core.Utils;
 
-import core.Exceptions.GeneralException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
+
+import core.Exceptions.GeneralException;
 
 /**
  * @author Brij Patel
@@ -23,7 +23,7 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 
 	private final Date startTime;
 	private final int floor;
-	private final boolean floorButton;
+	private final boolean floorButton;// Up true
 	private final int carButton;
 	private long intervalTime;
 
@@ -87,15 +87,15 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 
 	@Override
 	public String toString() {
-		
+
 		if (floorButton) {
 			return "Time: " + startTime + " Floor: " + floor + " Direction: UP." + " Destination floor: " + carButton;
 		}
 		return "Time: " + startTime + " Floor: " + floor + " Direction: DOWN." + " Destination floor: " + carButton;
 	}
-	
+
 	public byte[] toBytes() throws GeneralException {
-		
+
 		////The order:Date startTime, int floor, boolean floorButton, int carButton
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
 		try {
@@ -104,8 +104,8 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 			data.write(Utils.toByteArray(floorButton));
 			data.write(Utils.toByteArray(String.valueOf(carButton)));
 		} catch (IOException e) {
-		throw new GeneralException(e);
-	}
+			throw new GeneralException(e);
+		}
 		return data.toByteArray();
 	}
 

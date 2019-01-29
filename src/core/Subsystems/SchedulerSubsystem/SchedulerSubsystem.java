@@ -14,13 +14,19 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.Direction;
 import core.LoggingManager;
+import core.Exceptions.CommunicationException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Utils.SubsystemConstants;
@@ -36,6 +42,7 @@ public class SchedulerSubsystem {
 
 	private SchedulerPipeline[] listeners;
 	private static Queue<SchedulerRequest> events = new PriorityQueue<SchedulerRequest>();
+	private Map<Elevator, List<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
@@ -60,6 +67,11 @@ public class SchedulerSubsystem {
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
 			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort);
+		}
+
+		for (int i = 0; i < numberOfElevators; i++) {
+			elevatorEvents.put(new Elevator(i, -1, Direction.STATIONARY),
+					new ArrayList<>());
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -94,16 +106,62 @@ public class SchedulerSubsystem {
 	 * 			current floor; if so add it to the elevator list
 	 * 5) If not keep in general events queue
 	 * 6) Send updated dest floor message to elevator
+	 * @throws CommunicationException
 	 * @formatter:on
 	 */
-	public void startScheduling() throws SchedulerSubsystemException {
-
+	public void startScheduling() throws SchedulerSubsystemException, CommunicationException {
 		while(true) {
 			if(!events.isEmpty()) {
-
-				sendRequest(new SchedulerRequest());
+				for (SchedulerRequest r : events) {
+					if (r.getType().equals(SubsystemConstants.FLOOR)) {
+						Elevator lSelectedElevator = getBestElevator(r);
+						if (lSelectedElevator != null) {
+							elevatorEvents.get(lSelectedElevator).add(events.poll());
+							events.remove(r);
+							// TODO send packet to elevator
+						}
+					}
+					else if (r.getType().equals(SubsystemConstants.ELEVATOR)) {
+						Elevator lSelectedElevator = getElevator(r);
+						if (lSelectedElevator != null) {
+							elevatorEvents.get(lSelectedElevator).add(events.poll());
+							events.remove(r);
+							// TODO send packet to elevator
+						} else {
+							throw new CommunicationException("Elevator not found: " + r.getTypeNumber());
+						}
+					}
+				}
 			}
 		}
+	}
+
+	private Elevator getBestElevator(SchedulerRequest request) {
+		for (Elevator e : elevatorEvents.keySet()) {
+			if (elevatorEvents.get(e).isEmpty()) {
+				return e;
+			} else {
+				if (e.getCurrentDirection().equals(request.getRequestDirection())) {
+					if (e.getCurrentDirection().equals(Direction.DOWN)
+							&& e.getCurrentFloor() > request.getDestFloor()) {
+						return e;
+					} else if (e.getCurrentDirection().equals(Direction.UP)
+							&& e.getCurrentFloor() < request.getDestFloor()) {
+						return e;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private Elevator getElevator(SchedulerRequest request) {
+		for (Elevator e : elevatorEvents.keySet()) {
+			if (e.getElevatorId() == request.getTypeNumber()) {
+				return e;
+			}
+		}
+		return null;
 	}
 
 
