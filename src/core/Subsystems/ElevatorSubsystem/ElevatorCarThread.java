@@ -19,6 +19,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.ConfigurationParser;
 import core.ElevatorPacket;
 import core.Exceptions.CommunicationException;
 
@@ -39,6 +40,7 @@ public class ElevatorCarThread extends Thread {
 	private ElevatorPacket ePacket; 
 	private int port;
 	private InetAddress schedulerDomain;
+	private int sleepTime;
 	/**
 	 * Constructor for elevator car
 	 * @param numFloors
@@ -50,8 +52,7 @@ public class ElevatorCarThread extends Thread {
 		this.port = port;
 		selectedFloors = new boolean[this.numberOfFloors];
 		
-		
-		
+		sleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS));
 		//initialize component states
 		carProperties = new HashMap<ElevatorComponentConstants, ElevatorComponentStates>();
 		carProperties.put(ElevatorComponentConstants.ELEV_DOORS, ElevatorComponentStates.ELEV_DOORS_CLOSE);
@@ -142,9 +143,9 @@ public class ElevatorCarThread extends Thread {
 				if (ePacket.getCurrentFloor()>ePacket.getDestinationFloor()) {
 					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {//means no one is in the ele dont need to openm doors
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN); 
-					}else {
+					} else {
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-						this.sleep(2000);// sleeps for seconds 
+						this.sleep(sleepTime);// sleeps for seconds 
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN); 
 					}
@@ -152,15 +153,15 @@ public class ElevatorCarThread extends Thread {
 				else if (ePacket.getCurrentFloor()<ePacket.getDestinationFloor()) {
 					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP); 
-					}else {
+					} else {
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-						this.sleep(2000);// sleeps for seconds 
+						this.sleep(sleepTime);// sleeps for seconds 
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP); 
 					}
-				}else {
+				} else {
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					this.sleep(2000);// sleeps for seconds TODO addd to config file 
+					this.sleep(sleepTime);// sleeps for seconds TODO addd to config file 
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 				}
 				
