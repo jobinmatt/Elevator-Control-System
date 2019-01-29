@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
+import core.Direction;
 import core.Exceptions.GeneralException;
 
 /**
@@ -23,11 +24,11 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 
 	private final Date startTime;
 	private final int floor;
-	private final boolean floorButton;// Up true
+	private final Direction floorButton;// Up true
 	private final int carButton;
 	private long intervalTime;
 
-	public SimulationRequest(Date startTime, int floor, boolean floorButton, int carButton) {
+	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton) {
 
 		super();
 		this.startTime = startTime;
@@ -36,7 +37,7 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		this.carButton = carButton;
 	}
 
-	public SimulationRequest(Date startTime, int floor, boolean floorButton, int carButton, long intervalTime) {
+	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, long intervalTime) {
 
 		super();
 		this.startTime = startTime;
@@ -56,7 +57,7 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		return floor;
 	}
 
-	public boolean getFloorButton() {
+	public Direction getFloorButton() {
 
 		return floorButton;
 	}
@@ -87,11 +88,8 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 
 	@Override
 	public String toString() {
-
-		if (floorButton) {
-			return "Time: " + startTime + " Floor: " + floor + " Direction: UP." + " Destination floor: " + carButton;
-		}
-		return "Time: " + startTime + " Floor: " + floor + " Direction: DOWN." + " Destination floor: " + carButton;
+		return "Time: " + startTime + " Floor: " + floor + " Direction: " + floorButton.toString()
+		+ " Destination floor: " + carButton;
 	}
 
 	public byte[] toBytes() throws GeneralException {
@@ -101,7 +99,7 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		try {
 			data.write(Utils.toByteArray(startTime.toString()));
 			data.write(Utils.toByteArray(String.valueOf(floor)));
-			data.write(Utils.toByteArray(floorButton));
+			data.write(Utils.toByteArray(floorButton.toString()));
 			data.write(Utils.toByteArray(String.valueOf(carButton)));
 		} catch (IOException e) {
 			throw new GeneralException(e);

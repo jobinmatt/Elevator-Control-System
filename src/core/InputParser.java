@@ -81,18 +81,18 @@ public class InputParser {
 						todayDate.setHours(simulationDate.getHours());
 						todayDate.setMinutes(simulationDate.getMinutes());
 						todayDate.setSeconds(simulationDate.getSeconds());
-						boolean floorButtonDirection;
+						Direction floorButtonDirection;
 
 						if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Up")) {
-							floorButtonDirection = true;
+							floorButtonDirection = Direction.UP;
 						} else if (eventInfo.get(FLOOR_BUTTON_HEADER).equalsIgnoreCase("Down")) {
-							floorButtonDirection = false;
+							floorButtonDirection = Direction.DOWN;
 						} else {
 							throw new InputParserException("Floor Button string is not valid");
 						}
 
 						simulationEvents
-								.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+						.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
 								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
 
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");

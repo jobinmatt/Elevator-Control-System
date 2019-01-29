@@ -98,7 +98,7 @@ public class FloorPacket {
 			i++;
 		}
 
-		DateFormat format = new SimpleDateFormat("hh:mm:ss.SSS", Locale.ENGLISH);
+		DateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
 		try {
 			date = format.parse(dateBytes.toString());
 		} catch (ParseException e) {

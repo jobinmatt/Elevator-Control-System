@@ -14,12 +14,12 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,7 +43,7 @@ public class SchedulerSubsystem {
 
 	private SchedulerPipeline[] listeners;
 	private static Queue<SchedulerRequest> events = new PriorityQueue<SchedulerRequest>();
-	private Map<Elevator, List<SchedulerRequest>> elevatorEvents = new HashMap<>();
+	private Map<Elevator, Set<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
@@ -72,7 +72,7 @@ public class SchedulerSubsystem {
 
 		for (int i = 0; i < numberOfElevators; i++) {
 			elevatorEvents.put(new Elevator(i, -1, Direction.STATIONARY),
-					new ArrayList<>());
+					new LinkedHashSet<>());
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
