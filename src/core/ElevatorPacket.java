@@ -17,25 +17,30 @@ public class ElevatorPacket {
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
 
-	private int current_Floor = -1;
-	private int destination_Floor = -1;
-	private int requested_Floor = -1;
-	private int elevator_Number = -1;
+	private int currentFloor = -1; //Current floor of the elevator
+	private int destinationFloor = -1; //Destination it is heading to (final)
+	private int requestedFloor = -1; //Floor requested by user
+	private int elevatorNumber = -1;
+	private boolean arrived = false;
 	private boolean isValid = true;
 
-	public ElevatorPacket(int current_Floor, int destination_Floor, int selected_Floors) {
-
-		this.current_Floor = current_Floor;
-		this.destination_Floor = destination_Floor;
-		this.requested_Floor = selected_Floors;
+	public ElevatorPacket(boolean arrived, int elevatorNumber) {
+		
+		this.arrived = arrived; 
+		this.elevatorNumber = elevatorNumber;
 	}
+	
+	public ElevatorPacket(int requestedFloor, int elevatorNumber) {
 
-	public ElevatorPacket(int current_Floor, int destination_Floor, int selected_Floors, int elevNum) {
+		this.requestedFloor = requestedFloor;
+		this.elevatorNumber = elevatorNumber;
+	}
+	
+	public ElevatorPacket(int currentFloor, int destinationFloor, int selectedFloors) {
 
-		this.current_Floor = current_Floor;
-		this.destination_Floor = destination_Floor;
-		this.requested_Floor = selected_Floors;
-		this.elevator_Number = elevNum;
+		this.currentFloor = currentFloor;
+		this.destinationFloor = destinationFloor;
+		this.requestedFloor = selectedFloors;
 	}
 
 	public ElevatorPacket(byte[] data, int dataLength) {
@@ -43,19 +48,36 @@ public class ElevatorPacket {
 		isValid = true;
 		int i = 1;
 
-		current_Floor = data[i++];
+		currentFloor = data[i++];
 		// must be zero
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 
-		destination_Floor = data[i++];
+		destinationFloor = data[i++];
 		// must be zero
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 
-		requested_Floor = data[i++];
+		requestedFloor = data[i++];
+		// must be zero
+		if (data[i++] != SPACER) {
+			isValid = false;
+		}
+		
+		int arrive = data[i++];
+		if (1 == arrive) {
+			arrived = true;
+		} else if (0 == arrive) {
+			arrived = false;
+		}
+		// must be zero
+		if (data[i++] != SPACER) {
+			isValid = false;
+		}
+		
+		elevatorNumber = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
 			if (data[i++] != SPACER) {
@@ -71,20 +93,34 @@ public class ElevatorPacket {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(ELEVATOR_FLAG); // elevator packet flag
 
-			if (current_Floor != -1 ) {
-				stream.write(current_Floor);
+			if (currentFloor != -1 ) {
+				stream.write(currentFloor);
 			}
 			// add space
 			stream.write(SPACER);
 
-			if (destination_Floor != -1 ) {
-				stream.write(destination_Floor);
+			if (destinationFloor != -1 ) {
+				stream.write(destinationFloor);
 			}
 			// add space
 			stream.write(SPACER);
 
-			if (requested_Floor != -1 ) {
-				stream.write(requested_Floor);
+			if (requestedFloor != -1 ) {
+				stream.write(requestedFloor);
+			}
+			// add space
+			stream.write(SPACER);
+			
+			if (arrived) {
+				stream.write(ELEVATOR_FLAG);
+			} else {
+				stream.write(SPACER);
+			}
+			// add space
+			stream.write(SPACER);
+			
+			if (elevatorNumber != -1 ) {
+				stream.write(elevatorNumber);
 			}
 			// add space
 			stream.write(SPACER);
@@ -100,46 +136,37 @@ public class ElevatorPacket {
 		if (!isValid) {
 			return false;
 		}
-		if (current_Floor == -1) {
-			return false;
-		}
-		if (destination_Floor == -1) {
-			return false;
-		}
-		if (requested_Floor == -1) {
-			return false;
-		}
 
 		return true;
 	}
+	
 	public int getCurrentFloor() {
-		return this.current_Floor;
+		
+		return this.currentFloor;
 	}
+	
 	public int getDestinationFloor() {
-		return this.destination_Floor;
+		
+		return this.destinationFloor;
 	}
+	
 	public int getRequestedFloor() {
-		return this.requested_Floor;
+		
+		return this.requestedFloor;
 	}
+	
+	public int getElevatorNumber() {
+		
+		return this.elevatorNumber;
+	}
+	
+	public boolean getArrivalSensor() {
+		
+		return arrived;
+	}
+	
 	public String toString() {
 
-		return "Current Floor: " + current_Floor + " Destination Floor: " + destination_Floor + " Requested Floor: " + requested_Floor;
+		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Requested Floor: " + requestedFloor + " Elevator Number: " + elevatorNumber;
 	}
-
-	public int getCurrent_Floor() {
-		return current_Floor;
-	}
-
-	public int getDestination_Floor() {
-		return destination_Floor;
-	}
-
-	public int getRequested_Floor() {
-		return requested_Floor;
-	}
-
-	public int getElevator_Number() {
-		return elevator_Number;
-	}
-
 }
