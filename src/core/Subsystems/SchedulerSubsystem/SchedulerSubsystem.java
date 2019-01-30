@@ -180,8 +180,7 @@ public class SchedulerSubsystem {
 					request.getElevatorNumber());
 			return p.generatePacketData();
 		} else {
-			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(),
-					request.getDestFloor());
+			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(), request.getDestFloor());
 			return p.generatePacketData();
 		}
 
