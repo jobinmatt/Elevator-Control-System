@@ -47,17 +47,22 @@ public class ElevatorCarThread extends Thread {
 	 * Constructor for elevator car
 	 * 
 	 * @param numFloors
-	 * @throws ConfigurationParserException
+	 * @throws SocketException 
 	 */
-	public ElevatorCarThread(String name, int numFloors, int port, InetAddress schedulerDomain)
-			throws SocketException, ConfigurationParserException {
+	public ElevatorCarThread(String name, int numFloors, int port, InetAddress schedulerDomain) throws SocketException {
+		
 		super (name);
 		this.schedulerDomain = schedulerDomain;
 		this.numberOfFloors = numFloors;
 		this.port = port;
 		selectedFloors = new boolean[this.numberOfFloors];
 
-		sleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS);
+		try {
+			sleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS);
+		} catch (ConfigurationParserException e) {
+
+		}
+
 		//initialize component states
 		carProperties = new HashMap<ElevatorComponentConstants, ElevatorComponentStates>();
 		carProperties.put(ElevatorComponentConstants.ELEV_DOORS, ElevatorComponentStates.ELEV_DOORS_CLOSE);
@@ -67,7 +72,6 @@ public class ElevatorCarThread extends Thread {
 		this.elevatorSocket = new DatagramSocket(this.port);
 		byte[] b = new byte[1024];
 		elevatorPacket = new DatagramPacket(b, b.length);
-
 	}
 
 	/**
@@ -129,7 +133,8 @@ public class ElevatorCarThread extends Thread {
 	 * @return port
 	 * */
 	public int getPort() {
-		return this.port;
+		
+		return this.port; 
 	}
 
 	@Override
@@ -137,37 +142,43 @@ public class ElevatorCarThread extends Thread {
 		//init
 		logger.debug(getName() + ": Powered On");
 
-		while(true) {
+		while (true) {
 			// if source >dest then going down
 			//if soure < dest doing up
 			//if source = dest here
 			try {
 				this.receivePacket(elevatorPacket);
 				int recPort = elevatorPacket.getPort();
-
-				if (ePacket.getCurrentFloor()>ePacket.getDestinationFloor()) {
+				
+				if (ePacket.getCurrentFloor() > ePacket.getDestinationFloor()) {
 					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {//means no one is in the ele dont need to openm doors
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 					} else {
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-						this.sleep(sleepTime);// sleeps for seconds
+						Thread.sleep(sleepTime);// sleeps for seconds 
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 					}
 				}
-				else if (ePacket.getCurrentFloor()<ePacket.getDestinationFloor()) {
+				else if (ePacket.getCurrentFloor() < ePacket.getDestinationFloor()) {
+					
 					if (this.getMotorStatus() == ElevatorComponentStates.ELEV_MOTOR_IDLE) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
 					} else {
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-						this.sleep(sleepTime);// sleeps for seconds
+						Thread.sleep(sleepTime);// sleeps for seconds 
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
 					}
+					
 				} else {
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					this.sleep(sleepTime);// sleeps for seconds TODO addd to config file
+					Thread.sleep(sleepTime);// sleeps for seconds TODO addd to config file 
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+					if (ePacket.getRequestedFloor() != -1) {
+						selectedFloors[ePacket.getRequestedFloor()] = true;
+						logger.info("User Selected Floor: " + ePacket.getRequestedFloor());
+					}
 				}
 
 				this.sendPacket(elevatorPacket, recPort,this.schedulerDomain);
@@ -175,14 +186,11 @@ public class ElevatorCarThread extends Thread {
 			} catch (CommunicationException | IOException | InterruptedException e) {
 				logger.error(e);
 			}
-
-
-
-		}
-
-
+		}		
 	}
+	
 	public void receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
+		
 		this.elevatorSocket.receive(packet);
 		this.ePacket = new ElevatorPacket(packet.getData(), packet.getLength());
 		if (!ePacket.isValid())
@@ -191,13 +199,16 @@ public class ElevatorCarThread extends Thread {
 	}
 
 	public void sendPacket(DatagramPacket packet, int port, InetAddress domain) throws CommunicationException, IOException {
+		
 		packet.setData(ePacket.generatePacketData());
 		packet.setAddress(domain);
 		packet.setPort(port);
 		logger.debug("Sending: " + ePacket.toString());
 		this.elevatorSocket.send(packet);
 	}
+	
 	public void terminate() {
+		
 		this.elevatorSocket.close();
 		//cleanup items go here
 	}

@@ -29,11 +29,6 @@ import core.Utils.Utils;
 
 public class LoggingManager {
 
-    static {
-
-        ansiConsoleSystemInstall();
-    }
-
     public static final String SUCCESS_MESSAGE = "Success" + System.lineSeparator();
     public static final int MAJOR_VERSION = 0;
     public static final int MINOR_VERSION = 1;
@@ -41,17 +36,6 @@ public class LoggingManager {
     public static String BANNER = System.lineSeparator() +
                                   "Elevator Simulator v" + MAJOR_VERSION + "." +
                                   MINOR_VERSION + ": ";
-
-
-    public static void ansiConsoleSystemInstall() {
-
-        AnsiConsole.systemInstall();
-    }
-
-    public static void skipJansi() {
-
-        System.setProperty("log4j.skipJansi", "true");
-    }
     
     public static Level getSuccessLevel() {
 

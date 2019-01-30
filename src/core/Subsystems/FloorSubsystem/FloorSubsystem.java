@@ -47,8 +47,8 @@ public class FloorSubsystem {
 	 * @throws FloorSubsystemException
 	 */
 	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
+		
 		floors = new HashMap<String, FloorThread>();
-		//		shafts = new HashMap<String, Shaft>();
 		this.numberOfFloors = numOfFloors;
 		this.floorSubsystemAddress = floorSubsystemAddress;
 		this.floorInitPort = floorInitPort;
@@ -66,8 +66,8 @@ public class FloorSubsystem {
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				public void run() {
 					for (int i = 1; i <= numberOfFloors; i++) {
-						if (floors.get(i) != null) {
-							floors.get(i).terminate();
+						if (floors.get(FLOOR_NAME + i) != null) {
+							floors.get(FLOOR_NAME + i).terminate();
 						}
 					}
 					LoggingManager.terminate();

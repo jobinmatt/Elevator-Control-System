@@ -7,7 +7,7 @@
 
     <appenders>
         <Console name="LEVEL_INFO" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{%msg%n}{GREEN_INFO=green, INFO=black}"/>
+            <PatternLayout pattern="%msg%n"/>
             <Filters>
                 <ThresholdFilter level="warn"  onMatch="DENY"   onMismatch="NEUTRAL"/>
                 <ThresholdFilter level="info"  onMatch="ACCEPT" onMismatch="DENY"/>
@@ -22,14 +22,14 @@
         </Console>
 
         <Console name="DEV" target="SYSTEM_ERR">
-            <PatternLayout pattern="%highlight{%file:%line: %-5level{lowerCase=true}: %msg%ex{full}%n}{FATAL=red, ERROR=red, WARN=yellow}"/>
+            <PatternLayout pattern="%msg%ex{full}%n}"/>
             <Filters>
                 <ThresholdFilter level="warn" onMatch="ACCEPT"/>
             </Filters>
         </Console>
 
         <Console name="RELEASE" target="SYSTEM_ERR">
-            <PatternLayout pattern="%highlight{%-5level{warn=warning, fatal=error, error=error}: %msg%ex{short.localizedmessage}%n}{FATAL=red, ERROR=red, WARN=yellow}"/>
+            <PatternLayout pattern="%msg%ex{short.localizedmessage}%n}"/>
             <Filters>
                 <ThresholdFilter level="warn" onMatch="ACCEPT"/>
             </Filters>

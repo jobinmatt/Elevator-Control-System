@@ -9,6 +9,13 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.FloorPacket;
+import core.Exceptions.GeneralException;
+import core.Utils.HostActions;
+import core.Utils.SimulationRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -19,15 +26,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import core.Direction;
-import core.FloorPacket;
-import core.Exceptions.GeneralException;
-import core.Utils.HostActions;
-import core.Utils.SimulationRequest;
 
 /**
  * The FloorThread represents a floor on which a person can request an elevator. Maintains a queue of events.
@@ -40,8 +38,6 @@ public class FloorThread extends Thread {
 	private int floorNumber;
 	DatagramSocket receiveSocket;
 	private InetAddress schedulerSubsystemAddress;
-
-
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
 
@@ -78,7 +74,6 @@ public class FloorThread extends Thread {
 					logger.info("Scheduling request: "+e.toString());
 					serviceRequest(e);
 				} catch (GeneralException e) {
-					// TODO Auto-generated catch block
 					logger.error(e);
 				}
 			}
@@ -94,30 +89,25 @@ public class FloorThread extends Thread {
 
 		while(true) {
 
+        }
+    }
 
-		}
-
-	}
-
-	private void serviceRequest(SimulationRequest event) throws GeneralException {
-
-		FloorPacket floorPacket = null;
-		byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
-		byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
-		if (event.getFloorButton().equals(Direction.UP)) {
-			floorPacket = new FloorPacket(Direction.UP, event.getFloor(), event.getStartTime(), event.getCarButton());
-			data = floorPacket.generatePacketData();
-		}else{
-			floorPacket = new FloorPacket(Direction.DOWN, event.getFloor(), event.getStartTime(), event.getCarButton());
-			data = floorPacket.generatePacketData();
-		}
-		DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
-		tempPacket.setData(data);
-		tempPacket.setAddress(this.schedulerSubsystemAddress);
-		tempPacket.setPort(port);
-		logger.info("Buffer Data: "+ Arrays.toString(data));
-		HostActions.send( tempPacket, Optional.of(receiveSocket));
-	}
+    private void serviceRequest(SimulationRequest event) throws GeneralException {
+    	
+        FloorPacket floorPacket = null;
+        byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
+        byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
+        
+        floorPacket = new FloorPacket(event.getFloorButton(), event.getFloor(), event.getCarButton());
+        data = floorPacket.generatePacketData();
+            
+        DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
+        tempPacket.setData(data);
+        tempPacket.setAddress(this.schedulerSubsystemAddress);
+        tempPacket.setPort(port);
+        logger.info("Buffer Data: "+ Arrays.toString(data));
+        HostActions.send( tempPacket, Optional.of(receiveSocket));
+    }
 
 	public void terminate() {
 		receiveSocket.close();
