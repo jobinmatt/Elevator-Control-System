@@ -11,7 +11,6 @@
 package core.Subsystems.ElevatorSubsystem;
 
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +22,7 @@ import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubystemException;
 
 public class ElevatorSubsystem {
+	
 	private final String ELEVATOR_NAME = "ElevatorCar";
 	private static Logger logger = LogManager.getLogger(ElevatorSubsystem.class);
 
@@ -31,22 +31,17 @@ public class ElevatorSubsystem {
 	private Map<String, ElevatorCarThread> carPool;
 	private InetAddress schedulerAddress;
 
-	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress)
-			throws ElevatorSubystemException, ConfigurationParserException {
+	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubystemException, ConfigurationParserException {
 
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfElev = numElev;
 		this.numberOfFloors = numFloors;
 		this.carPool = new HashMap<String, ElevatorCarThread>();
 
-		try {
-			String curr_name;
-			for (int i=0; i< this.numberOfElev;i++) {
-				curr_name = ELEVATOR_NAME+(i+1);
-				this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors, initPort+(i+1), this.schedulerAddress));
-			}
-		} catch (SocketException e) {
-			throw new ElevatorSubystemException(e);
+		String curr_name;
+		for (int i = 0; i < this.numberOfElev; i++) {
+			curr_name = ELEVATOR_NAME + (i+1);
+			this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors, initPort + (i + 1), this.schedulerAddress));
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
