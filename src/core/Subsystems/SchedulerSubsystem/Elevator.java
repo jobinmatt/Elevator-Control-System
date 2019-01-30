@@ -42,5 +42,10 @@ public class Elevator {
 	public void setCurrentDirection(Direction currentDirection) {
 		this.currentDirection = currentDirection;
 	}
+	
+	@Override
+	public String toString() {
+		return "Elevator " + elevatorId + " current floor: " + currentFloor + " current direction: " + currentDirection.toString();
+	}
 
 }

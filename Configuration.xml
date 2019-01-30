@@ -14,11 +14,11 @@
         
         <SimulationEventListFile>testing_2.csv</SimulationEventListFile>
         
-        <SchedulerAddress>172.17.75.105</SchedulerAddress>
+        <SchedulerAddress>cb5107-31.labs.sce.carleton.ca</SchedulerAddress>
         
-        <ElevatorAddress>localhost</ElevatorAddress>
+        <ElevatorAddress>cb5107-30.labs.sce.carleton.ca</ElevatorAddress>
         
-        <FloorAddress>172.17.48.236</FloorAddress>
+        <FloorAddress>cb5107-29.labs.sce.carleton.ca</FloorAddress>
         
 		<FloorInitPort>40000</FloorInitPort>
 		

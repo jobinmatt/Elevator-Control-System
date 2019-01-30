@@ -10,6 +10,7 @@ package core.Subsystems.SchedulerSubsystem;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,10 +35,12 @@ public class SchedulerPipeline extends Thread{
 	private static final int DATA_SIZE = 50;
 
 	private DatagramSocket receiveSocket;
+	private SchedulerSubsystem schedulerSubsystem;
 
 
-	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort) throws SchedulerPipelineException{
+	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort, SchedulerSubsystem subsystem) throws SchedulerPipelineException{
 		String threadName;
+		this.schedulerSubsystem = subsystem;
 		int portNumber = -1;
 		if(objectType == SubsystemConstants.ELEVATOR) {
 			threadName = ELEVATOR_PIPELINE + portOffset;
@@ -88,13 +91,12 @@ public class SchedulerPipeline extends Thread{
 			} catch (Exception e) {
 				logger.error("Failed to receive packet", e);
 			}
-			//parse packet
-			try {
-				SchedulerSubsystem.addEvent(parsePacket(packet));
-			} catch (CommunicationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				try {
+					schedulerSubsystem.addEvent(parsePacket(packet));
+				} catch (CommunicationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 		}
 	}
 
@@ -110,28 +112,33 @@ public class SchedulerPipeline extends Thread{
 			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
 			$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
 					lFloorPacket.getSourceFloor(), SchedulerPriorityConstants.HIGH_PRIORITY,
-					lFloorPacket.getDirection());
+					lFloorPacket.getDirection(), lFloorPacket.getDestinationFloor(), lFloorPacket.getDestinationFloor());
 			logger.debug("Recieved packet from floor: " + lFloorPacket.toString() + System.lineSeparator());
-			logger.debug("Recieved bytes from floor: " + new String(lFloorPacket.generatePacketData())
+			logger.debug("Recieved bytes from floor: " + Arrays.toString(lFloorPacket.generatePacketData())
 					+ System.lineSeparator());
 		}
 		else if (packet.getData()[0] == (byte) 1) {// Elev
 			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());
 			Direction lElevDir = null;
-			if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() < 0) {
+			if (lElevatorPacket.getCurrentFloor() - lElevatorPacket.getDestinationFloor() < 0) {
 				lElevDir = Direction.DOWN;
-			} else if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() >= 0) {
+			} else if (lElevatorPacket.getCurrentFloor() - lElevatorPacket.getDestinationFloor() >= 0) {
 				lElevDir = Direction.UP;
 			}
 			if (lElevDir != null) {
 				$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.ELEVATOR,
-						lElevatorPacket.getCurrent_Floor(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
-						lElevatorPacket.getDestination_Floor(), lElevatorPacket.getElevator_Number());
+						lElevatorPacket.getCurrentFloor(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
+						lElevatorPacket.getDestinationFloor(), lElevatorPacket.getElevatorNumber(), lElevatorPacket.getRequestedFloor());
 				logger.debug("Recieved packet from elevator: " + lElevatorPacket.toString());
+				logger.debug("Recieved bytes from floor: " + Arrays.toString(lElevatorPacket.generatePacketData())
+				+ System.lineSeparator());
 			} else {
 				throw new CommunicationException(
-						"Error with Elevator packet. Current Floor:" + lElevatorPacket.getCurrent_Floor()
-						+ ", Destination Floor: " + lElevatorPacket.getDestination_Floor());
+						"Error with Elevator packet. Current Floor:" + lElevatorPacket.getCurrentFloor()
+						+ ", Destination Floor: " + lElevatorPacket.getDestinationFloor());
+			}
+			if(lElevatorPacket.getArrivalSensor() == true) {
+				schedulerSubsystem.updateStates(lElevatorPacket);
 			}
 		}
 		return $packet;
@@ -141,5 +148,6 @@ public class SchedulerPipeline extends Thread{
 		this.receiveSocket.close();
 		//cleanup goes here
 	}
+	
 
 }
