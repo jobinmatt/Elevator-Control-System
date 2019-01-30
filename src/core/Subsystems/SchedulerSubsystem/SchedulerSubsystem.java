@@ -9,7 +9,6 @@
 
 package core.Subsystems.SchedulerSubsystem;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -17,6 +16,7 @@ import java.net.SocketException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
@@ -29,8 +29,10 @@ import core.ElevatorPacket;
 import core.FloorPacket;
 import core.LoggingManager;
 import core.Exceptions.CommunicationException;
+import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
 /**
@@ -110,7 +112,7 @@ public class SchedulerSubsystem {
 	 * @throws CommunicationException
 	 * @formatter:on
 	 */
-	public void startScheduling() throws SchedulerSubsystemException, CommunicationException {
+	public synchronized void startScheduling() throws SchedulerSubsystemException, CommunicationException {
 		while(true) {
 			if(!events.isEmpty()) {
 				for (SchedulerRequest r : events) {
@@ -179,10 +181,24 @@ public class SchedulerSubsystem {
 			return p.generatePacketData();
 		} else {
 			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(),
-					request.getEventTime(), request.getDestFloor());
+					request.getDestFloor());
 			return p.generatePacketData();
 		}
 
+	}
+
+	private SchedulerRequest forwardToRequest(SchedulerRequest request) {
+		if (request.getType().equals(SubsystemConstants.ELEVATOR)) {
+			request.setType(SubsystemConstants.FLOOR);
+			request.setReceivedAddress(floorSubsystemAddress);
+			request.setReceivedPort(request.getElevatorNumber() + 40001);
+		} else {
+			request.setType(SubsystemConstants.ELEVATOR);
+			request.setReceivedAddress(elevatorSubsystemAddress);
+			request.setReceivedPort(request.getCurrentFloor() + 50001);
+		}
+
+		return request;
 	}
 
 
@@ -197,7 +213,7 @@ public class SchedulerSubsystem {
 	private void sendRequest(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
 
 		byte sendingData[] = createDataArray(request);
-
+		request = forwardToRequest(request);
 		InetAddress address;
 		if(request.getType() == SubsystemConstants.ELEVATOR) {
 			address = this.elevatorSubsystemAddress;
@@ -206,9 +222,10 @@ public class SchedulerSubsystem {
 			address = this.floorSubsystemAddress;
 		}
 		DatagramPacket packet = new DatagramPacket(sendingData, sendingData.length, address, request.getReceivedPort());
+		packet.setData(sendingData);
 		try {
-			this.sendSocket.send(packet);
-		} catch (IOException e) {
+			HostActions.send(packet, Optional.of(sendSocket));
+		} catch (HostActionsException e) {
 			throw new SchedulerSubsystemException("Unable to send a DatagramPacket from SchedulerSubsystem", e);
 		}
 	}
