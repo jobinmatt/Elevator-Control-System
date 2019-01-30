@@ -110,7 +110,7 @@ public class SchedulerPipeline extends Thread{
 			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
 			$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
 					lFloorPacket.getSourceFloor(), SchedulerPriorityConstants.HIGH_PRIORITY,
-					lFloorPacket.getDirection(), lFloorPacket.getDate());
+					lFloorPacket.getDirection());
 			logger.debug("Recieved packet from floor: " + lFloorPacket.toString() + System.lineSeparator());
 			logger.debug("Recieved bytes from floor: " + new String(lFloorPacket.generatePacketData())
 					+ System.lineSeparator());

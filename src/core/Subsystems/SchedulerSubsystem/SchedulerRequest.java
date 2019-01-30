@@ -40,7 +40,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection, Date eventTime) {// Floor
+			SchedulerPriorityConstants priority, Direction requestDirection) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
