@@ -74,7 +74,7 @@ public class SchedulerSubsystem {
 		}
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			elevatorEvents.put(new Elevator(i + 1, 1, Direction.STATIONARY),
+			elevatorEvents.put(new Elevator(i + 1, 1, -1, Direction.STATIONARY),
 					new TreeSet<>(SchedulerRequest.BY_ASCENDING));
 		}
 
@@ -123,8 +123,11 @@ public class SchedulerSubsystem {
 						if (lSelectedElevator != null) {
 							r.setElevatorNumber(lSelectedElevator.getElevatorId());
 							elevatorEvents.get(lSelectedElevator).add(r);
-							elevatorEvents.get(lSelectedElevator).stream().forEach(x -> "Added Events Floor: ".concat(x.toString()));
+							lSelectedElevator
+							.setDestFloor(elevatorEvents.get(lSelectedElevator).first().getDestFloor());
 							events.remove(i);
+							elevatorEvents.get(lSelectedElevator).stream()
+							.forEach(x -> logger.debug("Added Events Floor: ".concat(x.toString())));
 							sendRequest(r);
 						}
 					}
@@ -271,7 +274,7 @@ public class SchedulerSubsystem {
 		events.put(events.size() + 1, e);
 	}
 
-	public synchronized void updateStates(ElevatorPacket packet)
+	public void updateStates(ElevatorPacket packet)
 			throws SchedulerSubsystemException, CommunicationException, HostActionsException {
 		Elevator elev = null;
 		if (!elevatorEvents.isEmpty()) {
@@ -281,18 +284,27 @@ public class SchedulerSubsystem {
 				}
 			}
 			if(elev != null) {
-				if(elev.getCurrentDirection().equals(Direction.UP) && (elev.getCurrentFloor() + 1 <= numberOfFloors)) {
-					elev.setCurrentFloor(elev.getCurrentFloor() + 1);
-				} else {
-					if ((elev.getCurrentFloor() - 1) >= 0) {
+				if (elev.getCurrentFloor() > elev.getDestFloor()) {
+					if (elev.getCurrentFloor() - 1 >= 0) {
 						elev.setCurrentFloor(elev.getCurrentFloor() - 1);
 					}
+					elev.setCurrentDirection(Direction.DOWN);
+				} else if (elev.getCurrentFloor() < elev.getDestFloor()) {
+					elev.setCurrentDirection(Direction.UP);
+					if (elev.getCurrentFloor() + 1 <= numberOfFloors) {
+						elev.setCurrentFloor(elev.getCurrentFloor() + 1);
+					}
+				}
+				else if (elev.getCurrentFloor() == elev.getDestFloor() || elev.getCurrentFloor() == 0) {
+					elev.setCurrentDirection(Direction.STATIONARY);
 				}
 				int elevCurrentFloor = elev.getCurrentFloor();
 				Predicate<SchedulerRequest> requestPredicate = r -> r.getCurrentFloor() == elevCurrentFloor;
 				elevatorEvents.get(elev).removeIf(requestPredicate);
-				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), packet.getDestinationFloor(),
+				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), elev.getDestFloor(),
 						packet.getRequestedFloor());
+				logger.debug("Elevator update packet created: " + sendPacket.toString());
+				logger.debug("Elev send packet data: " + Arrays.toString(sendPacket.generatePacketData()));
 				DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,sendPacket.generatePacketData().length, 
 						elevatorSubsystemAddress, elev.getElevatorId() + 50000);//TODO GET RID OF THE CONSTANT
 				sendElevPacket.setData(sendPacket.generatePacketData());
