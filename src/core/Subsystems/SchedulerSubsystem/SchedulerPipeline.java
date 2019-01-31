@@ -118,20 +118,20 @@ public class SchedulerPipeline extends Thread{
 		else if (packet.getData()[0] == (byte) 1) {// Elev
 			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());
 			Direction lElevDir = null;
-			if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() < 0) {
+			if (lElevatorPacket.getCurrentFloor() - lElevatorPacket.getDestinationFloor() < 0) {
 				lElevDir = Direction.DOWN;
-			} else if (lElevatorPacket.getCurrent_Floor() - lElevatorPacket.getDestination_Floor() >= 0) {
+			} else if (lElevatorPacket.getCurrentFloor() - lElevatorPacket.getDestinationFloor() >= 0) {
 				lElevDir = Direction.UP;
 			}
 			if (lElevDir != null) {
 				$packet = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.ELEVATOR,
-						lElevatorPacket.getCurrent_Floor(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
-						lElevatorPacket.getDestination_Floor(), lElevatorPacket.getElevator_Number());
+						lElevatorPacket.getCurrentFloor(), SchedulerPriorityConstants.HIGH_PRIORITY, lElevDir,
+						lElevatorPacket.getDestinationFloor(), lElevatorPacket.getElevatorNumber());
 				logger.debug("Recieved packet from elevator: " + lElevatorPacket.toString());
 			} else {
 				throw new CommunicationException(
-						"Error with Elevator packet. Current Floor:" + lElevatorPacket.getCurrent_Floor()
-						+ ", Destination Floor: " + lElevatorPacket.getDestination_Floor());
+						"Error with Elevator packet. Current Floor:" + lElevatorPacket.getCurrentFloor()
+						+ ", Destination Floor: " + lElevatorPacket.getDestinationFloor());
 			}
 		}
 		return $packet;
