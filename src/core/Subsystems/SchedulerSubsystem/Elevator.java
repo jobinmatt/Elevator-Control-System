@@ -42,10 +42,20 @@ public class Elevator {
 	public void setCurrentDirection(Direction currentDirection) {
 		this.currentDirection = currentDirection;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Elevator " + elevatorId + " current floor: " + currentFloor + " current direction: " + currentDirection.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Elevator && o != null) {
+			if (((Elevator) o).getElevatorId() == this.getElevatorId()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

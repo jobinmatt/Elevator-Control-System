@@ -13,23 +13,17 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.async.JCToolsBlockingQueueFactory.WaitStrategy;
 
 import core.Direction;
 import core.ElevatorPacket;
@@ -40,7 +34,6 @@ import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Utils.HostActions;
-import core.Utils.SimulationRequest;
 import core.Utils.SubsystemConstants;
 
 /**
@@ -58,7 +51,6 @@ public class SchedulerSubsystem {
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
 	private InetAddress floorSubsystemAddress;
-	public boolean isLooking = false;
 
 	private DatagramSocket sendSocket;
 
@@ -148,7 +140,7 @@ public class SchedulerSubsystem {
 						}
 					}
 				}
-				
+
 			}
 		}
 	}
@@ -203,7 +195,7 @@ public class SchedulerSubsystem {
 			return p.generatePacketData();
 		}
 	}
-	
+
 	private Elevator getElevator(Set<Elevator> e, SchedulerRequest req) {
 		for(Elevator elev : e) {
 			if(elev.getElevatorId() == req.getElevatorNumber()) {
@@ -223,7 +215,7 @@ public class SchedulerSubsystem {
 			request.setReceivedAddress(elevatorSubsystemAddress);
 			request.setReceivedPort(request.getElevatorNumber() + 50000);
 		}
-		
+
 		logger.debug("Forwarding request: " + request.toString());
 		return request;
 	}
@@ -251,6 +243,7 @@ public class SchedulerSubsystem {
 		DatagramPacket packet = new DatagramPacket(sendingData, sendingData.length, address, request.getReceivedPort());
 		packet.setData(sendingData);
 		logger.debug("Data sending to " + request.getType() + ": " + Arrays.toString(packet.getData()));
+		logger.debug("Request sent to " + request.getType() + ": " + request.toString());
 		try {
 			HostActions.send(packet, Optional.of(sendSocket));
 		} catch (HostActionsException e) {
@@ -277,8 +270,9 @@ public class SchedulerSubsystem {
 	public void addEvent(SchedulerRequest e) {
 		events.put(events.size() + 1, e);
 	}
-	
-	public synchronized void updateStates(ElevatorPacket packet) {
+
+	public synchronized void updateStates(ElevatorPacket packet)
+			throws SchedulerSubsystemException, CommunicationException, HostActionsException {
 		Elevator elev = null;
 		if (!elevatorEvents.isEmpty()) {
 			for(Elevator e : elevatorEvents.keySet()) {
@@ -294,19 +288,19 @@ public class SchedulerSubsystem {
 						elev.setCurrentFloor(elev.getCurrentFloor() - 1);
 					}
 				}
+				int elevCurrentFloor = elev.getCurrentFloor();
+				Predicate<SchedulerRequest> requestPredicate = r -> r.getCurrentFloor() == elevCurrentFloor;
+				elevatorEvents.get(elev).removeIf(requestPredicate);
+				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), packet.getDestinationFloor(),
+						packet.getRequestedFloor());
+				DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,sendPacket.generatePacketData().length, 
+						elevatorSubsystemAddress, elev.getElevatorId() + 50000);//TODO GET RID OF THE CONSTANT
+				sendElevPacket.setData(sendPacket.generatePacketData());
+				HostActions.send(sendElevPacket, Optional.of(sendSocket));
+				logger.debug("Elevator state updated: " + elev.toString());
+			} else {
+				throw new SchedulerSubsystemException("Elevator not found: " + packet.toString());
 			}
-			
-			
 		}
-		
-		logger.debug("States updated" + elev.toString());
-	}
-
-	public boolean isLooking() {
-		return this.isLooking;
-	}
-	
-	public void setIsLooking(boolean inValue) {
-		this.isLooking = inValue;
 	}
 }

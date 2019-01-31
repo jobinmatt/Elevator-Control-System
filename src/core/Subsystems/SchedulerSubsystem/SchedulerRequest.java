@@ -11,8 +11,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Comparator;
 
-import javax.sound.sampled.Port;
-
 import core.Direction;
 import core.Utils.SubsystemConstants;
 
@@ -26,7 +24,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private int currentFloor = -1;
 	private InetAddress receivedAddress;
 	private int receivedPort;
-	private SchedulerPriorityConstants priority;
+	private long requestId;
 	private int destFloor = -1;
 	private Direction requestDirection;
 	private int elevatorNumber = -1;
@@ -40,20 +38,23 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 	public SchedulerRequest() {
 	}
-	
+
 	@Override
 	public String toString() {
-		return "Type: " + type.toString() + " current floor: " + currentFloor + "receieved address: " + receivedAddress.getHostAddress() + ":" + receivedPort + 
-				"destination floor: " + destFloor + " request direction: " + requestDirection.toString() + " elevator number: " + elevatorNumber + " car button: " + carButton;
+		return "Request id: " + requestId + " Type: " + type.toString() + " current floor: " + currentFloor
+				+ " receieved address: " + receivedAddress.getHostAddress() + ":" + receivedPort
+				+ 
+				" destination floor: " + destFloor + " request direction: " + requestDirection.toString()
+				+ " elevator number: " + elevatorNumber + " car button: " + carButton;
 	}
 
-	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection, int destFloor, int carButton) {// Floor
+	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
+			int typeNumber, Direction requestDirection, int destFloor, int carButton) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
 		this.currentFloor = typeNumber;
-		this.priority = priority;
+		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = -1;
@@ -61,13 +62,13 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.carButton = carButton;
 	}
 
-	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection, int destFloor, int elevNumber, int carButton) {// Elev
+	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
+			int typeNumber, Direction requestDirection, int destFloor, int elevNumber, int carButton) {// Elev
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
 		this.currentFloor = typeNumber;
-		this.priority = priority;
+		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = destFloor;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = elevNumber;
@@ -106,8 +107,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 * @param
 	 * @return SimulationRequest
 	 */
-	public SchedulerPriorityConstants getPriority() {
-		return priority;
+	public long getrRequestId() {
+		return requestId;
 	}
 
 	/**
@@ -148,10 +149,6 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedPort = receivedPort;
 	}
 
-	public void setPriority(SchedulerPriorityConstants priority) {
-		this.priority = priority;
-	}
-
 	public void setDestFloor(int destFloor) {
 		this.destFloor = destFloor;
 	}
@@ -182,7 +179,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		}
 		return -1;
 	}
-	
+
 	static final Comparator<SchedulerRequest> BY_ASCENDING = new Comparator<SchedulerRequest>() {
 
 		@Override
@@ -196,4 +193,14 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 			return -1;
 		}
 	};
+
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof SchedulerRequest && o != null) {
+			if (((SchedulerRequest) o).getrRequestId() == this.requestId) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
