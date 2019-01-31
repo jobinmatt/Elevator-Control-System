@@ -68,7 +68,7 @@ public class FloorPacket {
 
 		int i = 3;
 		// must be zero
-		if (data[i] != SPACER) {
+		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 
