@@ -176,8 +176,7 @@ public class SchedulerSubsystem {
 	 */
 	private byte[] createDataArray(SchedulerRequest request) throws CommunicationException {
 		if(request.getType().equals(SubsystemConstants.ELEVATOR)) {
-			ElevatorPacket p = new ElevatorPacket(request.getCurrentFloor(), request.getDestFloor(), -1,
-					request.getElevatorNumber());
+			ElevatorPacket p = new ElevatorPacket(request.getCurrentFloor(), request.getDestFloor(), -1);
 			return p.generatePacketData();
 		} else {
 			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getCurrentFloor(), request.getDestFloor());
@@ -190,7 +189,7 @@ public class SchedulerSubsystem {
 		if (request.getType().equals(SubsystemConstants.ELEVATOR)) {
 			request.setType(SubsystemConstants.FLOOR);
 			request.setReceivedAddress(floorSubsystemAddress);
-			request.setReceivedPort(request.getElevatorNumber() + 40001);
+			request.setReceivedPort(request.getElevatorNumber() + 40001); //TODO REMOVE HARCODE
 		} else {
 			request.setType(SubsystemConstants.ELEVATOR);
 			request.setReceivedAddress(elevatorSubsystemAddress);
