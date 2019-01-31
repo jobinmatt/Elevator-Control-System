@@ -25,12 +25,14 @@
     </plugins>
   </build>
   <dependencies>
-	<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+	 <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
 	<dependency>
 	    <groupId>org.apache.logging.log4j</groupId>
-	    <artifactId>log4j-core</artifactId>
+	    <artifactId>log4j-api</artifactId>
 	    <version>2.11.1</version>
 	</dependency>
+  	
+	<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 	<!-- https://mvnrepository.com/artifact/org.fusesource.jansi/jansi -->
 	<dependency>
 	    <groupId>org.fusesource.jansi</groupId>
@@ -83,6 +85,11 @@
          <groupId>com.fasterxml.jackson.dataformat</groupId>
          <artifactId>jackson-dataformat-csv</artifactId>
          <version>2.8.9</version>
-       </dependency>     
+       </dependency>
+       <dependency>
+       	<groupId>org.apache.logging.log4j</groupId>
+       	<artifactId>log4j-core</artifactId>
+       	<version>2.11.1</version>
+       </dependency>
   </dependencies>
 </project>
