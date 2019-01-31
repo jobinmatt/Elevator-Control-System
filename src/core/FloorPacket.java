@@ -14,6 +14,7 @@ import core.Exceptions.CommunicationException;
 public class FloorPacket {
 
 	private byte FLOOR_FLAG = (byte) 0;
+	private byte ARRIVAL_SENSOR = (byte) 3;
 	private byte SPACER = (byte) 0;
 
 	public final static byte[] UP = {1, 1};
@@ -26,6 +27,7 @@ public class FloorPacket {
 	private int carButtonPressed; //DESTINATION FLOOR
 	private boolean isValid = true;
 
+	private static boolean elevatorArrived = false; //arrival of an elevator to the floor is by default false
 
 	/**
 	 *
@@ -47,46 +49,110 @@ public class FloorPacket {
 	 * @param dataLength
 	 * @throws CommunicationException
 	 */
-	public FloorPacket(byte[] data, int dataLength) throws CommunicationException {
+	public FloorPacket(byte[] data, int dataLength, boolean isArrival) throws CommunicationException {
 
 		isValid = true;
-		
-		//format:
-		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER
-		//	0			1			2		3			4		5		6        7
-		// extract read or write request
-		
-		if (data[1] == UP[0] && data[2] == UP[1]) {
-			direction = Direction.UP;
-		} else if (data[1] == DOWN[0] && data[2] == DOWN[1]) {
-			direction = Direction.DOWN;
-		} else if (data[1] == STATIONARY[0] && data[2] == STATIONARY[1]) {
-			direction = Direction.STATIONARY;
-		} else {
-			isValid = false;
-		}
 
-		int i = 3;
-		// must be zero
-		if (data[i] != SPACER) {
-			isValid = false;
-		}
-
-		sourceFloor = data[i++]; // i = 4
-		// must be zero
-		if (data[i++] != SPACER) { //i = 5
-			isValid = false;
-		}
-
-		carButtonPressed = data[i++];
-
-		// must be zero at end
-		while (i < dataLength) {
-			if (data[i++] != SPACER) {
+		if(isArrival) { //this is an arrivalSensor packet to be parsed
+			if(data[0] != ARRIVAL_SENSOR) {
 				isValid = false;
-				break;
+			}
+			if(data[1] == 1) {
+				this.elevatorArrived = true;
+			}
+			if(data[2] != SPACER) {
+				isValid = false;
+			}
+
+			if (data[3] == UP[0] && data[4] == UP[1]) {
+				direction = Direction.UP;
+			} else if (data[3] == DOWN[0] && data[4] == DOWN[1]) {
+				direction = Direction.DOWN;
+			} else if (data[3] == STATIONARY[0] && data[4] == STATIONARY[1]) {
+				direction = Direction.STATIONARY;
+			} else {
+				isValid = false;
+			}
+		}else {
+			//format:
+			// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER
+			//	0			1			2		3			4		5		6        7
+			// extract read or write request
+
+			if (data[1] == UP[0] && data[2] == UP[1]) {
+				direction = Direction.UP;
+			} else if (data[1] == DOWN[0] && data[2] == DOWN[1]) {
+				direction = Direction.DOWN;
+			} else if (data[1] == STATIONARY[0] && data[2] == STATIONARY[1]) {
+				direction = Direction.STATIONARY;
+			} else {
+				isValid = false;
+			}
+
+			int i = 3;
+			// must be zero
+			if (data[i] != SPACER) {
+				isValid = false;
+			}
+
+			sourceFloor = data[i++]; // i = 4
+			// must be zero
+			if (data[i++] != SPACER) { //i = 5
+				isValid = false;
+			}
+
+			carButtonPressed = data[i++];
+
+			// must be zero at end
+			while (i < dataLength) {
+				if (data[i++] != SPACER) {
+					isValid = false;
+					break;
+				}
 			}
 		}
+
+	}
+
+	/**
+	 * To be used to send the arrival of an elevator to the floor
+	 * @param arrived arrival sensor triggered for arrival
+	 * @param direction direction that the elevator is coming from
+	 */
+	public FloorPacket(boolean arrived, Direction direction) {
+		this.elevatorArrived = arrived;
+		this.direction = direction;
+	}
+
+
+	public byte[] generateArrivalSensorData() throws CommunicationException, IOException {
+
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		if(this.elevatorArrived) {
+			stream.write(ARRIVAL_SENSOR);
+			stream.write(1);
+			stream.write(SPACER);
+		}
+
+		switch (direction) {
+			case UP:
+				stream.write(UP);
+				break;
+			case DOWN:
+				stream.write(DOWN);
+				break;
+			case STATIONARY:
+				stream.write(STATIONARY);
+				break;
+			default:
+				throw new CommunicationException("Unable to generate floor packet");
+		}
+
+		// add spacer
+		stream.write(ARRIVAL_SENSOR);
+
+		return stream.toByteArray();
+
 	}
 
 	public byte[] generatePacketData() throws CommunicationException {
@@ -152,20 +218,13 @@ public class FloorPacket {
 		return carButtonPressed;
 	}
 
+	public boolean getArrivalSensor() {
+		return elevatorArrived;
+	}
+
 	public Direction getDirection() {
 
 		return direction;
-	}
-
-	/**
-	 * Method used by the Scheduler to send the elevatorNumber of the elevator to the floor
-	 * @param elevatorNumber
-	 * @return
-	 */
-	public byte[] sendArrival(int elevatorNumber) {
-		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		data.write(elevatorNumber);
-		return data.toByteArray();
 	}
 
 	public String toString() {

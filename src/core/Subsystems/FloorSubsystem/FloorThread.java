@@ -9,13 +9,18 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.Direction;
+import core.Exceptions.CommunicationException;
+import core.Exceptions.HostActionsException;
 import core.FloorPacket;
 import core.Exceptions.GeneralException;
+import core.Exceptions.FloorSubsystemException;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -40,6 +45,9 @@ public class FloorThread extends Thread {
 	private InetAddress schedulerSubsystemAddress;
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
+	private String lampSensor = "";
+	private String buttonSensor = "";
+
 
 	/**
 	 * Creates a floor thread
@@ -73,6 +81,7 @@ public class FloorThread extends Thread {
 				try {
 					logger.info("Scheduling request: "+e.toString());
 					serviceRequest(e);
+					receiveArrival();
 				} catch (GeneralException e) {
 					logger.error(e);
 				}
@@ -107,7 +116,53 @@ public class FloorThread extends Thread {
         tempPacket.setPort(port);
         logger.info("Buffer Data: "+ Arrays.toString(data));
         HostActions.send( tempPacket, Optional.of(receiveSocket));
+
     }
+
+    private void receiveArrival() throws HostActionsException, CommunicationException {
+		byte[] data = new byte[DATA_SIZE];
+		DatagramPacket packetFromScheduler = new DatagramPacket(data, data.length);
+		HostActions.receive(packetFromScheduler, receiveSocket);
+
+		FloorPacket arrivalSensorPacket = new FloorPacket(data, data.length, true);
+		if(arrivalSensorPacket.isValid()) {
+			if(arrivalSensorPacket.getArrivalSensor()) {
+				Direction direction = arrivalSensorPacket.getDirection();
+				switch (direction) {
+					case UP:
+						lampSensor = "UP";
+						buttonSensor = "UP";
+						break;
+					case DOWN:
+						lampSensor = "DOWN";
+						buttonSensor = "DOWN";
+						break;
+				}
+
+			}
+		}
+		printArrival();
+	}
+
+	private void printArrival() {
+		logger.debug("The elevator is here. Lamp Sensor flashing [" + lampSensor + "]. Button sensor flashing [" + buttonSensor + "].");
+	}
+	/**
+	 * To be used by the Scheduler to send an arrival sensor
+	 * @param port
+	 * @param direction direction that the elevator is coming from
+	 * @throws FloorSubsystemException
+	 */
+	public void sendArrivalSensorPacket(int port, Direction direction) throws FloorSubsystemException {
+
+		try {
+			FloorPacket arrivalSensor = new FloorPacket(true, direction);
+			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generateArrivalSensorData(), arrivalSensor.generatePacketData().length, schedulerSubsystemAddress, port);
+			this.receiveSocket.send(arrivalSensorPacket);
+		} catch (CommunicationException | IOException e) {
+			throw new FloorSubsystemException(e);
+		}
+	}
 
 	public void terminate() {
 		receiveSocket.close();
