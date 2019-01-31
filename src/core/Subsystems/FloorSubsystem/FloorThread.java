@@ -90,7 +90,7 @@ public class FloorThread extends Thread {
 		while(true) {
 
         }
-    }
+    } 
 
     private void serviceRequest(SimulationRequest event) throws GeneralException {
     	

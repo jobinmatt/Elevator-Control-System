@@ -24,7 +24,7 @@ class PacketDataTest {
 	@BeforeEach
 	void setUp() throws Exception {
 		bufferSetup();
-		packetElevator = new ElevatorPacket(floorData1[0], floorData1[1],floorData1[2],floorData1[3]);
+		packetElevator = new ElevatorPacket(floorData1[0], floorData1[1],floorData1[2],floorData1[3]); 
 		packetFloor = new FloorPacket(this.dir, floorData2[1],floorData2[2]);
 	}
 

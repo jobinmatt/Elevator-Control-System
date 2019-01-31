@@ -90,7 +90,7 @@ public class FloorPacket {
 	}
 
 	public byte[] generatePacketData() throws CommunicationException {
-
+ 
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(FLOOR_FLAG); // floor packet flag
