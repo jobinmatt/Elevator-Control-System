@@ -65,10 +65,9 @@ public class ElevatorPacket {
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
-
-		if ((byte) 1 == data[i]) {
+		if ((byte)1 == data[i]) {
 			arrived = true;
-		} else if ((byte) 0 == data[i]) {
+		} else if ((byte)0 == data[i]) {
 			arrived = false;
 		}
 		i++;
@@ -95,22 +94,31 @@ public class ElevatorPacket {
 
 			if (currentFloor != -1 ) {
 				stream.write(currentFloor);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 
 			if (destinationFloor != -1 ) {
 				stream.write(destinationFloor);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 
 			if (requestedFloor != -1 ) {
 				stream.write(requestedFloor);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
-
+			
 			if (arrived) {
 				stream.write(ELEVATOR_FLAG);
 			} else {
@@ -118,10 +126,13 @@ public class ElevatorPacket {
 			}
 			// add space
 			stream.write(SPACER);
-
+			
 			if (elevatorNumber != -1 ) {
 				stream.write(elevatorNumber);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 
@@ -139,32 +150,32 @@ public class ElevatorPacket {
 
 		return true;
 	}
-
+	
 	public int getCurrentFloor() {
-
+		
 		return this.currentFloor;
 	}
-
+	
 	public int getDestinationFloor() {
-
+		
 		return this.destinationFloor;
 	}
-
+	
 	public int getRequestedFloor() {
-
+		
 		return this.requestedFloor;
 	}
-
+	
 	public int getElevatorNumber() {
-
+		
 		return this.elevatorNumber;
 	}
-
+	
 	public boolean getArrivalSensor() {
-
+		
 		return arrived;
 	}
-
+	
 	public String toString() {
 
 		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Requested Floor: " + requestedFloor + " Elevator Number: " + elevatorNumber;

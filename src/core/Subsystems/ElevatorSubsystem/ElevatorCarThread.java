@@ -13,6 +13,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,8 +62,8 @@ public class ElevatorCarThread extends Thread {
 		this.numberOfFloors = numFloors;
 		this.port = port;
 		selectedFloors = new boolean[this.numberOfFloors];
-		elevatorNumber = name.charAt(name.length() - 1);
-		
+//		elevatorNumber = name.charAt(name.length() - 1);
+		elevatorNumber = Integer.parseInt(name.substring(name.length()-1));
 		//initialize component states
 		carProperties = new HashMap<ElevatorComponentConstants, ElevatorComponentStates>();
 		carProperties.put(ElevatorComponentConstants.ELEV_DOORS, ElevatorComponentStates.ELEV_DOORS_CLOSE);
@@ -158,16 +159,15 @@ public class ElevatorCarThread extends Thread {
 			//if source = dest here
 			try {
 				this.receivePacket(elevatorPacket);
-				int recPort = elevatorPacket.getPort();
 				
 				if (ePacket.getCurrentFloor() > ePacket.getDestinationFloor()) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
-					moveFloor(recPort);
+					moveFloor(port);
 					continue;
 				}
 				else if (ePacket.getCurrentFloor() < ePacket.getDestinationFloor()) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
-					moveFloor(recPort);
+					moveFloor(port);
 					continue;
 				} 
 				else if (ePacket.getCurrentFloor() == ePacket.getDestinationFloor()) {
@@ -181,7 +181,7 @@ public class ElevatorCarThread extends Thread {
 					}
 					
 					ElevatorPacket requestFloor = new ElevatorPacket(ePacket.getRequestedFloor(), elevatorNumber);
-					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, recPort);
+					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, port);
 					this.elevatorSocket.send(requestedFloorPacket);
 					continue;
 				} 
@@ -198,15 +198,17 @@ public class ElevatorCarThread extends Thread {
 	
 	public void moveFloor(int port) throws ElevatorSubystemException {
 		
-		Utils.Sleep(floorSleepTime);
+		Utils.Sleep(floorSleepTime * 1000);
 		sendArrivalSensorPacket(port);
 	}
 	
 	public void sendArrivalSensorPacket(int port) throws ElevatorSubystemException {
 		
 		try {
-			ElevatorPacket arrivalSensor = new ElevatorPacket(true, elevatorNumber);
+			ElevatorPacket arrivalSensor = new ElevatorPacket(true, elevatorNumber);		
 			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerDomain, port);
+			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
+			logger.debug("Elevator Packet "+ arrivalSensor.toString());
 			this.elevatorSocket.send(arrivalSensorPacket);
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubystemException(e);
