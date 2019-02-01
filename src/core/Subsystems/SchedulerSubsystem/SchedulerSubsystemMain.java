@@ -23,7 +23,6 @@ public class SchedulerSubsystemMain {
 	public static void main(String[] args) {
 
 		logger.info(LoggingManager.BANNER + "Scheduler Subsystem\n");
-
 		try {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
 

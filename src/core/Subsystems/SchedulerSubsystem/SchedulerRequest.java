@@ -168,7 +168,6 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	public void setCarButton(int carButton) {
 		this.carButton = carButton;
 	}
-
 	@Override
 	public int compareTo(SchedulerRequest arg1) {
 		if(getDestFloor() > arg1.getDestFloor()) {

@@ -45,7 +45,6 @@ public class HostActions {
 		}
 
 	}
-
 	/**
 	 * @param packet
 	 * @param socket
