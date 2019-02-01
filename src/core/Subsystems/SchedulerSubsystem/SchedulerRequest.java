@@ -21,7 +21,7 @@ import core.Utils.SubsystemConstants;
  * */
 public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private SubsystemConstants type;
-	private int currentFloor = -1;
+	private int sourceFloor = -1;
 	private InetAddress receivedAddress;
 	private int receivedPort;
 	private long requestId;
@@ -41,7 +41,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 	@Override
 	public String toString() {
-		return "Request id: " + requestId + " Type: " + type.toString() + " current floor: " + currentFloor
+		return "Request id: " + requestId + " Type: " + type.toString() + " source floor: " + sourceFloor
 				+ " receieved address: " + receivedAddress.getHostAddress() + ":" + receivedPort
 				+ 
 				" destination floor: " + destFloor + " request direction: " + requestDirection.toString()
@@ -53,7 +53,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.currentFloor = typeNumber;
+		this.sourceFloor = typeNumber;
 		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
@@ -67,7 +67,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.currentFloor = typeNumber;
+		this.sourceFloor = typeNumber;
 		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = destFloor;
 		this.requestDirection = requestDirection;
@@ -80,8 +80,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 * @param
 	 * @return int
 	 */
-	public int getCurrentFloor() {
-		return currentFloor;
+	public int getSourceFloor() {
+		return sourceFloor;
 	}
 
 	/**
@@ -137,8 +137,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.type = type;
 	}
 
-	public void setCurrentFloor(int currentFloor) {
-		this.currentFloor = currentFloor;
+	public void setSourceFloor(int sourceFloor) {
+		this.sourceFloor = sourceFloor;
 	}
 
 	public void setReceivedAddress(InetAddress receivedAddress) {
@@ -184,7 +184,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 		@Override
 		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
-			if(arg0.getDestFloor() > arg1.getDestFloor() && arg0.getRequestDirection().compareTo(arg1.getRequestDirection()) == 0) {
+			if (arg0.getDestFloor() > arg1.getDestFloor()) {
 				return 1;
 			}
 			else if(arg0.getDestFloor() == arg1.getDestFloor()) {
