@@ -9,6 +9,7 @@ package core.Subsystems.SchedulerSubsystem;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.Comparator;
 
 import core.Direction;
 import core.Utils.SubsystemConstants;
@@ -23,10 +24,11 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private int currentFloor = -1;
 	private InetAddress receivedAddress;
 	private int receivedPort;
-	private SchedulerPriorityConstants priority;
+	private long requestId;
 	private int destFloor = -1;
 	private Direction requestDirection;
 	private int elevatorNumber = -1;
+	private int carButton = -1;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -37,28 +39,40 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	public SchedulerRequest() {
 	}
 
-	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection) {// Floor
+	@Override
+	public String toString() {
+		return "Request id: " + requestId + " Type: " + type.toString() + " current floor: " + currentFloor
+				+ " receieved address: " + receivedAddress.getHostAddress() + ":" + receivedPort
+				+ 
+				" destination floor: " + destFloor + " request direction: " + requestDirection.toString()
+				+ " elevator number: " + elevatorNumber + " car button: " + carButton;
+	}
+
+	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
+			int typeNumber, Direction requestDirection, int destFloor, int carButton) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
 		this.currentFloor = typeNumber;
-		this.priority = priority;
+		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = -1;
+		this.destFloor = destFloor;
+		this.carButton = carButton;
 	}
 
-	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type, int typeNumber,
-			SchedulerPriorityConstants priority, Direction requestDirection, int destFloor, int elevNumber) {// Elev
+	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
+			int typeNumber, Direction requestDirection, int destFloor, int elevNumber, int carButton) {// Elev
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
 		this.currentFloor = typeNumber;
-		this.priority = priority;
+		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = destFloor;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = elevNumber;
+		this.carButton = carButton;
 	}
 
 	/**
@@ -93,8 +107,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	 * @param
 	 * @return SimulationRequest
 	 */
-	public SchedulerPriorityConstants getPriority() {
-		return priority;
+	public long getrRequestId() {
+		return requestId;
 	}
 
 	/**
@@ -135,10 +149,6 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedPort = receivedPort;
 	}
 
-	public void setPriority(SchedulerPriorityConstants priority) {
-		this.priority = priority;
-	}
-
 	public void setDestFloor(int destFloor) {
 		this.destFloor = destFloor;
 	}
@@ -151,8 +161,46 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.elevatorNumber = elevatorNumber;
 	}
 
+	public int getCarButton() {
+		return carButton;
+	}
+
+	public void setCarButton(int carButton) {
+		this.carButton = carButton;
+	}
+
 	@Override
-	public int compareTo(SchedulerRequest o) {
-		return this.priority.compareTo(o.getPriority());
+	public int compareTo(SchedulerRequest arg1) {
+		if(getDestFloor() > arg1.getDestFloor()) {
+			return 1;
+		}
+		else if(getDestFloor() == arg1.getDestFloor()) {
+			return 0;
+		}
+		return -1;
+	}
+
+	static final Comparator<SchedulerRequest> BY_ASCENDING = new Comparator<SchedulerRequest>() {
+
+		@Override
+		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
+			if(arg0.getDestFloor() > arg1.getDestFloor() && arg0.getRequestDirection().compareTo(arg1.getRequestDirection()) == 0) {
+				return 1;
+			}
+			else if(arg0.getDestFloor() == arg1.getDestFloor()) {
+				return 0;
+			}
+			return -1;
+		}
+	};
+
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof SchedulerRequest && o != null) {
+			if (((SchedulerRequest) o).getrRequestId() == this.requestId) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

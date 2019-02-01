@@ -16,9 +16,9 @@ public class FloorPacket {
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
 
-	public final static byte[] UP = {1, 1};
-	public final static byte[] DOWN = {1, 2};
-	public final static byte[] STATIONARY = {1, 3};
+	private final static byte[] UP = {1, 1};
+	private final static byte[] DOWN = {1, 2};
+	private final static byte[] STATIONARY = {1, 3};
 
 
 	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR

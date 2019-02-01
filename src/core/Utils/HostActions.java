@@ -14,12 +14,16 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.Optional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import core.Exceptions.HostActionsException;
 
 public class HostActions {
-
+	private static Logger logger = LogManager.getLogger(HostActions.class);
 	/**
 	 * @param packet
 	 * @param socket
@@ -27,7 +31,6 @@ public class HostActions {
 	 */
 	public static void send(DatagramPacket packet, Optional<DatagramSocket> socket) throws HostActionsException {
 		DatagramSocket hostSocket = null;
-
 		try {
 			hostSocket = socket.isPresent() ? socket.get() : new DatagramSocket();
 		} catch (SocketException e) {
@@ -51,6 +54,7 @@ public class HostActions {
 
 		try {
 			socket.receive(packet);
+			logger.debug("Packet recieved: " + Arrays.toString(packet.getData()));
 		} catch (IOException e) {
 			throw new HostActionsException("Data packet not received.", e);
 		}

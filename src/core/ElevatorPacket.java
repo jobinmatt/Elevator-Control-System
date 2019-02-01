@@ -25,17 +25,17 @@ public class ElevatorPacket {
 	private boolean isValid = true;
 
 	public ElevatorPacket(boolean arrived, int elevatorNumber) {
-		
+
 		this.arrived = arrived; 
 		this.elevatorNumber = elevatorNumber;
 	}
-	
+
 	public ElevatorPacket(int requestedFloor, int elevatorNumber) {
 
 		this.requestedFloor = requestedFloor;
 		this.elevatorNumber = elevatorNumber;
 	}
-	
+
 	public ElevatorPacket(int currentFloor, int destinationFloor, int selectedFloors) {
 
 		this.currentFloor = currentFloor;
@@ -65,19 +65,17 @@ public class ElevatorPacket {
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
-		
 		if ((byte)1 == data[i]) {
 			arrived = true;
 		} else if ((byte)0 == data[i]) {
 			arrived = false;
 		}
 		i++;
-		
 		// must be zero
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
-		
+
 		elevatorNumber = data[i++];
 		// must be zero at end
 		while (i < dataLength) {

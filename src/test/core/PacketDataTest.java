@@ -1,7 +1,7 @@
 package test.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,7 +24,7 @@ class PacketDataTest {
 	@BeforeEach
 	void setUp() throws Exception {
 		bufferSetup();
-		packetElevator = new ElevatorPacket(floorData1[0], floorData1[1],floorData1[2],floorData1[3]); 
+		packetElevator = new ElevatorPacket(floorData1[0], floorData1[1],floorData1[2]); 
 		packetFloor = new FloorPacket(this.dir, floorData2[1],floorData2[2]);
 	}
 
@@ -32,7 +32,7 @@ class PacketDataTest {
 	void tearDown() throws Exception {
 		this.floorData1 = null;
 		this.floorData2 = null;
-		
+
 		this.packetElevator=null;
 		this.packetFloor=null;
 		this.dir = null;
@@ -43,8 +43,7 @@ class PacketDataTest {
 		assertEquals(floorData1[0],packetElevator.getCurrentFloor(),floorData1[0]+"!= "+packetElevator.getCurrentFloor());
 		assertEquals(floorData1[1],packetElevator.getDestinationFloor(),floorData1[1]+"!= "+packetElevator.getDestinationFloor());
 		assertEquals(floorData1[2],packetElevator.getRequestedFloor(),floorData1[2]+"!= "+packetElevator.getRequestedFloor());
-		assertEquals(floorData1[3],packetElevator.getElevator_Number(),floorData1[3]+"!= "+packetElevator.getElevator_Number());
-		
+
 		try {
 			byte[] actualElevatorData = generateActualElevatorData(floorData1[0], floorData1[1],floorData1[2],floorData1[3]);
 			assertArrayEquals(actualElevatorData,packetElevator.generatePacketData(),"Elevator buffer data was not generated correctly.");
@@ -55,8 +54,8 @@ class PacketDataTest {
 		assertEquals(this.dir,packetFloor.getDirection(),this.dir+"!= "+packetFloor.getDirection());
 		assertEquals(floorData2[1],packetFloor.getSourceFloor(),floorData2[1]+"!= "+packetFloor.getSourceFloor());
 		assertEquals(floorData2[2],packetFloor.getDestinationFloor(),floorData2[2]+"!= "+packetFloor.getDestinationFloor());
-		
-		
+
+
 		try {
 			byte[] actualFloorData = generateActualFloorData(this.dir, floorData2[1],floorData2[2]);
 			assertArrayEquals(actualFloorData,packetFloor.generatePacketData(),"Elevator buffer data was not generated correctly.");
@@ -64,31 +63,31 @@ class PacketDataTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
+
+
 	}
 
 	int random(int min, int max)
 	{
-	   int range = (max - min) + 1;     
-	   return (int)(Math.random() * range) + min;
+		int range = (max - min) + 1;     
+		return (int)(Math.random() * range) + min;
 	}
-	
+
 	void bufferSetup() {
-		floorData1 = new int[4];
+		floorData1 = new int[3];
 		floorData2 = new int[3];
-		
+
 		for (int i=0;i<floorData1.length;i++) {
 			floorData1[i] = random(1,10);
-			
+
 		}
 		for (int i=0;i<floorData2.length;i++) {
 			floorData2[i] = random(1,10);
-			
+
 		}
 		this.dir = Direction.values()[random(0,2)];
 	}
-	
+
 	byte[] generateActualElevatorData(int curr_f, int dest_f, int selected_f, int elevnum) throws CommunicationException {
 		final byte  SPACER = (byte)0;
 		final byte ELEVATOR_FLAG = (byte) 1;
