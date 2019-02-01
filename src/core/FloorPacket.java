@@ -68,7 +68,7 @@ public class FloorPacket {
 
 		int i = 3;
 		// must be zero
-		if (data[i] != SPACER) {
+		if (data[i++] != SPACER) {
 			isValid = false;
 		}
 
@@ -90,7 +90,7 @@ public class FloorPacket {
 	}
 
 	public byte[] generatePacketData() throws CommunicationException {
-
+ 
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(FLOOR_FLAG); // floor packet flag
