@@ -66,12 +66,13 @@ public class ElevatorPacket {
 			isValid = false;
 		}
 		
-		int arrive = data[i++];
-		if (1 == arrive) {
+		if ((byte)1 == data[i]) {
 			arrived = true;
-		} else if (0 == arrive) {
+		} else if ((byte)0 == data[i]) {
 			arrived = false;
 		}
+		i++;
+		
 		// must be zero
 		if (data[i++] != SPACER) {
 			isValid = false;
@@ -95,19 +96,28 @@ public class ElevatorPacket {
 
 			if (currentFloor != -1 ) {
 				stream.write(currentFloor);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 
 			if (destinationFloor != -1 ) {
 				stream.write(destinationFloor);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 
 			if (requestedFloor != -1 ) {
 				stream.write(requestedFloor);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 			
@@ -121,7 +131,10 @@ public class ElevatorPacket {
 			
 			if (elevatorNumber != -1 ) {
 				stream.write(elevatorNumber);
+			} else {
+				stream.write(SPACER);
 			}
+			
 			// add space
 			stream.write(SPACER);
 
