@@ -1,7 +1,7 @@
 ******************* README *******************
 List of Team Members and Responsibilities:
 Brij Patel - Worked on InputParser.java and Scheduler Algorithm and Communication between Subsystems
-Dharina H. - Worked on Floor Subsystem, HostActions.java and Floor Packet.java
+Dharina Hanumunthadu - Worked on Floor Subsystem, HostActions.java and Floor Packet.java
 Jobin Mathew - Worked on StateDiagram, Unit test, README and setup Scheduler Subsystem
 Rajat Bansal - Worked on Floor Subsystem, ConfigurationParser.java and 
 Shounak Amladi - Worked On Elevator Subsystem, ElevatorPacket.java
