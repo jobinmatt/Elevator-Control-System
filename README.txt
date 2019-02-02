@@ -63,6 +63,9 @@ Elevator-Control-System/src/core/Utils/
 	SimulationRequest.java
 	SubsystemConstants.java
 	Utils.java
+Elevator-Control-System/src/test/core/
+	ElevatorCarStateTest.java
+	PacketDataTest.java
 **********************************************
 Setup Instructions:
 1) Extract project zip file

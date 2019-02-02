@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<class-diagram version="1.2.2" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+<class-diagram version="1.2.3" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
   associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
   <class id="1" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerSubsystemMain" 
     project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerSubsystemMain.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="119" width="199" x="242" y="86"/>    
+    <position height="-1" width="-1" x="597" y="37"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -27,7 +27,7 @@
     project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerSubsystem.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="173" width="195" x="481" y="86"/>    
+    <position height="-1" width="-1" x="1058" y="528"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -38,17 +38,42 @@
     project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerPipeline.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="191" width="279" x="716" y="86"/>    
+    <position height="-1" width="-1" x="1107" y="117"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <association id="5">    
+  <enumeration id="5" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerPriorityConstants" 
+    project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerPriorityConstants.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="1464" y="52"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </enumeration>  
+  <class id="6" language="java" name="core.Subsystems.SchedulerSubsystem.Elevator" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/Elevator.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="1745" y="160"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <association id="7">    
     <end type="SOURCE" refId="3" navigable="false">      
-      <attribute id="6" name="events"/>      
-      <multiplicity id="7" minimum="0" maximum="2147483647"/>    
+      <attribute id="8" name="events">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="9" minimum="0" maximum="2147483647">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
     </end>    
     <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  

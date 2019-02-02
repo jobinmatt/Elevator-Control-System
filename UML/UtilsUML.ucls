@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<class-diagram version="1.2.2" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+<class-diagram version="1.2.3" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
   associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
-  <class id="1" language="java" name="core.Utils.InputParser" project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Utils/InputParser.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="245" width="307" x="221" y="-60"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="2" language="java" name="core.Utils.Utils" project="Elevator-Control-System" 
+  <class id="1" language="java" name="core.Utils.Utils" project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Utils/Utils.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="587" width="377" x="578" y="-60"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -19,7 +10,7 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="core.Utils.SimulationRequest" project="Elevator-Control-System" 
+  <class id="2" language="java" name="core.Utils.SimulationRequest" project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Utils/SimulationRequest.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="335" width="251" x="995" y="-60"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -28,14 +19,24 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <association id="4">    
-    <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="5" name="inputParserInstance"/>      
-      <multiplicity id="6" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="1" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
+  <enumeration id="3" language="java" name="core.Utils.SubsystemConstants" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Utils/SubsystemConstants.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="98" y="26"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </enumeration>  
+  <class id="4" language="java" name="core.Utils.HostActions" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Utils/HostActions.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="412" y="26"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
     <attributes public="true" package="true" protected="true" private="true" static="true"/>    

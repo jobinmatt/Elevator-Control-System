@@ -43,7 +43,7 @@ public class InputParser {
 
 	private static Logger logger = LogManager.getLogger(InputParser.class);
 
-	private static final String TIME_FORMAT = "hh:mm:ss.SSS";
+	private static final String TIME_FORMAT = "HH:mm:ss.SSS";
 	private static final String TIME_HEADER = "Time";
 	private static final String FLOOR_BUTTON_HEADER = "Floor_Button";
 	private static final String CAR_BUTTON_HEADER = "Car_Button";

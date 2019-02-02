@@ -48,7 +48,6 @@ public class Elevator {
 	public int getDestFloor() {
 		return destFloor;
 	}
-
 	public void setDestFloor(int destFloor) {
 		this.destFloor = destFloor;
 	}

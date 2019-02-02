@@ -9,6 +9,7 @@ package core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
 import core.Exceptions.CommunicationException;
 
 public class FloorPacket {
@@ -50,12 +51,12 @@ public class FloorPacket {
 	public FloorPacket(byte[] data, int dataLength) throws CommunicationException {
 
 		isValid = true;
-		
+
 		//format:
 		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER
 		//	0			1			2		3			4		5		6        7
 		// extract read or write request
-		
+
 		if (data[1] == UP[0] && data[2] == UP[1]) {
 			direction = Direction.UP;
 		} else if (data[1] == DOWN[0] && data[2] == DOWN[1]) {
@@ -90,7 +91,7 @@ public class FloorPacket {
 	}
 
 	public byte[] generatePacketData() throws CommunicationException {
- 
+
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(FLOOR_FLAG); // floor packet flag
@@ -170,6 +171,7 @@ public class FloorPacket {
 
 	public String toString() {
 
-		return "Direction: " + direction.name() + " Elevator Location: " + sourceFloor + " Car Button Pressed Number: " + carButtonPressed;
+		return "Direction: " + direction.name() + " Source Location: " + sourceFloor + " Car Button Pressed Number: "
+				+ carButtonPressed;
 	}
 }

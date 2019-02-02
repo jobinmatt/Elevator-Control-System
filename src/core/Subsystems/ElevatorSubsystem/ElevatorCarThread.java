@@ -48,7 +48,7 @@ public class ElevatorCarThread extends Thread {
 	private InetAddress schedulerDomain;
 	private int doorSleepTime;
 	private int floorSleepTime;
-	
+	private boolean sentArrivalSensor;
 	/**
 	 * Constructor for elevator car
 	 * 
@@ -61,6 +61,7 @@ public class ElevatorCarThread extends Thread {
 		this.schedulerDomain = schedulerDomain;
 		this.numberOfFloors = numFloors;
 		this.port = port;
+		this.sentArrivalSensor = false;
 		selectedFloors = new boolean[this.numberOfFloors];
 //		elevatorNumber = name.charAt(name.length() - 1);
 		elevatorNumber = Integer.parseInt(name.substring(name.length()-1));
@@ -70,9 +71,9 @@ public class ElevatorCarThread extends Thread {
 		carProperties.put(ElevatorComponentConstants.ELEV_MOTOR, ElevatorComponentStates.ELEV_MOTOR_IDLE);
 
 		try {
-			doorSleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS);
-			floorSleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS);
-			
+			doorSleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS)*1000;
+			floorSleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000;
+		
 			//initialize communication stuff
 			this.elevatorSocket = new DatagramSocket(this.port);
 			byte[] b = new byte[1024];
@@ -117,7 +118,7 @@ public class ElevatorCarThread extends Thread {
 	 * */
 	public synchronized ElevatorComponentStates getDoorStatus() {
 
-		return carProperties.get(ElevatorComponentConstants.ELEV_MOTOR);
+		return carProperties.get(ElevatorComponentConstants.ELEV_DOORS);
 	}
 	/**
 	 * Updates the elevator car's motor status
@@ -126,7 +127,7 @@ public class ElevatorCarThread extends Thread {
 	 * */
 	public synchronized void updateMotorStatus(ElevatorComponentStates state) {
 		
-		logger.info("Elevator Motor: " + state.name());
+		logger.info("\nElevator Motor: " + state.name());
 		carProperties.replace(ElevatorComponentConstants.ELEV_MOTOR, state);
 	}
 
@@ -162,12 +163,14 @@ public class ElevatorCarThread extends Thread {
 				
 				if (ePacket.getCurrentFloor() > ePacket.getDestinationFloor()) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
-					moveFloor(port);
+					moveFloor();
+					sentArrivalSensor = false;
 					continue;
 				}
 				else if (ePacket.getCurrentFloor() < ePacket.getDestinationFloor()) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
-					moveFloor(port);
+					moveFloor();
+					sentArrivalSensor = false;
 					continue;
 				} 
 				else if (ePacket.getCurrentFloor() == ePacket.getDestinationFloor()) {
@@ -179,14 +182,20 @@ public class ElevatorCarThread extends Thread {
 						selectedFloors[ePacket.getRequestedFloor()] = true;
 						logger.info("User Selected Floor: " + ePacket.getRequestedFloor());
 					}
-					
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 					ElevatorPacket requestFloor = new ElevatorPacket(ePacket.getRequestedFloor(), elevatorNumber);
 					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, port);
-					this.elevatorSocket.send(requestedFloorPacket);
+					logger.debug("Arrived dest.\n");
+					if (!sentArrivalSensor) {						
+						this.sendArrivalSensorPacket();
+						sentArrivalSensor = true;
+					}
+//					this.elevatorSocket.send(requestedFloorPacket);
 					continue;
 				} 
 				else {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
+					sentArrivalSensor = false;
 					continue;
 				}
 
@@ -196,19 +205,20 @@ public class ElevatorCarThread extends Thread {
 		}		
 	}
 	
-	public void moveFloor(int port) throws ElevatorSubystemException {
+	public void moveFloor() throws ElevatorSubystemException {
 		
-		Utils.Sleep(floorSleepTime * 1000);
-		sendArrivalSensorPacket(port);
+		Utils.Sleep(floorSleepTime);
+		sendArrivalSensorPacket();
 	}
 	
-	public void sendArrivalSensorPacket(int port) throws ElevatorSubystemException {
+	public void sendArrivalSensorPacket() throws ElevatorSubystemException {
 		
 		try {
 			ElevatorPacket arrivalSensor = new ElevatorPacket(true, elevatorNumber);		
 			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerDomain, port);
-			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
-			logger.debug("Elevator Packet "+ arrivalSensor.toString());
+//			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
+//			logger.debug("Elevator Packet "+ arrivalSensor.toString());
+			logger.debug("sent Arrival Sensor.");
 			this.elevatorSocket.send(arrivalSensorPacket);
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubystemException(e);
@@ -236,8 +246,9 @@ public class ElevatorCarThread extends Thread {
 	}
 	
 	public void terminate() {
-		
+		System.out.println("\nTearDown Elevator...");
 		this.elevatorSocket.close();
+		System.out.println("TearDown Complete");
 		//cleanup items go here
 	}
 }

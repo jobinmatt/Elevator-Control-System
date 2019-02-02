@@ -29,7 +29,8 @@ public class HostActions {
 	 * @param socket
 	 * @throws HostActionsException
 	 */
-	public static void send(DatagramPacket packet, Optional<DatagramSocket> socket) throws HostActionsException {
+	public synchronized static void send(DatagramPacket packet, Optional<DatagramSocket> socket)
+			throws HostActionsException {
 		DatagramSocket hostSocket = null;
 		try {
 			hostSocket = socket.isPresent() ? socket.get() : new DatagramSocket();
@@ -44,7 +45,6 @@ public class HostActions {
 		}
 
 	}
-
 	/**
 	 * @param packet
 	 * @param socket

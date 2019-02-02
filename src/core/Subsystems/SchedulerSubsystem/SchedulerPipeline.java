@@ -10,7 +10,6 @@ package core.Subsystems.SchedulerSubsystem;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,7 +38,8 @@ public class SchedulerPipeline extends Thread{
 	private SchedulerSubsystem schedulerSubsystem;
 
 
-	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort, SchedulerSubsystem subsystem) throws SchedulerPipelineException{
+	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort,
+			SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 		String threadName;
 		this.schedulerSubsystem = subsystem;
 		int portNumber = -1;
@@ -81,6 +81,7 @@ public class SchedulerPipeline extends Thread{
 		return receivePacket;
 	}
 
+
 	@Override
 	public void run() {
 
@@ -113,16 +114,14 @@ public class SchedulerPipeline extends Thread{
 			schedulerPacket = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
 					lFloorPacket.getSourceFloor(),
 					lFloorPacket.getDirection(), lFloorPacket.getDestinationFloor(), lFloorPacket.getDestinationFloor());
-			logger.debug("Recieved packet from floor: " + lFloorPacket.toString() + System.lineSeparator());
-			logger.debug("Recieved bytes from floor: " + Arrays.toString(lFloorPacket.generatePacketData())
-			+ System.lineSeparator());
 			schedulerSubsystem.addEvent(schedulerPacket);
 		}
 		else if (packet.getData()[0] == (byte) 1) {
 			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());
 			if (lElevatorPacket.getArrivalSensor()) {
-				logger.debug("Got arrival sensor: " + lElevatorPacket.toString());
-				schedulerSubsystem.updateStates(lElevatorPacket);
+				logger.debug("\n Got arrival sensor: " + lElevatorPacket.toString());
+				//				schedulerSubsystem.updateStates(lElevatorPacket);
+				this.updateStates(lElevatorPacket);
 			} else {
 				Direction lElevDir = null;
 				if (lElevatorPacket.getCurrentFloor() - lElevatorPacket.getDestinationFloor() < 0) {
@@ -136,9 +135,21 @@ public class SchedulerPipeline extends Thread{
 						lElevatorPacket.getDestinationFloor(), lElevatorPacket.getElevatorNumber(),
 						lElevatorPacket.getRequestedFloor());
 				logger.debug("Recieved packet from elevator: " + lElevatorPacket.toString());
-				logger.debug("Recieved bytes from floor: " + Arrays.toString(lElevatorPacket.generatePacketData())
-				+ System.lineSeparator());
 				schedulerSubsystem.addEvent(schedulerPacket);
+			}
+		}
+	}
+
+	private void updateStates(ElevatorPacket packet) throws CommunicationException, HostActionsException {
+		synchronized (schedulerSubsystem) {
+			Elevator elev = schedulerSubsystem.getElevator(packet.getElevatorNumber());
+			if (elev != null) {
+				schedulerSubsystem.updateFloors(elev);
+				schedulerSubsystem.removeServicedEvents(elev);
+				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), elev.getDestFloor(),
+						packet.getRequestedFloor());
+				schedulerSubsystem.sendUpdatePacket(sendPacket, elev);
+				logger.debug("Elevator update packet created: " + sendPacket.toString());
 			}
 		}
 	}

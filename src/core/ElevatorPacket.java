@@ -141,7 +141,6 @@ public class ElevatorPacket {
 			throw new CommunicationException("Unable to generate packet", e);
 		}
 	}
-
 	public boolean isValid() {
 
 		if (!isValid) {
