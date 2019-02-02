@@ -246,8 +246,9 @@ public class ElevatorCarThread extends Thread {
 	}
 	
 	public void terminate() {
-		
+		System.out.println("\nTearDown Elevator...");
 		this.elevatorSocket.close();
+		System.out.println("TearDown Complete");
 		//cleanup items go here
 	}
 }
