@@ -13,6 +13,10 @@ Elevator-Control-System/
 Elevator-Control-System/Diagrams/
 	Elevator Subsystem State Machine Diagram.jpg
 	Scheduler Subsystem State Machine Diagram.jpg
+	ElevatorSubsystemUML.jpg
+	ExceptionsUML.jpg
+	FloorSubsystemUML.jpg
+	SchedulerSubsystemUML.jpg
 Elevator-Control-System/UML/
 	CorePackageUtils.ucls
 	ElevatorSubsystemUML.ucls
