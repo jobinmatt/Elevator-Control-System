@@ -118,7 +118,7 @@ public class ElevatorCarThread extends Thread {
 	 * */
 	public synchronized ElevatorComponentStates getDoorStatus() {
 
-		return carProperties.get(ElevatorComponentConstants.ELEV_MOTOR);
+		return carProperties.get(ElevatorComponentConstants.ELEV_DOORS);
 	}
 	/**
 	 * Updates the elevator car's motor status
