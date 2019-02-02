@@ -1,10 +1,10 @@
 ******************* README *******************
-List of Team Members:
-Brij Patel
-Dharina H.
-Jobin Mathew
-Rajat Bansal
-Shounak Amladi
+List of Team Members and Responsibilities:
+Brij Patel - Worked on InputParser.java and Scheduler Algorithm and Communication between Subsystems
+Dharina H. - Worked on Floor Subsystem, HostActions.java and Floor Packet.java
+Jobin Mathew - Worked on StateDiagram, Unit test, README and setup Scheduler Subsystem
+Rajat Bansal - Worked on Floor Subsystem, ConfigurationParser.java and 
+Shounak Amladi - Worked On Elevator Subsystem, ElevatorPacket.java
 **********************************************
 List of Files:
 Elevator-Control-System/
@@ -88,5 +88,4 @@ How to find your computers ip address on windows?
 	WindowsButton+R -> type cmd.exe and hit run
 2) Type ipconfig and hit enter
 3) Identify your network adapter from the list and copy its IPv4 Address
-**********************************************
-		
+**********************************************		
