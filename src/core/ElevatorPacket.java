@@ -12,7 +12,7 @@ import java.io.ByteArrayOutputStream;
 
 import core.Exceptions.CommunicationException;
 
-public class ElevatorPacket {
+public class ElevatorPacket implements DatagramBuffer {
 
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;

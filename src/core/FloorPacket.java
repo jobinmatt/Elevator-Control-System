@@ -11,8 +11,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import core.Exceptions.CommunicationException;
-
-public class FloorPacket {
+/**
+ * Used to convert between FloorPacket, and Datagram Buffer (byte[]) 
+ * */
+public class FloorPacket implements DatagramBuffer {
 
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
