@@ -5,12 +5,13 @@
 // Description: Stores packet information, transcodes into byte data and reverse
 //
 //***************************************************************************
-package core;
+package core.Messages;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 
+import core.Direction;
 import core.Exceptions.CommunicationException;
 import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
 import core.Utils.SubsystemConstants;
@@ -19,7 +20,7 @@ import core.Utils.SubsystemConstants;
  * @author Rajat Bansal
  * Refactored: Shounak Amladi
  * */
-public class FloorPacket implements DatagramBuffer {
+public class FloorMessage implements SubsystemMessage {
 
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
@@ -31,7 +32,7 @@ public class FloorPacket implements DatagramBuffer {
 
 	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR
 	private Direction direction;
-	private int targetFloor; //DESTINATION FLOOR
+	private int targetFloor; //DESTINATION FLOOR (end goal)
 	private boolean isValid = true;
 
 
@@ -40,13 +41,13 @@ public class FloorPacket implements DatagramBuffer {
 	 * @param direction Direction
 	 * @param sourceFloor current floor, i.e. source floor when direction is pressed
 	 * @param date  The Date
-	 * @param carButtonPressed Button pressed in the elevator
+	 * @param targetFloor Button pressed in the elevator
 	 */
-	public FloorPacket(Direction direction, int sourceFloor, int carButtonPressed) {
+	public FloorMessage(Direction direction, int sourceFloor, int targetFloor) {
 
 		this.sourceFloor = sourceFloor;
 		this.direction = direction;
-		this.targetFloor = carButtonPressed;
+		this.targetFloor = targetFloor;
 	}
 
 	/**
@@ -55,7 +56,7 @@ public class FloorPacket implements DatagramBuffer {
 	 * @param dataLength
 	 * @throws CommunicationException
 	 */
-	public FloorPacket(byte[] data, int dataLength) throws CommunicationException {
+	public FloorMessage(byte[] data, int dataLength) throws CommunicationException {
 
 		isValid = true;
 

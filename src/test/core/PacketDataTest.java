@@ -11,21 +11,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import core.Direction;
-import core.ElevatorPacket;
-import core.FloorPacket;
 import core.Exceptions.CommunicationException;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
 
 class PacketDataTest {
 
-	private ElevatorPacket packetElevator;
-	private FloorPacket packetFloor;
+	private ElevatorMessage packetElevator;
+	private FloorMessage packetFloor;
 	private int[] floorData1,floorData2;
 	private Direction dir; 
 	@BeforeEach
 	void setUp() throws Exception {
 		bufferSetup();
-		packetElevator = new ElevatorPacket(floorData1[0], floorData1[1],floorData1[2]); 
-		packetFloor = new FloorPacket(this.dir, floorData2[1],floorData2[2]);
+		packetElevator = new ElevatorMessage(floorData1[0], floorData1[1],floorData1[2]); 
+		packetFloor = new FloorMessage(this.dir, floorData2[1],floorData2[2]);
 	}
 
 	@AfterEach

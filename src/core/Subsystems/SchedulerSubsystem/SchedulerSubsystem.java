@@ -25,13 +25,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.Direction;
-import core.ElevatorPacket;
-import core.FloorPacket;
 import core.LoggingManager;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
@@ -186,7 +186,7 @@ public class SchedulerSubsystem {
 			//				elevatorEvents.get(elev).stream().forEach(x -> logger.debug("Events sorted D: ".concat(x.toString())));
 			//			}
 			if (elevatorEvents.get(elev).first() != null) {
-				ElevatorPacket p = new ElevatorPacket(elev.getCurrentFloor(),
+				ElevatorMessage p = new ElevatorMessage(elev.getCurrentFloor(),
 						elevatorEvents.get(elev).first().getDestFloor(),
 						elevatorEvents.get(elev).first().getCarButton());
 				return p.generatePacketData();
@@ -194,7 +194,7 @@ public class SchedulerSubsystem {
 			throw new CommunicationException(
 					"Elevator or event not found: " + elev.toString() + " request: " + request.toString());
 		} else {
-			FloorPacket p = new FloorPacket(request.getRequestDirection(), request.getSourceFloor(),
+			FloorMessage p = new FloorMessage(request.getRequestDirection(), request.getSourceFloor(),
 					request.getDestFloor());
 			return p.generatePacketData();
 		}
@@ -324,10 +324,10 @@ public class SchedulerSubsystem {
 		elevatorEvents.get(elev).removeAll(tempList);
 	}
 
-	public void sendUpdatePacket(ElevatorPacket sendPacket, Elevator elev)
+	public void sendUpdatePacket(ElevatorMessage sendPacket, Elevator elev)
 			throws CommunicationException, HostActionsException {
 		DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,
-				sendPacket.generatePacketData().length, elevatorSubsystemAddress, elev.getElevatorId() + 50000);// TODO
+				sendPacket.generatePacketData().length, elevatorSubsystemAddress, elev.getElevatorId() + 50000);// TODO (50000)change me plssssss
 		// GET
 		// RID
 		// OF
@@ -337,7 +337,7 @@ public class SchedulerSubsystem {
 		HostActions.send(sendElevPacket, Optional.of(sendSocket));
 	}
 
-	public synchronized void updateStates(ElevatorPacket packet)
+	public synchronized void updateStates(ElevatorMessage packet)
 			throws SchedulerSubsystemException, CommunicationException, HostActionsException {
 		Elevator elev = null;
 		if (!elevatorEvents.isEmpty()) {
@@ -368,7 +368,7 @@ public class SchedulerSubsystem {
 					}
 				}
 				elevatorEvents.get(elev).removeAll(tempList);
-				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), elev.getDestFloor(),
+				ElevatorMessage sendPacket = new ElevatorMessage(elev.getCurrentFloor(), elev.getDestFloor(),
 						packet.getTargetFloor());
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 				DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,sendPacket.generatePacketData().length, 

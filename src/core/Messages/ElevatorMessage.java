@@ -6,11 +6,12 @@
 //
 //***************************************************************************
 
-package core;
+package core.Messages;
 
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 
+import core.Direction;
 import core.Exceptions.CommunicationException;
 import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
 import core.Utils.SubsystemConstants;
@@ -19,7 +20,7 @@ import core.Utils.SubsystemConstants;
  * @author Rajat Bansal
  * Refactored: Shounak Amladi
  * */
-public class ElevatorPacket implements DatagramBuffer {
+public class ElevatorMessage implements SubsystemMessage {
 
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
@@ -31,26 +32,26 @@ public class ElevatorPacket implements DatagramBuffer {
 	private boolean arrived = false;
 	private boolean isValid = true;
 
-	public ElevatorPacket(boolean arrived, int elevatorNumber) {
+	public ElevatorMessage(boolean arrived, int elevatorNumber) {
 
 		this.arrived = arrived; 
 		this.elevatorNumber = elevatorNumber;
 	}
 
-	public ElevatorPacket(int requestedFloor, int elevatorNumber) {
+	public ElevatorMessage(int requestedFloor, int elevatorNumber) {
 
 		this.targetFloor = requestedFloor;
 		this.elevatorNumber = elevatorNumber;
 	}
 
-	public ElevatorPacket(int currentFloor, int destinationFloor, int selectedFloors) {
+	public ElevatorMessage(int currentFloor, int destinationFloor, int selectedFloors) {
 
 		this.currentFloor = currentFloor;
 		this.destinationFloor = destinationFloor;
 		this.targetFloor = selectedFloors;
 	}
 
-	public ElevatorPacket(byte[] data, int dataLength) {
+	public ElevatorMessage(byte[] data, int dataLength) {
 
 		isValid = true;
 		int i = 1;
