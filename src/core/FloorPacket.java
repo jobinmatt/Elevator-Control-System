@@ -9,10 +9,15 @@ package core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 
 import core.Exceptions.CommunicationException;
+import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
+import core.Utils.SubsystemConstants;
 /**
  * Used to convert between FloorPacket, and Datagram Buffer (byte[]) 
+ * @author Rajat Bansal
+ * Refactored: Shounak Amladi
  * */
 public class FloorPacket implements DatagramBuffer {
 
@@ -26,7 +31,7 @@ public class FloorPacket implements DatagramBuffer {
 
 	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR
 	private Direction direction;
-	private int carButtonPressed; //DESTINATION FLOOR
+	private int targetFloor; //DESTINATION FLOOR
 	private boolean isValid = true;
 
 
@@ -41,7 +46,7 @@ public class FloorPacket implements DatagramBuffer {
 
 		this.sourceFloor = sourceFloor;
 		this.direction = direction;
-		this.carButtonPressed = carButtonPressed;
+		this.targetFloor = carButtonPressed;
 	}
 
 	/**
@@ -81,7 +86,7 @@ public class FloorPacket implements DatagramBuffer {
 			isValid = false;
 		}
 
-		carButtonPressed = data[i++];
+		targetFloor = data[i++];
 
 		// must be zero at end
 		while (i < dataLength) {
@@ -122,7 +127,7 @@ public class FloorPacket implements DatagramBuffer {
 			// add spacer
 			stream.write(SPACER);
 
-			stream.write(carButtonPressed); //add the button pressed in the elevator
+			stream.write(targetFloor); //add the button pressed in the elevator
 
 			stream.write(SPACER);
 
@@ -151,8 +156,8 @@ public class FloorPacket implements DatagramBuffer {
 		return sourceFloor;
 	}
 
-	public int getDestinationFloor() {
-		return carButtonPressed;
+	public int getTargetFloor() {
+		return targetFloor;
 	}
 
 	public Direction getDirection() {
@@ -174,6 +179,11 @@ public class FloorPacket implements DatagramBuffer {
 	public String toString() {
 
 		return "Direction: " + direction.name() + " Source Location: " + sourceFloor + " Car Button Pressed Number: "
-				+ carButtonPressed;
+				+ targetFloor;
+	}
+	
+	public SchedulerRequest toSchedulerRequest(InetAddress receivedAddress, int receivedPort) {
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.sourceFloor, this.direction,this.targetFloor, this.targetFloor );
+		
 	}
 }

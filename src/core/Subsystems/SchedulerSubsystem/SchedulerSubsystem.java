@@ -136,7 +136,7 @@ public class SchedulerSubsystem {
 									sendRequest(tempRequest);
 								}
 								else {
-									//									if (lSelectedElevator.getCurrentFloor() == r.getDestFloor()) {
+									
 									elevatorEvents.get(lSelectedElevator).add(r);
 									lSelectedElevator.setDestFloor(r.getCarButton());
 									events.remove(key);
@@ -369,7 +369,7 @@ public class SchedulerSubsystem {
 				}
 				elevatorEvents.get(elev).removeAll(tempList);
 				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), elev.getDestFloor(),
-						packet.getRequestedFloor());
+						packet.getTargetFloor());
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 				DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,sendPacket.generatePacketData().length, 
 						elevatorSubsystemAddress, elev.getElevatorId() + 50000);//TODO GET RID OF THE CONSTANT

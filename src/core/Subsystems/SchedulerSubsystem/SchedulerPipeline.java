@@ -113,7 +113,7 @@ public class SchedulerPipeline extends Thread{
 			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
 			schedulerPacket = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
 					lFloorPacket.getSourceFloor(),
-					lFloorPacket.getDirection(), lFloorPacket.getDestinationFloor(), lFloorPacket.getDestinationFloor());
+					lFloorPacket.getDirection(), lFloorPacket.getTargetFloor(), lFloorPacket.getTargetFloor());
 			schedulerSubsystem.addEvent(schedulerPacket);
 		}
 		else if (packet.getData()[0] == (byte) 1) {
@@ -133,7 +133,7 @@ public class SchedulerPipeline extends Thread{
 						SubsystemConstants.ELEVATOR,
 						lElevatorPacket.getCurrentFloor(), lElevDir,
 						lElevatorPacket.getDestinationFloor(), lElevatorPacket.getElevatorNumber(),
-						lElevatorPacket.getRequestedFloor());
+						lElevatorPacket.getTargetFloor());
 				logger.debug("Recieved packet from elevator: " + lElevatorPacket.toString());
 				schedulerSubsystem.addEvent(schedulerPacket);
 			}
@@ -147,7 +147,7 @@ public class SchedulerPipeline extends Thread{
 				schedulerSubsystem.updateFloors(elev);
 				schedulerSubsystem.removeServicedEvents(elev);
 				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), elev.getDestFloor(),
-						packet.getRequestedFloor());
+						packet.getTargetFloor());
 				schedulerSubsystem.sendUpdatePacket(sendPacket, elev);
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 			}
