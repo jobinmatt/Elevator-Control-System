@@ -9,10 +9,15 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import java.io.ByteArrayOutputStream;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Timer;
 
 import org.apache.logging.log4j.LogManager;
@@ -20,9 +25,13 @@ import org.apache.logging.log4j.Logger;
 
 import core.InputParser;
 import core.LoggingManager;
+import core.Exceptions.ElevatorSubystemException;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.GeneralException;
+import core.Exceptions.HostActionsException;
 import core.Exceptions.InputParserException;
+import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
+import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
 
 
@@ -44,9 +53,10 @@ public class FloorSubsystem {
 	 * Creates a floorSubsystem object
 	 * 
 	 * @param numOfFloors
+	 * @throws UnknownHostException 
 	 * @throws FloorSubsystemException
 	 */
-	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException {
+	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException, UnknownHostException {
 		
 		floors = new HashMap<String, FloorThread>();
 		this.numberOfFloors = numOfFloors;
@@ -60,8 +70,8 @@ public class FloorSubsystem {
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
 				floors.put(FLOOR_NAME + i,
-						new FloorThread(FLOOR_NAME + i, i, floorSubsystemAddress, floorInitPort + i, this.sharedTimer));
-			}
+						new FloorThread(FLOOR_NAME + i, i, floorSubsystemAddress, this.sharedTimer));
+			}			
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				public void run() {
@@ -73,11 +83,49 @@ public class FloorSubsystem {
 					LoggingManager.terminate();
 				}
 			});
+			
+			sendPortsToScheduler(floorInitPort);
 
 		} catch (InputParserException e) {
 			throw new FloorSubsystemException(e);
 		}
 	}
+	
+	/**
+	 * Sends a packet to the Scheduler with the port information of each elevator
+	 * @param initPort
+	 * @throws UnknownHostException
+	 * @throws HostActionsException
+	 */
+	public void sendPortsToScheduler(int initPort) throws UnknownHostException, HostActionsException {
+		byte[] packetData = createPortsArray((HashMap<String, FloorThread>) floors);
+		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
+	    HostActions.send(packet, Optional.empty());
+	}
+	
+	/**
+	 * Creates a dataarray with the port information
+	 * @param map
+	 * @return
+	 */
+	private byte[] createPortsArray(HashMap<String, FloorThread> map) {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		byte SPACER = (byte) 0;
+        
+		for (Map.Entry<String, FloorThread> entry : map.entrySet()) {
+	        System.out.println(entry.getKey() + ":" + entry.getValue());
+	        int floorNumber = entry.getValue().getFloorNumber();
+	        int floorPort = entry.getValue().getPort();
+	        data.write(floorNumber);
+	        data.write(SPACER);
+	        data.write(floorPort);
+	        data.write(SPACER);
+	        data.write(SPACER);
+	    }
+	    data.write(SPACER);
+	    data.write(SPACER);
+		return data.toByteArray();
+	}	
 
 	/**
 	 * Reads the input file to obtain the list of simulation events

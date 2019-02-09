@@ -149,13 +149,13 @@ public class ElevatorCarThread extends Thread {
 		logger.info("Elevator Door: " + state.name());
 		carProperties.replace(ElevatorComponentConstants.ELEV_DOORS, state);
 	}
+	
 	/**
 	 * Get the port that the socket is running on
 	 * @return port
 	 * */
 	public int getPort() {
-		
-		return this.elevatorSocket.getLocalPort(); 
+		return this.port;
 	}
 
 	@Override

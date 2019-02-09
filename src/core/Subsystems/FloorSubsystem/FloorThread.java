@@ -36,7 +36,7 @@ public class FloorThread extends Thread {
 	private int port; //port to communicate with the scheduler
 	private Queue<SimulationRequest> events;
 	private int floorNumber;
-	DatagramSocket receiveSocket;
+	private DatagramSocket receiveSocket;
 	private InetAddress schedulerSubsystemAddress;
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
@@ -44,20 +44,36 @@ public class FloorThread extends Thread {
 	/**
 	 * Creates a floor thread
 	 */
-	public FloorThread(String name, int floorNumber, InetAddress schedulerSubsystemAddress, int port, Timer sharedTimer) throws GeneralException {
+	public FloorThread(String name, int floorNumber, InetAddress schedulerSubsystemAddress, Timer sharedTimer) throws GeneralException {
 
 		super(name);
 
 		events = new LinkedList<>();
 		this.floorNumber = floorNumber;
 		this.schedulerSubsystemAddress = schedulerSubsystemAddress;
-		this.port = port;
 		this.atFloorTimer = sharedTimer;
 		try {
-			receiveSocket = new DatagramSocket(port);
+			receiveSocket = new DatagramSocket();
+			this.port = receiveSocket.getLocalPort();
 		} catch (SocketException e) {
 			throw new GeneralException("Socket could not be created", e);
 		}
+	}
+	
+	/**
+	 * Get the port that the socket is running on
+	 * @return port: int
+	 * */
+	public int getPort() {		
+		return this.port;
+	}
+	
+	/**
+	 * Get the port that the socket is running on
+	 * @return floorNumber: int
+	 * */
+	public int getFloorNumber() {		
+		return this.floorNumber;
 	}
 
 	/**

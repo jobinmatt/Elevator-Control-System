@@ -91,19 +91,16 @@ public class ElevatorSubsystem {
 	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
 		byte SPACER = (byte) 0;
-        
-		Iterator it = map.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry pair = (Map.Entry)it.next();
-	        int elevNumber = ((ElevatorCarThread) pair.getValue()).getElevatorNumber();
-	        int elevPort = ((ElevatorCarThread) pair.getValue()).getPort();
-	        
+		
+		for (Map.Entry<String, ElevatorCarThread> entry : map.entrySet()) {
+	        System.out.println(entry.getKey() + ":" + entry.getValue());
+	        int elevNumber = entry.getValue().getElevatorNumber();
+	        int elevPort = entry.getValue().getPort();
 	        data.write(elevNumber);
 	        data.write(SPACER);
 	        data.write(elevPort);
 	        data.write(SPACER);
 	        data.write(SPACER);
-	        it.remove(); // this avoids a ConcurrentModificationException
 	    }
 	    data.write(SPACER);
 		return data.toByteArray();
