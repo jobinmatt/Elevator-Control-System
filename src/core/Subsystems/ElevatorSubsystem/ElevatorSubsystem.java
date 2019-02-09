@@ -17,6 +17,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class ElevatorSubsystem {
 	private Map<String, ElevatorCarThread> carPool;
 	private InetAddress schedulerAddress;
 
-	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubystemException, ConfigurationParserException, UnknownHostException, HostActionsException {
+	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubystemException, ConfigurationParserException, HostActionsException, IOException {
 
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfElev = numElev;
@@ -74,10 +75,10 @@ public class ElevatorSubsystem {
 	 * Sends a packet to the Scheduler with the port information of each elevator
 	 * @param initPort
 	 * @throws ElevatorSubystemException
-	 * @throws UnknownHostException
 	 * @throws HostActionsException
+	 * @throws IOException 
 	 */
-	public void sendPortsToScheduler(int initPort) throws ElevatorSubystemException, UnknownHostException, HostActionsException {
+	public void sendPortsToScheduler(int initPort) throws ElevatorSubystemException, HostActionsException, IOException {
 		byte[] packetData = createPortsArray((HashMap<String, ElevatorCarThread>) carPool);
 		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
 	    HostActions.send(packet, Optional.empty());
@@ -87,8 +88,9 @@ public class ElevatorSubsystem {
 	 * Creates a dataarray with the port information
 	 * @param map
 	 * @return
+	 * @throws IOException 
 	 */
-	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) {
+	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) throws IOException {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
 		byte SPACER = (byte) 0;
 		
@@ -98,7 +100,11 @@ public class ElevatorSubsystem {
 	        int elevPort = entry.getValue().getPort();
 	        data.write(elevNumber);
 	        data.write(SPACER);
-	        data.write(elevPort);
+	        try {
+				data.write(ByteBuffer.allocate(4).putInt(elevPort).array());
+			} catch (IOException e) {
+				throw new IOException("" + e);
+			}
 	        data.write(SPACER);
 	        data.write(SPACER);
 	    }

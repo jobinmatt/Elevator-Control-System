@@ -10,9 +10,11 @@
 package core.Subsystems.FloorSubsystem;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -53,10 +55,10 @@ public class FloorSubsystem {
 	 * Creates a floorSubsystem object
 	 * 
 	 * @param numOfFloors
-	 * @throws UnknownHostException 
+	 * @throws IOException 
 	 * @throws FloorSubsystemException
 	 */
-	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException, UnknownHostException {
+	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException, IOException {
 		
 		floors = new HashMap<String, FloorThread>();
 		this.numberOfFloors = numOfFloors;
@@ -94,10 +96,10 @@ public class FloorSubsystem {
 	/**
 	 * Sends a packet to the Scheduler with the port information of each elevator
 	 * @param initPort
-	 * @throws UnknownHostException
 	 * @throws HostActionsException
+	 * @throws IOException 
 	 */
-	public void sendPortsToScheduler(int initPort) throws UnknownHostException, HostActionsException {
+	public void sendPortsToScheduler(int initPort) throws HostActionsException, IOException {
 		byte[] packetData = createPortsArray((HashMap<String, FloorThread>) floors);
 		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
 	    HostActions.send(packet, Optional.empty());
@@ -107,8 +109,9 @@ public class FloorSubsystem {
 	 * Creates a dataarray with the port information
 	 * @param map
 	 * @return
+	 * @throws IOException 
 	 */
-	private byte[] createPortsArray(HashMap<String, FloorThread> map) {
+	private byte[] createPortsArray(HashMap<String, FloorThread> map) throws IOException {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
 		byte SPACER = (byte) 0;
         
@@ -118,7 +121,11 @@ public class FloorSubsystem {
 	        int floorPort = entry.getValue().getPort();
 	        data.write(floorNumber);
 	        data.write(SPACER);
-	        data.write(floorPort);
+	        try {
+				data.write(ByteBuffer.allocate(4).putInt(floorPort).array());
+			} catch (IOException e) {
+				throw new IOException("" + e);
+			}
 	        data.write(SPACER);
 	        data.write(SPACER);
 	    }

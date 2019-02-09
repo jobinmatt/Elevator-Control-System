@@ -12,6 +12,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -125,9 +126,11 @@ public class SchedulerSubsystem {
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
 			for(int i = 0; i < length; i = i + 3) {
 				int elevNumber = data[i];
-				int elevPort = data[i + 2];
+				
+				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};
+				int elevPort = ByteBuffer.wrap(portNumInByte).getInt();
 				tempPorts.put(elevNumber, elevPort);
-				if(data.length<(i+3) || data[i+3] == SPACER) {
+				if(data.length<(i+8) || data[i+8] == SPACER) {
 					break;
 				}
 			}
