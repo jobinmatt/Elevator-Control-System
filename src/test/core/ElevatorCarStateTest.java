@@ -175,7 +175,7 @@ class ElevatorCarStateTest {
 			eThread.terminate();
 		}
 		try {
-			eThread = new ElevatorCarThread(ELEVATOR_CAR_NAME, NUMBER_OF_FLOORS, PORT_NUMBER, InetAddress.getLocalHost());
+			eThread = new ElevatorCarThread(ELEVATOR_CAR_NAME, NUMBER_OF_FLOORS, InetAddress.getLocalHost());
 		} catch (ElevatorSubystemException e) {
 			throw new ElevatorSubystemException("" + e);
 		}catch(UnknownHostException e) {

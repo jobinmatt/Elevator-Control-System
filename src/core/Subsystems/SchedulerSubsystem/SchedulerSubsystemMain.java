@@ -34,7 +34,7 @@ public class SchedulerSubsystemMain {
 			int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 
 			//input the right address
-			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors, elevatorSubsystemAddress, floorSubsystemAddress, elevatorInitPort, floorInitPort);
+			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors, elevatorInitPort, floorInitPort);
 			scheduler.startListeners();
 			scheduler.startScheduling();
 		} catch (Exception e) {

@@ -10,9 +10,17 @@
 
 package core.Subsystems.ElevatorSubsystem;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +28,9 @@ import org.apache.logging.log4j.Logger;
 import core.LoggingManager;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubystemException;
+import core.Exceptions.HostActionsException;
+import core.Utils.HostActions;
+import core.Utils.Utils;
 
 public class ElevatorSubsystem {
 	
@@ -31,7 +42,7 @@ public class ElevatorSubsystem {
 	private Map<String, ElevatorCarThread> carPool;
 	private InetAddress schedulerAddress;
 
-	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubystemException, ConfigurationParserException {
+	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubystemException, ConfigurationParserException, UnknownHostException, HostActionsException {
 
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfElev = numElev;
@@ -41,7 +52,7 @@ public class ElevatorSubsystem {
 		String curr_name;
 		for (int i = 0; i < this.numberOfElev; i++) {
 			curr_name = ELEVATOR_NAME + (i+1);
-			this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors, initPort + (i + 1), this.schedulerAddress));
+			this.carPool.put(curr_name, new ElevatorCarThread(curr_name, this.numberOfFloors, this.schedulerAddress));
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -55,7 +66,48 @@ public class ElevatorSubsystem {
 				LoggingManager.terminate();
 			}
 		});
+		
+		sendPortsToScheduler(initPort);
 	}
+	
+	/**
+	 * Sends a packet to the Scheduler with the port information of each elevator
+	 * @param initPort
+	 * @throws ElevatorSubystemException
+	 * @throws UnknownHostException
+	 * @throws HostActionsException
+	 */
+	public void sendPortsToScheduler(int initPort) throws ElevatorSubystemException, UnknownHostException, HostActionsException {
+		byte[] packetData = createPortsArray((HashMap<String, ElevatorCarThread>) carPool);
+		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
+	    HostActions.send(packet, Optional.empty());
+	}
+	
+	/**
+	 * Creates a dataarray with the port information
+	 * @param map
+	 * @return
+	 */
+	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		byte SPACER = (byte) 0;
+        
+		Iterator it = map.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry pair = (Map.Entry)it.next();
+	        int elevNumber = ((ElevatorCarThread) pair.getValue()).getElevatorNumber();
+	        int elevPort = ((ElevatorCarThread) pair.getValue()).getPort();
+	        
+	        data.write(elevNumber);
+	        data.write(SPACER);
+	        data.write(elevPort);
+	        data.write(SPACER);
+	        data.write(SPACER);
+	        it.remove(); // this avoids a ConcurrentModificationException
+	    }
+	    data.write(SPACER);
+		return data.toByteArray();
+	}	
 
 	/**
 	 * Starts the thread (powering on elevator)

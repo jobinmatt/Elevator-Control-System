@@ -55,12 +55,11 @@ public class ElevatorCarThread extends Thread {
 	 * @param numFloors
 	 * @throws ElevatorSubystemException 
 	 */
-	public ElevatorCarThread(String name, int numFloors, int port, InetAddress schedulerDomain) throws ElevatorSubystemException {
+	public ElevatorCarThread(String name, int numFloors, InetAddress schedulerDomain) throws ElevatorSubystemException {
 		
 		super (name);
 		this.schedulerDomain = schedulerDomain;
 		this.numberOfFloors = numFloors;
-		this.port = port;
 		this.sentArrivalSensor = false;
 		selectedFloors = new boolean[this.numberOfFloors];
 //		elevatorNumber = name.charAt(name.length() - 1);
@@ -75,7 +74,8 @@ public class ElevatorCarThread extends Thread {
 			floorSleepTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000;
 		
 			//initialize communication stuff
-			this.elevatorSocket = new DatagramSocket(this.port);
+			this.elevatorSocket = new DatagramSocket();
+			this.port = elevatorSocket.getLocalPort();
 			byte[] b = new byte[1024];
 			elevatorPacket = new DatagramPacket(b, b.length);
 		} catch (ConfigurationParserException | SocketException e) {
@@ -101,6 +101,15 @@ public class ElevatorCarThread extends Thread {
 	public int getFloorNumber() {
 
 		return this.numberOfFloors;
+	}
+	
+	/**
+	 * Returns the elevator number
+	 * @param
+	 * @return int
+	 * */
+	public int getElevatorNumber(){
+		return this.elevatorNumber;
 	}
 
 	/**
@@ -146,7 +155,7 @@ public class ElevatorCarThread extends Thread {
 	 * */
 	public int getPort() {
 		
-		return this.port; 
+		return this.elevatorSocket.getLocalPort(); 
 	}
 
 	@Override

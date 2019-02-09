@@ -45,11 +45,11 @@ public class SchedulerPipeline extends Thread{
 		int portNumber = -1;
 		if(objectType == SubsystemConstants.ELEVATOR) {
 			threadName = ELEVATOR_PIPELINE + portOffset;
-			portNumber = elevatorPort + portOffset;
+			portNumber = elevatorPort;
 		}
 		else {
 			threadName = FLOOR_PIPELINE + portOffset;
-			portNumber = floorPort + portOffset;
+			portNumber = floorPort;
 		}
 		this.setName(threadName);
 

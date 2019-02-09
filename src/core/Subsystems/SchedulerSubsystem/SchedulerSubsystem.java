@@ -44,8 +44,11 @@ public class SchedulerSubsystem {
 	private static Logger logger = LogManager.getLogger(SchedulerSubsystem.class);
 
 	private SchedulerPipeline[] listeners;
-	private static Map<Integer,SchedulerRequest> events = new ConcurrentHashMap<Integer,SchedulerRequest>();
+	private static Map<Integer, SchedulerRequest> events = new ConcurrentHashMap<Integer,SchedulerRequest>();
 	private Map<Elevator, TreeSet<SchedulerRequest>> elevatorEvents = new HashMap<>();
+	private Map<Integer, Integer> elevatorPorts = new HashMap<>();
+	private Map<Integer, Integer> floorPorts = new HashMap<>();
+	private static final int DATA_SIZE = 50;
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
@@ -53,23 +56,23 @@ public class SchedulerSubsystem {
 
 	private DatagramSocket sendSocket;
 	public SchedulerSubsystem(int numElevators, int numFloors,
-			InetAddress elevatorSubsystemAddress, InetAddress floorSubsystemAddress,
 			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException {
 
 		numberOfElevators = numElevators;
 		numberOfFloors = numFloors;
-
-
-		this.elevatorSubsystemAddress = elevatorSubsystemAddress;
-		this.floorSubsystemAddress = floorSubsystemAddress;
+		
+		receiveInitPorts(elevatorInitPort, SubsystemConstants.ELEVATOR);
+		receiveInitPorts(floorInitPort, SubsystemConstants.FLOOR);
 
 		this.listeners = new SchedulerPipeline[numberOfElevators + numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort, this);
+			int elevatorPort = elevatorPorts.get(i+1);
+			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorPort, -1, this);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort, this);
+			int floorPort = floorPorts.get(i+1);
+			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, -1, floorPort, this);
 		}
 
 		for (int i = 0; i < numberOfElevators; i++) {
@@ -94,6 +97,44 @@ public class SchedulerSubsystem {
 		} catch (SocketException e) {
 			throw new SchedulerSubsystemException("Unable to create a DatagramSocket on in SchedulerSubsystem", e);
 		}
+	}
+	
+	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException {
+		try {
+			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
+			DatagramSocket receiveSocket = new DatagramSocket(listenPort);
+			try {
+				logger.info("Waiting to receive port information from " + systemType + "...");
+				HostActions.receive(packet, receiveSocket);
+				if(systemType.equals(SubsystemConstants.ELEVATOR)) this.elevatorSubsystemAddress = packet.getAddress();
+				else this.floorSubsystemAddress = packet.getAddress();
+				convertPacketToMap(packet.getData(), packet.getLength(), systemType);
+			} catch (HostActionsException e) {
+				throw new SchedulerSubsystemException("Unable to receive elevator ports packet in SchedulerSubsystem", e);
+			}
+		} catch (SocketException e) {
+			throw new SchedulerSubsystemException("Unable to create a DatagramSocket on in SchedulerSubsystem", e);
+		}
+	}
+	
+	private void convertPacketToMap(byte[] data, int length, SubsystemConstants systemType) throws SchedulerSubsystemException {
+		byte SPACER = (byte) 0;
+		if(data != null && data[0] != SPACER) {
+			
+			boolean isValid = true;
+			HashMap<Integer, Integer> tempPorts = new HashMap<>();
+			for(int i = 0; i < length; i = i + 3) {
+				int elevNumber = data[i];
+				int elevPort = data[i + 2];
+				tempPorts.put(elevNumber, elevPort);
+				if(data.length<(i+3) || data[i+3] == SPACER) {
+					break;
+				}
+			}
+			if(systemType.equals(SubsystemConstants.ELEVATOR)) this.elevatorPorts = tempPorts;
+			else this.floorPorts = tempPorts;
+		}
+		else throw new SchedulerSubsystemException("Cannot convert null to elevator ports map or invalid data found");
 	}
 
 	/** @formatter:off
