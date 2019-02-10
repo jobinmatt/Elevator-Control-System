@@ -11,8 +11,11 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +25,7 @@ import core.Direction;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
+import core.Exceptions.SchedulerSubsystemException;
 import core.Messages.ElevatorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
@@ -77,21 +81,24 @@ public class ElevatorPipeline extends Thread {
 			}
 		}
 		SchedulerRequest event = elevatorEvents.getFirst();
-		updateSubsystem(event);
+		try {
+			updateSubsystem(event);
+		} catch (SchedulerSubsystemException | CommunicationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		while (true) {
 			if (!elevatorEvents.isEmpty()) {								
 				try {
 
 //					updateStates(request);
 					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());	
-					logger.debug("Sending Packet to Elevator " + elevator.getElevatorId() + ": " + elevatorMessage.toString());
 					
 					byte[] data = elevatorMessage.generatePacketData();
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, 50000 + elevator.getElevatorId());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
 					
 					ElevatorMessage elevatorRecieveMessage = recieve();
-					logger.debug("Recieved packet from elevator: " + elevatorRecieveMessage.toString());
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
 						logger.debug("arrival sensor recieved");
@@ -99,6 +106,9 @@ public class ElevatorPipeline extends Thread {
 					}
 				} catch (HostActionsException | CommunicationException e) {
 					logger.error("Unable to send/recieve packet", e);
+				} catch (SchedulerSubsystemException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}		
@@ -115,9 +125,7 @@ public class ElevatorPipeline extends Thread {
 		
 		DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
-			logger.info(this.toString() + " Waiting for data...");
 			HostActions.receive(packet, receiveSocket);
-			logger.info("Data received..");
 		} catch (HostActionsException e) {
 			logger.error("Failed to receive packet", e);
 			throw new CommunicationException(e);
@@ -125,25 +133,29 @@ public class ElevatorPipeline extends Thread {
 		return new ElevatorMessage(packet.getData(), packet.getLength());
 	}
 	
-	private void updateSubsystem(SchedulerRequest packet) {
+	private void updateSubsystem(SchedulerRequest packet) throws SchedulerSubsystemException, CommunicationException {
 		
 		elevator.setDestFloor(packet.getDestFloor());
-		elevator.setCurrentDirection(packet.getRequestDirection());
+		elevator.setRequestDirection(packet.getRequestDirection());
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
 	}
 	
-	private void updateStates(ElevatorMessage request) throws CommunicationException {
+	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException {
 			
 		elevator.setCurrentFloor(request.getCurrentFloor());
-		
+		List<SchedulerRequest> tempList = new ArrayList<>();
 		for (SchedulerRequest event: elevatorEvents) {
-			if (event.getDestFloor() == elevator.getCurrentFloor()) {
-				elevatorEvents.removeFirstOccurrence(event);
+			if (event.getDestFloor() == elevator.getCurrentFloor() && event.getRequestDirection().equals(elevator.getRequestDirection())) {
+				tempList.add(event);
 			}
 		}
+		if (!tempList.isEmpty()) {
+			logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
+		}
+		elevatorEvents.removeAll(tempList);
 		
-		if (elevator.getCurrentDirection() == Direction.UP) {
+		if (elevator.getRequestDirection() == Direction.UP) {
 			Collections.sort(elevatorEvents, SchedulerRequest.BY_ASCENDING);
 		} else {
 			Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
@@ -151,13 +163,13 @@ public class ElevatorPipeline extends Thread {
 		
 		if (!elevatorEvents.isEmpty()) {
 			elevator.setDestFloor(elevatorEvents.getFirst().getDestFloor());
-			elevator.setCurrentDirection(elevatorEvents.getFirst().getRequestDirection());
+			elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
 		} else {
-			elevator.setDestFloor(-1);
-			elevator.setCurrentDirection(Direction.STATIONARY);
+			elevator.setRequestDirection(Direction.STATIONARY);
 		}
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
+		logger.debug("Elevator status updated: " + elevator.toString() + "\n ");
 	}
 
 	public void terminate() {

@@ -67,7 +67,7 @@ public class ElevatorMessage implements SubsystemMessage {
 		if (data[i++] != SPACER) {
 			isValid = false;
 		}
-
+		
 		if ((byte)1 == data[i]) {
 			arrived = true;
 		} else if ((byte)0 == data[i]) {

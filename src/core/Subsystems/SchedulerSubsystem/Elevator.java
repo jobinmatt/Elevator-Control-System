@@ -11,7 +11,7 @@ public class Elevator {
 	private int elevatorId;
 	private int currentFloor;
 	private int destFloor;
-	private Direction currentDirection;
+	private Direction requestDirection;
 	private int numRequests = 0;
 
 	public Elevator(int i, int currentFloor, int destFloor, Direction currentDirection) {
@@ -19,7 +19,7 @@ public class Elevator {
 		this.elevatorId = i;
 		this.currentFloor = currentFloor;
 		this.destFloor = destFloor;
-		this.currentDirection = currentDirection;
+		this.requestDirection = currentDirection;
 	}
 
 	public int getElevatorId() {
@@ -38,12 +38,12 @@ public class Elevator {
 		this.currentFloor = currentFloor;
 	}
 
-	public Direction getCurrentDirection() {
-		return currentDirection;
+	public Direction getRequestDirection() {
+		return requestDirection;
 	}
 
-	public void setCurrentDirection(Direction currentDirection) {
-		this.currentDirection = currentDirection;
+	public void setRequestDirection(Direction currentDirection) {
+		this.requestDirection = currentDirection;
 	}
 
 	public int getDestFloor() {
@@ -53,6 +53,10 @@ public class Elevator {
 		this.destFloor = destFloor;
 	}
 
+	public void incRequests() {
+		numRequests++;
+	}
+	
 	public int getNumRequests() {
 		return this.numRequests;
 	}
@@ -64,7 +68,7 @@ public class Elevator {
 	@Override
 	public String toString() {
 		return "Elevator " + elevatorId + " current floor: " + currentFloor + " destination floor: " + destFloor
-				+ " current direction: " + currentDirection.toString();
+				+ " request direction: " + requestDirection.toString();
 	}
 
 	@Override

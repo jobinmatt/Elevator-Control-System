@@ -135,23 +135,58 @@ public class SchedulerSubsystem {
 			if(selectedElevator != null) {
 				request.setElevatorNumber(selectedElevator.getElevatorId());
 				if(selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
+					Direction dir = null;
+					if(selectedElevator.getCurrentFloor() > request.getDestFloor()) {
+						dir = Direction.DOWN;
+					} else {
+						dir = Direction.UP;
+					}
 					SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(), request.getReceivedPort(), SubsystemConstants.FLOOR, 
-							selectedElevator.getCurrentFloor(), request.getRequestDirection(), request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
-					elevatorListeners[selectedElevator.getElevatorId()].addEvent(tempRequest);
+							selectedElevator.getCurrentFloor(), dir, request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
+					elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(tempRequest);
+					logger.debug("\n" +"Intermediate event added " + tempRequest.toString() + " FOR Elevator " + selectedElevator.getElevatorId());
+					selectedElevator.incRequests();
 				}
-				logger.debug("Event added " + request.toString());
+				logger.debug("\n" +"Event added " + request.toString() + " FOR Elevator " + selectedElevator.getElevatorId());
 				elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(request);
+				selectedElevator.incRequests();
+			} else {
+				unscheduledEvents.add(request);
 			}
-		} else {
-			unscheduledEvents.add(request);
 		}
 	}
 	
-	public synchronized void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
+	public void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
+		List<SchedulerRequest> tempList = new ArrayList<>();
 		if(!unscheduledEvents.isEmpty()) {
-			for(SchedulerRequest req : unscheduledEvents) {
-				scheduleEvent(req);
+			for(SchedulerRequest request : unscheduledEvents) {
+				if(request != null) {
+					Elevator selectedElevator = getBestElevator(request);
+					if(selectedElevator != null) {
+						request.setElevatorNumber(selectedElevator.getElevatorId());
+						if(selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
+							Direction dir = null;
+							if(selectedElevator.getCurrentFloor() > request.getDestFloor()) {
+								dir = Direction.DOWN;
+							} else {
+								dir = Direction.UP;
+							}
+							SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(), request.getReceivedPort(), SubsystemConstants.FLOOR, 
+									selectedElevator.getCurrentFloor(), dir, request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
+							elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(tempRequest);
+							logger.debug("\n" +"Intermediate event added " + tempRequest.toString() + " FOR Elevator " + selectedElevator.getElevatorId());
+							selectedElevator.incRequests();
+						}
+						logger.debug("\n" +"Event added " + request.toString() + " FOR Elevator " + selectedElevator.getElevatorId());						
+						elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(request);
+						tempList.add(request);
+						selectedElevator.incRequests();
+					}else {
+						unscheduledEvents.add(request);
+					}
+				} 
 			}
+			unscheduledEvents.removeAll(tempList);
 		}
 	}
 
@@ -162,16 +197,16 @@ public class SchedulerSubsystem {
 			if (elevator.getNumRequests() == 0) {
 				return elevator;
 			} else {
-				if (elevator.getCurrentDirection().equals(request.getRequestDirection())) {
+				if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
 					if(tempElevator == null) {
 						tempElevator = elevator;
 					}
-					if (elevator.getCurrentDirection().equals(Direction.DOWN)
+					if (elevator.getRequestDirection().equals(Direction.DOWN)
 							&& elevator.getCurrentFloor() > request.getSourceFloor()) {
 						if(elevator.getNumRequests() < tempElevator.getNumRequests()) {
 							tempElevator = elevator;
 						}
-					} else if (elevator.getCurrentDirection().equals(Direction.UP)
+					} else if (elevator.getRequestDirection().equals(Direction.UP)
 							&& elevator.getCurrentFloor() < request.getDestFloor()) {
 						if(elevator.getNumRequests() < tempElevator.getNumRequests()) {
 							tempElevator = elevator;
@@ -183,9 +218,10 @@ public class SchedulerSubsystem {
 		return tempElevator;
 	}
 
-	public synchronized void updateElevatorState(Elevator elevator) {
-		logger.debug("Elevator states being updated " + elevator.toString());
-		elevatorStatus.put(elevator.getElevatorId(), elevator);
-		logger.debug("Elevator states updated " + elevator.toString());
+	public void updateElevatorState(Elevator elevator) throws SchedulerSubsystemException, CommunicationException {
+		synchronized (elevatorStatus) {
+			elevatorStatus.put(elevator.getElevatorId(), elevator);
+			this.reEvaluateEvents();
+		}
 	}
 }

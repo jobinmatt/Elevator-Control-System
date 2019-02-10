@@ -58,7 +58,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedPort = receivedPort;
 		this.type = type;
 		this.sourceFloor = sourceFloor;
-		this.requestId = System.currentTimeMillis() / 1000L;
+		this.requestId = System.currentTimeMillis();
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = -1;
@@ -187,7 +187,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 		@Override
 		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
-			if (arg0.getSourceFloor() > arg1.getSourceFloor()) {
+			if (arg0.getSourceFloor() < arg1.getSourceFloor()) {
 				return 1;
 			}
 			else if(arg0.getSourceFloor() == arg1.getSourceFloor()) {
@@ -201,7 +201,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 		@Override
 		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
-			if (arg0.getSourceFloor() < arg1.getSourceFloor()) {
+			if (arg0.getSourceFloor() > arg1.getSourceFloor()) {
 				return 1;
 			}
 			else if(arg0.getSourceFloor() == arg1.getSourceFloor()) {
@@ -214,8 +214,12 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof SchedulerRequest && o != null) {
-			if (((SchedulerRequest) o).getrRequestId() == this.requestId) {
-				return true;
+			if (((SchedulerRequest) o).getElevatorNumber() == this.elevatorNumber) {
+				if (((SchedulerRequest) o).getDestFloor() == this.destFloor) {
+					if (((SchedulerRequest) o).getSourceFloor() == this.sourceFloor) {
+						return true;
+					}
+				}
 			}
 		}
 		return false;

@@ -61,9 +61,7 @@ public class FloorPipeline extends Thread {
 		while (true) {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			try {
-				logger.info(this.toString() + " Waiting for data...");
 				HostActions.receive(packet, receiveSocket);
-				logger.info("Data received..");
 				parsePacket(packet);
 			} catch (CommunicationException | HostActionsException e) {
 				logger.error("Failed to receive packet", e);
