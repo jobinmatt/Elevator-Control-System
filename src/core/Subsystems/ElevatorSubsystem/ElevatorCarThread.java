@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.ConfigurationParser;
+import core.Direction;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubystemException;
@@ -163,13 +164,13 @@ public class ElevatorCarThread extends Thread {
 				
 				if (ePacket.getCurrentFloor() > ePacket.getDestinationFloor()) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
-					moveFloor();
+					moveFloor(ePacket, Direction.DOWN);
 					sentArrivalSensor = false;
 					continue;
 				}
 				else if (ePacket.getCurrentFloor() < ePacket.getDestinationFloor()) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
-					moveFloor();
+					moveFloor(ePacket, Direction.UP);
 					sentArrivalSensor = false;
 					continue;
 				} 
@@ -187,7 +188,7 @@ public class ElevatorCarThread extends Thread {
 					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, port);
 					logger.debug("Arrived dest.\n");
 					if (!sentArrivalSensor) {						
-						this.sendArrivalSensorPacket();
+						this.sendArrivalSensorPacket(ePacket, null);
 						sentArrivalSensor = true;
 					}
 //					this.elevatorSocket.send(requestedFloorPacket);
@@ -205,20 +206,27 @@ public class ElevatorCarThread extends Thread {
 		}		
 	}
 	
-	public void moveFloor() throws ElevatorSubystemException {
+	public void moveFloor(ElevatorMessage em, Direction dir) throws ElevatorSubystemException {
 		
 		Utils.Sleep(floorSleepTime);
-		sendArrivalSensorPacket();
+		sendArrivalSensorPacket(em, dir);
 	}
 	
-	public void sendArrivalSensorPacket() throws ElevatorSubystemException {
+	public void sendArrivalSensorPacket(ElevatorMessage em, Direction dir ) throws ElevatorSubystemException {
 		
 		try {
-			ElevatorMessage arrivalSensor = new ElevatorMessage(true, elevatorNumber);		
+			ElevatorMessage arrivalSensor ;
+			if (dir == Direction.UP) 
+				arrivalSensor = new ElevatorMessage(em.getCurrentFloor()+1, -1, elevatorNumber);		
+			else if (dir == Direction.DOWN)
+				arrivalSensor = new ElevatorMessage(em.getCurrentFloor()-1, -1, elevatorNumber);
+			else
+				arrivalSensor = new ElevatorMessage(em.getCurrentFloor(), -1, elevatorNumber);
+			arrivalSensor.setArrivalSensor(true);
 			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerDomain, port);
-//			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
-//			logger.debug("Elevator Packet "+ arrivalSensor.toString());
-			logger.debug("sent Arrival Sensor.");
+			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
+			logger.debug("Elevator Packet "+ arrivalSensor.toString());
+//			logger.debug("sent Arrival Sensor.");
 			this.elevatorSocket.send(arrivalSensorPacket);
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubystemException(e);
