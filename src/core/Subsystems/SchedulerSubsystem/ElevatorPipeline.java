@@ -9,6 +9,7 @@ package core.Subsystems.SchedulerSubsystem;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -39,15 +40,17 @@ public class ElevatorPipeline extends Thread {
 	private SchedulerSubsystem schedulerSubsystem;
 	private Elevator elevator;
 	private LinkedList<SchedulerRequest> elevatorEvents;
+	private InetAddress elevatorSubsystemAddress;
 
 
-	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int port, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int port, InetAddress elevatorSubsystemAddress,SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
 		this.setName(ELEVATOR_PIPELINE + portOffset);
 		this.schedulerSubsystem = subsystem;
 		int portNumber = port + portOffset;
 		elevatorEvents = new LinkedList<SchedulerRequest>();
 		elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
+		this.elevatorSubsystemAddress = elevatorSubsystemAddress;
 		
 
 		try {
@@ -64,30 +67,34 @@ public class ElevatorPipeline extends Thread {
 	public void run() {
 
 		logger.info("\n" + this.getName());
-		while (true) {		
-			if (!elevatorEvents.isEmpty()) {
-				break;
-			}		
+		synchronized (elevatorEvents) {
+			if(elevatorEvents.isEmpty()) {
+				try {
+					elevatorEvents.wait();
+				} catch (InterruptedException e) {
+					logger.error(e.getLocalizedMessage());
+				}
+			}
 		}
-
 		SchedulerRequest event = elevatorEvents.getFirst();
 		updateSubsystem(event);
-		
 		while (true) {
 			if (!elevatorEvents.isEmpty()) {								
 				try {
-					//updateStates(request);
+
+//					updateStates(request);
 					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());	
 					logger.debug("Sending Packet to Elevator " + elevator.getElevatorId() + ": " + elevatorMessage.toString());
 					
 					byte[] data = elevatorMessage.generatePacketData();
-					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length);
+					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, 50000 + elevator.getElevatorId());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
 					
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					logger.debug("Recieved packet from elevator: " + elevatorRecieveMessage.toString());
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
+						logger.debug("arrival sensor recieved");
 						updateStates(elevatorRecieveMessage);
 					}
 				} catch (HostActionsException | CommunicationException e) {
@@ -98,15 +105,17 @@ public class ElevatorPipeline extends Thread {
 	}
 
 	public void addEvent(SchedulerRequest request) {
-		
-		elevatorEvents.add(request);
+		synchronized (elevatorEvents) {
+			elevatorEvents.add(request);
+			elevatorEvents.notifyAll();
+		}
 	}
 	
 	public ElevatorMessage recieve() throws CommunicationException {
 		
 		DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
-			logger.info("Waiting for data...");
+			logger.info(this.toString() + " Waiting for data...");
 			HostActions.receive(packet, receiveSocket);
 			logger.info("Data received..");
 		} catch (HostActionsException e) {

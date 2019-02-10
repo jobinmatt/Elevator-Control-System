@@ -113,9 +113,6 @@ public class ElevatorMessage implements SubsystemMessage {
 			// add space
 			stream.write(SPACER);
 			
-			// add space
-			stream.write(SPACER);
-			
 			if (arrived) {
 				stream.write(ELEVATOR_FLAG);
 			} else {
@@ -169,7 +166,7 @@ public class ElevatorMessage implements SubsystemMessage {
 	
 	public String toString() {
 
-		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
+		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
 	}
 
 	@Override

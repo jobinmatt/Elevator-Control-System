@@ -9,6 +9,7 @@ package core.Subsystems.SchedulerSubsystem;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,15 +36,15 @@ public class FloorPipeline extends Thread {
 
 	private DatagramSocket receiveSocket;
 	private SchedulerSubsystem schedulerSubsystem;
+	private InetAddress floorSubSystemAddress;
 
-
-	public FloorPipeline(SubsystemConstants objectType, int portOffset, int port, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public FloorPipeline(SubsystemConstants objectType, int portOffset, int port, InetAddress floorSubSystemAddress,SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
 		this.schedulerSubsystem = subsystem;
 		String threadName = FLOOR_PIPELINE + portOffset;
 		int portNumber = port + portOffset;
 		this.setName(threadName);
-
+		this.floorSubSystemAddress = floorSubSystemAddress;
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket(portNumber);
@@ -60,7 +61,7 @@ public class FloorPipeline extends Thread {
 		while (true) {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			try {
-				logger.info("Waiting for data...");
+				logger.info(this.toString() + " Waiting for data...");
 				HostActions.receive(packet, receiveSocket);
 				logger.info("Data received..");
 				parsePacket(packet);

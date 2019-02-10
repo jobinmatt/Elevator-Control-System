@@ -65,10 +65,10 @@ public class SchedulerSubsystem {
 		this.floorListeners = new FloorPipeline[numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, this);
+			this.elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, elevatorSubsystemAddress, this);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i+1, floorInitPort, this);
+			this.floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i+1, floorInitPort, floorSubsystemAddress, this);
 		}
 
 		for (int i = 0; i < numberOfElevators; i++) {
@@ -133,12 +133,14 @@ public class SchedulerSubsystem {
 		if(request != null) {
 			Elevator selectedElevator = getBestElevator(request);
 			if(selectedElevator != null) {
+				request.setElevatorNumber(selectedElevator.getElevatorId());
 				if(selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
 					SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(), request.getReceivedPort(), SubsystemConstants.FLOOR, 
 							selectedElevator.getCurrentFloor(), request.getRequestDirection(), request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
 					elevatorListeners[selectedElevator.getElevatorId()].addEvent(tempRequest);
 				}
-				elevatorListeners[selectedElevator.getElevatorId()].addEvent(request);
+				logger.debug("Event added " + request.toString());
+				elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(request);
 			}
 		} else {
 			unscheduledEvents.add(request);
@@ -182,7 +184,8 @@ public class SchedulerSubsystem {
 	}
 
 	public synchronized void updateElevatorState(Elevator elevator) {
-		
+		logger.debug("Elevator states being updated " + elevator.toString());
 		elevatorStatus.put(elevator.getElevatorId(), elevator);
+		logger.debug("Elevator states updated " + elevator.toString());
 	}
 }
