@@ -13,7 +13,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +48,7 @@ public class SchedulerSubsystem {
 
 	private SchedulerPipeline[] listeners;
 	private static Map<Integer,SchedulerRequest> events = new ConcurrentHashMap<Integer,SchedulerRequest>();
-	private Map<Elevator, TreeSet<SchedulerRequest>> elevatorEvents = new HashMap<>();
+	private Map<Elevator, LinkedList<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
@@ -74,7 +77,7 @@ public class SchedulerSubsystem {
 
 		for (int i = 0; i < numberOfElevators; i++) {
 			elevatorEvents.put(new Elevator(i + 1, 1, -1, Direction.STATIONARY),
-					new TreeSet<>(SchedulerRequest.BY_ASCENDING));
+					new LinkedList<>());
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -180,15 +183,10 @@ public class SchedulerSubsystem {
 	private synchronized byte[] createDataArray(SchedulerRequest request) throws CommunicationException {
 		if(request.getType().equals(SubsystemConstants.FLOOR)) {
 			Elevator elev = getElevator(elevatorEvents.keySet(), request);
-			//			if (request.getRequestDirection().equals(Direction.DOWN) && elev != null
-			//					&& (elevatorEvents.get(elev) != null || !elevatorEvents.get(elev).isEmpty())) {
-			//
-			//				elevatorEvents.get(elev).stream().forEach(x -> logger.debug("Events sorted D: ".concat(x.toString())));
-			//			}
-			if (elevatorEvents.get(elev).first() != null) {
+			if (elevatorEvents.get(elev).getFirst() != null) {
 				ElevatorMessage p = new ElevatorMessage(elev.getCurrentFloor(),
-						elevatorEvents.get(elev).first().getDestFloor(),
-						elevatorEvents.get(elev).first().getCarButton());
+						elevatorEvents.get(elev).getFirst().getDestFloor(),
+						elevatorEvents.get(elev).getFirst().getCarButton());
 				return p.generatePacketData();
 			}
 			throw new CommunicationException(
@@ -308,7 +306,7 @@ public class SchedulerSubsystem {
 				}
 			}
 			if (isSameDirection == false) {
-				elevatorEvents.get(elev).descendingSet();
+				Collections.sort(elevatorEvents.get(elev), SchedulerRequest.BY_DECENDING);
 			}
 		}
 		logger.debug("Elevator Packet generated: " + elev.toString());

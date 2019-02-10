@@ -196,6 +196,20 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 			return -1;
 		}
 	};
+	
+	static final Comparator<SchedulerRequest> BY_DECENDING = new Comparator<SchedulerRequest>() {
+
+		@Override
+		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
+			if (arg0.getDestFloor() < arg1.getDestFloor()) {
+				return 1;
+			}
+			else if(arg0.getDestFloor() == arg1.getDestFloor()) {
+				return 0;
+			}
+			return -1;
+		}
+	};
 
 	@Override
 	public boolean equals(Object o) {
