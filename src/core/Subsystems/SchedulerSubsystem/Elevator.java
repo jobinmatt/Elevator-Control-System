@@ -12,6 +12,7 @@ public class Elevator {
 	private int currentFloor;
 	private int destFloor;
 	private Direction currentDirection;
+	private int numRequests = 0;
 
 	public Elevator(int i, int currentFloor, int destFloor, Direction currentDirection) {
 		super();
@@ -51,7 +52,18 @@ public class Elevator {
 	public void setDestFloor(int destFloor) {
 		this.destFloor = destFloor;
 	}
+	
+	public void incRequests() {
+		this.numRequests++;
+	}
+	
+	public void decRequests() {
+		this.numRequests--;
+	}
 
+	public int getNumRequests() {
+		return this.numRequests;
+	}
 	@Override
 	public String toString() {
 		return "Elevator " + elevatorId + " current floor: " + currentFloor + " destination floor: " + destFloor

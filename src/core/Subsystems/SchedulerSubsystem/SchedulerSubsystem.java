@@ -115,62 +115,39 @@ public class SchedulerSubsystem {
 	 * @throws CommunicationException
 	 * @formatter:on
 	 */
-	public void startScheduling() throws SchedulerSubsystemException, CommunicationException {
-		while (true) {
-			if(!events.isEmpty()) {
-				for (int key : events.keySet()) {
-					SchedulerRequest r = events.get(key);
-					if (r != null) {
-						if (r.getType().equals(SubsystemConstants.FLOOR)) {
-							Elevator lSelectedElevator = getBestElevator(r);
-							if (lSelectedElevator != null) {
-								r.setElevatorNumber(lSelectedElevator.getElevatorId());
-								if (lSelectedElevator.getCurrentFloor() != r.getSourceFloor()) { // if not at source
-									// floor of request
-									// go there
-									SchedulerRequest tempRequest = new SchedulerRequest(r.getReceivedAddress(),
-											r.getReceivedPort(), r.getType(), lSelectedElevator.getCurrentFloor(),
-											r.getRequestDirection(), r.getSourceFloor(),
-											lSelectedElevator.getElevatorId(),
-											r.getDestFloor());
-									elevatorEvents.get(lSelectedElevator).add(tempRequest);
-									lSelectedElevator.setCurrentDirection(r.getRequestDirection());
-									lSelectedElevator.setDestFloor(r.getSourceFloor());
-									sendRequest(tempRequest);
-								}
-								else {
-									
-									elevatorEvents.get(lSelectedElevator).add(r);
-									lSelectedElevator.setDestFloor(r.getCarButton());
-									events.remove(key);
-									sendRequest(r);
-
-								}
-							}
-						}
-					}
-				}
-			}
+	public synchronized void scheduleEvent(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
+		if(request != null) {
+			Elevator selectedElevator = getBestElevator(request);
+		} else {
+			throw new SchedulerSubsystemException("Request recieved was null or invalid");
 		}
 	}
 
 	private Elevator getBestElevator(SchedulerRequest request) {
+		Elevator tempElevator = null;
 		for (Elevator e : elevatorEvents.keySet()) {
 			if (elevatorEvents.get(e).isEmpty()) {
 				return e;
 			} else {
 				if (e.getCurrentDirection().equals(request.getRequestDirection())) {
+					if(tempElevator == null) {
+						tempElevator = e;
+					}
 					if (e.getCurrentDirection().equals(Direction.DOWN)
-							&& e.getCurrentFloor() > request.getDestFloor()) {
-						return e;
+							&& e.getCurrentFloor() > request.getSourceFloor()) {
+						if(e.getNumRequests() < tempElevator.getNumRequests()) {
+							tempElevator = e;
+						}
 					} else if (e.getCurrentDirection().equals(Direction.UP)
 							&& e.getCurrentFloor() < request.getDestFloor()) {
-						return e;
+						if(e.getNumRequests() < tempElevator.getNumRequests()) {
+							tempElevator = e;
+						}
 					}
 				}
 			}
 		}
-		return null;
+		return tempElevator;
 	}
 
 
