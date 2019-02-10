@@ -15,12 +15,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.Direction;
-import core.ElevatorPacket;
-import core.FloorPacket;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
@@ -113,17 +113,16 @@ public class SchedulerPipeline extends Thread{
 			throws CommunicationException, SchedulerSubsystemException, HostActionsException {
 		SchedulerRequest schedulerPacket = null;
 		if (packet.getData()[0] == (byte) 0) { // Floor
-			FloorPacket lFloorPacket = new FloorPacket(packet.getData(), packet.getLength());
+			FloorMessage lFloorPacket = new FloorMessage(packet.getData(), packet.getLength());
 			schedulerPacket = new SchedulerRequest(packet.getAddress(), packet.getPort(), SubsystemConstants.FLOOR,
 					lFloorPacket.getSourceFloor(),
-					lFloorPacket.getDirection(), lFloorPacket.getDestinationFloor(), lFloorPacket.getDestinationFloor());
+					lFloorPacket.getDirection(), lFloorPacket.getTargetFloor(), lFloorPacket.getTargetFloor());
 			schedulerSubsystem.addEvent(schedulerPacket);
 		}
 		else if (packet.getData()[0] == (byte) 1) {
-			ElevatorPacket lElevatorPacket = new ElevatorPacket(packet.getData(), packet.getLength());
+			ElevatorMessage lElevatorPacket = new ElevatorMessage(packet.getData(), packet.getLength());
 			if (lElevatorPacket.getArrivalSensor()) {
 				logger.debug("\n Got arrival sensor: " + lElevatorPacket.toString());
-				//				schedulerSubsystem.updateStates(lElevatorPacket);
 				this.updateStates(lElevatorPacket);
 			} else {
 				Direction lElevDir = null;
@@ -136,21 +135,21 @@ public class SchedulerPipeline extends Thread{
 						SubsystemConstants.ELEVATOR,
 						lElevatorPacket.getCurrentFloor(), lElevDir,
 						lElevatorPacket.getDestinationFloor(), lElevatorPacket.getElevatorNumber(),
-						lElevatorPacket.getRequestedFloor());
+						lElevatorPacket.getTargetFloor());
 				logger.debug("Recieved packet from elevator: " + lElevatorPacket.toString());
 				schedulerSubsystem.addEvent(schedulerPacket);
 			}
 		}
 	}
 
-	private void updateStates(ElevatorPacket packet) throws CommunicationException, HostActionsException {
+	private void updateStates(ElevatorMessage packet) throws CommunicationException, HostActionsException {
 		synchronized (schedulerSubsystem) {
 			Elevator elev = schedulerSubsystem.getElevator(packet.getElevatorNumber());
 			if (elev != null) {
 				schedulerSubsystem.updateFloors(elev);
 				schedulerSubsystem.removeServicedEvents(elev);
-				ElevatorPacket sendPacket = new ElevatorPacket(elev.getCurrentFloor(), elev.getDestFloor(),
-						packet.getRequestedFloor());
+				ElevatorMessage sendPacket = new ElevatorMessage(elev.getCurrentFloor(), elev.getDestFloor(),
+						packet.getTargetFloor());
 				schedulerSubsystem.sendUpdatePacket(sendPacket, elev);
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 			}

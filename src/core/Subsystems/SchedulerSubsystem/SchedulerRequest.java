@@ -12,12 +12,16 @@ import java.net.InetAddress;
 import java.util.Comparator;
 
 import core.Direction;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
+import core.Messages.SubsystemMessage;
 import core.Utils.SubsystemConstants;
 
 /**
  *
  * This creates a SchedulerEvent based on a DatagramPacket
  * @author Jobin Mathew
+ * Refactored by: Shounak Amladi
  * */
 public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private SubsystemConstants type;
@@ -28,7 +32,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private int destFloor = -1;
 	private Direction requestDirection;
 	private int elevatorNumber = -1;
-	private int carButton = -1;
+	private int targetFloor = -1;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -45,34 +49,34 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 				+ " receieved address: " + receivedAddress.getHostAddress() + ":" + receivedPort
 				+ 
 				" destination floor: " + destFloor + " request direction: " + requestDirection.toString()
-				+ " elevator number: " + elevatorNumber + " car button: " + carButton;
+				+ " elevator number: " + elevatorNumber + " car button: " + targetFloor;
 	}
-
+	//for floor the source floor is where the initial request came from
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
-			int typeNumber, Direction requestDirection, int destFloor, int carButton) {// Floor
+			int sourceFloor, Direction requestDirection, int destFloor, int carButton) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.sourceFloor = typeNumber;
+		this.sourceFloor = sourceFloor;
 		this.requestId = System.currentTimeMillis() / 1000L;
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = -1;
 		this.destFloor = destFloor;
-		this.carButton = carButton;
+		this.targetFloor = carButton;
 	}
-
+	//for elevator its the current floor is the source floor 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
-			int typeNumber, Direction requestDirection, int destFloor, int elevNumber, int carButton) {// Elev
+			int currentFloor, Direction requestDirection, int destFloor, int elevNumber, int targetFloor) {// Elev
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
-		this.sourceFloor = typeNumber;
+		this.sourceFloor = currentFloor;
 		this.requestId = System.currentTimeMillis() / 1000L;
-		this.destFloor = destFloor;
+		this.destFloor = destFloor; //next floor to visit
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = elevNumber;
-		this.carButton = carButton;
+		this.targetFloor = targetFloor; //final destination 
 	}
 
 	/**
@@ -162,11 +166,11 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 
 	public int getCarButton() {
-		return carButton;
+		return targetFloor;
 	}
 
 	public void setCarButton(int carButton) {
-		this.carButton = carButton;
+		this.targetFloor = carButton;
 	}
 	@Override
 	public int compareTo(SchedulerRequest arg1) {
@@ -201,5 +205,13 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 			}
 		}
 		return false;
+	}
+	
+	public SubsystemMessage toFloorPacket() {
+		return new FloorMessage(this.requestDirection,this.sourceFloor, this.targetFloor );
+	}
+	
+	public SubsystemMessage toElevatorPacket() {
+		return new ElevatorMessage(this.sourceFloor, this.destFloor, this.targetFloor);
 	}
 }

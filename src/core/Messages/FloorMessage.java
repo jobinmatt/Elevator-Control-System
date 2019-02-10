@@ -5,14 +5,22 @@
 // Description: Stores packet information, transcodes into byte data and reverse
 //
 //***************************************************************************
-package core;
+package core.Messages;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 
+import core.Direction;
 import core.Exceptions.CommunicationException;
-
-public class FloorPacket {
+import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
+import core.Utils.SubsystemConstants;
+/**
+ * Used to convert between FloorPacket, and Datagram Buffer (byte[]) 
+ * @author Rajat Bansal
+ * Refactored: Shounak Amladi
+ * */
+public class FloorMessage implements SubsystemMessage {
 
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
@@ -24,7 +32,7 @@ public class FloorPacket {
 
 	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR
 	private Direction direction;
-	private int carButtonPressed; //DESTINATION FLOOR
+	private int targetFloor; //DESTINATION FLOOR (end goal)
 	private boolean isValid = true;
 
 
@@ -33,13 +41,13 @@ public class FloorPacket {
 	 * @param direction Direction
 	 * @param sourceFloor current floor, i.e. source floor when direction is pressed
 	 * @param date  The Date
-	 * @param carButtonPressed Button pressed in the elevator
+	 * @param targetFloor Button pressed in the elevator
 	 */
-	public FloorPacket(Direction direction, int sourceFloor, int carButtonPressed) {
+	public FloorMessage(Direction direction, int sourceFloor, int targetFloor) {
 
 		this.sourceFloor = sourceFloor;
 		this.direction = direction;
-		this.carButtonPressed = carButtonPressed;
+		this.targetFloor = targetFloor;
 	}
 
 	/**
@@ -48,7 +56,7 @@ public class FloorPacket {
 	 * @param dataLength
 	 * @throws CommunicationException
 	 */
-	public FloorPacket(byte[] data, int dataLength) throws CommunicationException {
+	public FloorMessage(byte[] data, int dataLength) throws CommunicationException {
 
 		isValid = true;
 
@@ -79,7 +87,7 @@ public class FloorPacket {
 			isValid = false;
 		}
 
-		carButtonPressed = data[i++];
+		targetFloor = data[i++];
 
 		// must be zero at end
 		while (i < dataLength) {
@@ -120,7 +128,7 @@ public class FloorPacket {
 			// add spacer
 			stream.write(SPACER);
 
-			stream.write(carButtonPressed); //add the button pressed in the elevator
+			stream.write(targetFloor); //add the button pressed in the elevator
 
 			stream.write(SPACER);
 
@@ -149,8 +157,8 @@ public class FloorPacket {
 		return sourceFloor;
 	}
 
-	public int getDestinationFloor() {
-		return carButtonPressed;
+	public int getTargetFloor() {
+		return targetFloor;
 	}
 
 	public Direction getDirection() {
@@ -172,6 +180,11 @@ public class FloorPacket {
 	public String toString() {
 
 		return "Direction: " + direction.name() + " Source Location: " + sourceFloor + " Car Button Pressed Number: "
-				+ carButtonPressed;
+				+ targetFloor;
+	}
+	
+	public SchedulerRequest toSchedulerRequest(InetAddress receivedAddress, int receivedPort) {
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.sourceFloor, this.direction,this.targetFloor, this.targetFloor );
+		
 	}
 }
