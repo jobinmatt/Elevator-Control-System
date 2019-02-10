@@ -27,7 +27,7 @@ import core.Utils.SubsystemConstants;
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
  * */
-public class ElevatorPipeline extends Thread {
+public class ElevatorPipeline extends Thread implements Pipeline{
 
 	private static Logger logger = LogManager.getLogger(ElevatorPipeline.class);
 	private static final String ELEVATOR_PIPELINE = "Elevator pipeline ";
@@ -64,7 +64,7 @@ public class ElevatorPipeline extends Thread {
 				HostActions.receive(packet, receiveSocket);
 				logger.info("Data received..");
 				parsePacket(packet);
-			} catch (HostActionsException | CommunicationException | SchedulerSubsystemException e) {
+			} catch (HostActionsException | CommunicationException e) {
 				logger.error("Failed to receive packet", e);
 			}
 		}
@@ -78,7 +78,7 @@ public class ElevatorPipeline extends Thread {
 	 * @throws SchedulerSubsystemException
 	 * @throws HostActionsException
 	 */
-	private void parsePacket(DatagramPacket packet) throws CommunicationException, SchedulerSubsystemException, HostActionsException {
+	public void parsePacket(DatagramPacket packet) throws CommunicationException {
 		
 		SchedulerRequest schedulerPacket = null;
 		
@@ -97,7 +97,7 @@ public class ElevatorPipeline extends Thread {
 		}
 	}
 
-	private void updateStates(ElevatorMessage packet) throws CommunicationException, HostActionsException {
+	private void updateStates(ElevatorMessage packet) throws CommunicationException {
 		
 		synchronized (schedulerSubsystem) {
 			Elevator elevator = schedulerSubsystem.getElevator(packet.getElevatorNumber());
@@ -105,7 +105,12 @@ public class ElevatorPipeline extends Thread {
 				schedulerSubsystem.updateFloors(elevator);
 				schedulerSubsystem.removeServicedEvents(elevator);
 				ElevatorMessage sendPacket = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), packet.getTargetFloor());
-				schedulerSubsystem.sendUpdatePacket(sendPacket, elevator);
+				
+				try {
+					schedulerSubsystem.sendUpdatePacket(sendPacket, elevator);
+				} catch (HostActionsException e) {
+					throw new CommunicationException(e);
+				}
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 			}
 		}
