@@ -25,7 +25,7 @@ import core.ElevatorPacket;
 import core.FloorPacket;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
-import core.Exceptions.ElevatorSubystemException;
+import core.Exceptions.ElevatorSubsystemException;
 import core.Utils.Utils;
 
 /**
@@ -53,9 +53,9 @@ public class ElevatorCarThread extends Thread {
 	 * Constructor for elevator car
 	 * 
 	 * @param numFloors
-	 * @throws ElevatorSubystemException 
+	 * @throws ElevatorSubsystemException 
 	 */
-	public ElevatorCarThread(String name, int numFloors, InetAddress schedulerDomain) throws ElevatorSubystemException {
+	public ElevatorCarThread(String name, int numFloors, InetAddress schedulerDomain) throws ElevatorSubsystemException {
 		
 		super (name);
 		this.schedulerDomain = schedulerDomain;
@@ -79,7 +79,7 @@ public class ElevatorCarThread extends Thread {
 			byte[] b = new byte[1024];
 			elevatorPacket = new DatagramPacket(b, b.length);
 		} catch (ConfigurationParserException | SocketException e) {
-			throw new ElevatorSubystemException(e);
+			throw new ElevatorSubsystemException(e);
 		}
 	}
 
@@ -193,7 +193,7 @@ public class ElevatorCarThread extends Thread {
 					}
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 					ElevatorPacket requestFloor = new ElevatorPacket(ePacket.getRequestedFloor(), elevatorNumber);
-					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, port);
+					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber));
 					logger.debug("Arrived dest.\n");
 					if (!sentArrivalSensor) {						
 						this.sendArrivalSensorPacket();
@@ -208,29 +208,29 @@ public class ElevatorCarThread extends Thread {
 					continue;
 				}
 
-			} catch (CommunicationException | IOException | ElevatorSubystemException e) {
+			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
 				logger.error(e);
 			}
 		}		
 	}
 	
-	public void moveFloor() throws ElevatorSubystemException {
+	public void moveFloor() throws ElevatorSubsystemException {
 		
 		Utils.Sleep(floorSleepTime);
 		sendArrivalSensorPacket();
 	}
 	
-	public void sendArrivalSensorPacket() throws ElevatorSubystemException {
+	public void sendArrivalSensorPacket() throws ElevatorSubsystemException {
 		
 		try {
 			ElevatorPacket arrivalSensor = new ElevatorPacket(true, elevatorNumber);		
-			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerDomain, port);
+			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerDomain, ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber));
 //			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
 //			logger.debug("Elevator Packet "+ arrivalSensor.toString());
 			logger.debug("sent Arrival Sensor.");
 			this.elevatorSocket.send(arrivalSensorPacket);
 		} catch (CommunicationException | IOException e) {
-			throw new ElevatorSubystemException(e);
+			throw new ElevatorSubsystemException(e);
 		}
 	}
 	

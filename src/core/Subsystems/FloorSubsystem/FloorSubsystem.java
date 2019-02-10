@@ -12,7 +12,9 @@ package core.Subsystems.FloorSubsystem;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -25,9 +27,10 @@ import java.util.Timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.ConfigurationParser;
 import core.InputParser;
 import core.LoggingManager;
-import core.Exceptions.ElevatorSubystemException;
+import core.Exceptions.ElevatorSubsystemException;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
@@ -42,9 +45,11 @@ import core.Utils.SimulationRequest;
  */
 public class FloorSubsystem {
 
+	private static final int DATA_SIZE = 1024;
 	private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
 	private final String FLOOR_NAME = "Floor";
 	private Map<String, FloorThread> floors;
+	private static Map<Integer, Integer> schedulerPorts = new HashMap<>();
 	private List<SimulationRequest> events;
 	private int numberOfFloors;
 	private InetAddress floorSubsystemAddress;
@@ -60,7 +65,7 @@ public class FloorSubsystem {
 	 */
 	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException, IOException {
 		
-		floors = new HashMap<String, FloorThread>();
+		this.floors = new HashMap<String, FloorThread>();
 		this.numberOfFloors = numOfFloors;
 		this.floorSubsystemAddress = floorSubsystemAddress;
 		this.floorInitPort = floorInitPort;
@@ -87,10 +92,50 @@ public class FloorSubsystem {
 			});
 			
 			sendPortsToScheduler(floorInitPort);
+			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
+			int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
+			receivePortsFromScheduler(initSchedulerPort + 1);//to avoid conflict with Elevator
 
 		} catch (InputParserException e) {
 			throw new FloorSubsystemException(e);
 		}
+	}
+	
+	private void receivePortsFromScheduler(int listenPort) throws FloorSubsystemException {
+		try {
+			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
+			DatagramSocket receiveSocket = new DatagramSocket(listenPort);
+			try {
+				logger.info("Waiting to receive port information from SCHEDULER...");
+				HostActions.receive(packet, receiveSocket);
+				receiveSocket.close();
+				convertPacketToMap(packet.getData(), packet.getLength());
+			} catch (HostActionsException e) {
+				throw new FloorSubsystemException("Unable to receive scheduler ports packet", e);
+			}
+		} catch (SocketException e) {
+			throw new FloorSubsystemException("Unable to create a DatagramSocket", e);
+		}
+	}
+
+	private void convertPacketToMap(byte[] data, int length) throws FloorSubsystemException {
+		byte SPACER = (byte) 0;
+		if(data != null && data[0] != SPACER) {
+			
+			HashMap<Integer, Integer> tempPorts = new HashMap<>();
+			for(int i = 0; i < length; i = i + 8) {
+				int pipelineNumber = data[i];
+				
+				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};
+				int schedulerPort = ByteBuffer.wrap(portNumInByte).getInt();
+				tempPorts.put(pipelineNumber, schedulerPort);
+				if(data.length<(i+8) || data[i+8] == SPACER) {
+					break;
+				}
+			}
+			this.setSchedulerPorts(tempPorts);
+		}
+		else throw new FloorSubsystemException("Cannot convert null to elevator ports map or invalid data found");
 	}
 	
 	/**
@@ -106,7 +151,7 @@ public class FloorSubsystem {
 	}
 	
 	/**
-	 * Creates a dataarray with the port information
+	 * Creates a data array with the port information
 	 * @param map
 	 * @return
 	 * @throws IOException 
@@ -157,6 +202,14 @@ public class FloorSubsystem {
 		addEvents();
 		logger.info("Initializing floor threads.");
 		floors.forEach((k,v) -> v.start());
+	}
+
+	public static Map<Integer, Integer> getSchedulerPorts() {
+		return schedulerPorts;
+	}
+
+	public void setSchedulerPorts(Map<Integer, Integer> schedulerPorts) {
+		FloorSubsystem.schedulerPorts = schedulerPorts;
 	}
 
 }

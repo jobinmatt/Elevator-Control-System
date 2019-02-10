@@ -36,26 +36,29 @@ public class SchedulerPipeline extends Thread{
 
 	private DatagramSocket receiveSocket;
 	private SchedulerSubsystem schedulerSubsystem;
+	private SubsystemConstants objectType;
+	private int pipeNumber;
+	private int port;
 
 
-	public SchedulerPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort,
+	public SchedulerPipeline(SubsystemConstants objectType, int portOffset,
 			SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 		String threadName;
 		this.schedulerSubsystem = subsystem;
-		int portNumber = -1;
+		this.objectType = objectType;
+		this.pipeNumber = portOffset;
 		if(objectType == SubsystemConstants.ELEVATOR) {
 			threadName = ELEVATOR_PIPELINE + portOffset;
-			portNumber = elevatorPort;
 		}
 		else {
 			threadName = FLOOR_PIPELINE + portOffset;
-			portNumber = floorPort;
 		}
 		this.setName(threadName);
 
 		try {
 			//need to make sure data is received the same way, matching the ports
-			this.receiveSocket = new DatagramSocket(portNumber);
+			this.receiveSocket = new DatagramSocket();
+			this.port = receiveSocket.getLocalPort();
 		}
 		catch(SocketException e) {
 			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
@@ -159,5 +162,16 @@ public class SchedulerPipeline extends Thread{
 		//cleanup goes here
 	}
 
+	public SubsystemConstants getObjectType() {
+		return objectType;
+	}
+
+	public int getPipeNumber() {
+		return pipeNumber;
+	}
+
+	public int getPort() {
+		return port;
+	}
 
 }

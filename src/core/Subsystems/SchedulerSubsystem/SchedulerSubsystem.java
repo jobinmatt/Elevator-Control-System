@@ -8,6 +8,8 @@
 
 package core.Subsystems.SchedulerSubsystem;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -25,14 +27,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.ConfigurationParser;
 import core.Direction;
 import core.ElevatorPacket;
 import core.FloorPacket;
 import core.LoggingManager;
 import core.Exceptions.CommunicationException;
+import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
@@ -49,7 +54,7 @@ public class SchedulerSubsystem {
 	private Map<Elevator, TreeSet<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private Map<Integer, Integer> elevatorPorts = new HashMap<>();
 	private Map<Integer, Integer> floorPorts = new HashMap<>();
-	private static final int DATA_SIZE = 50;
+	private static final int DATA_SIZE = 1024;
 	private static int numberOfElevators;
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
@@ -57,7 +62,7 @@ public class SchedulerSubsystem {
 
 	private DatagramSocket sendSocket;
 	public SchedulerSubsystem(int numElevators, int numFloors,
-			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException {
+			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException, HostActionsException, IOException, ConfigurationParserException {
 
 		numberOfElevators = numElevators;
 		numberOfFloors = numFloors;
@@ -68,14 +73,16 @@ public class SchedulerSubsystem {
 		this.listeners = new SchedulerPipeline[numberOfElevators + numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			int elevatorPort = elevatorPorts.get(i+1);
-			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorPort, -1, this);
+			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1, this);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			int floorPort = floorPorts.get(i+1);
-			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, -1, floorPort, this);
+			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, this);
 		}
-
+		ConfigurationParser configurationParser = ConfigurationParser.getInstance();
+		int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
+		sendSchedulerPorts(initSchedulerPort, SubsystemConstants.ELEVATOR);
+		sendSchedulerPorts(initSchedulerPort + 1, SubsystemConstants.FLOOR);
+		
 		for (int i = 0; i < numberOfElevators; i++) {
 			elevatorEvents.put(new Elevator(i + 1, 1, -1, Direction.STATIONARY),
 					new TreeSet<>(SchedulerRequest.BY_ASCENDING));
@@ -100,6 +107,39 @@ public class SchedulerSubsystem {
 		}
 	}
 	
+	private void sendSchedulerPorts(int sendPort, SubsystemConstants systemType) throws IOException, HostActionsException {
+		byte[] packetData = createPortsArray(listeners, systemType);
+		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), sendPort);
+	    HostActions.send(packet, Optional.empty());
+	}
+	
+	/**
+	 * Creates a data array with the port information
+	 * @param map
+	 * @return
+	 * @throws IOException 
+	 */
+	private byte[] createPortsArray(SchedulerPipeline[] pipelines, SubsystemConstants systemType) throws IOException {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		byte SPACER = (byte) 0;
+		
+		for (SchedulerPipeline pipe: pipelines) {
+			if(pipe.getObjectType() == systemType) {
+				data.write(pipe.getPipeNumber());
+		        data.write(SPACER);
+		        try {
+					data.write(ByteBuffer.allocate(4).putInt(pipe.getPort()).array());
+				} catch (IOException e) {
+					throw new IOException("" + e);
+				}
+		        data.write(SPACER);
+		        data.write(SPACER);
+			}
+	    }
+	    data.write(SPACER);
+		return data.toByteArray();
+	}	
+
 	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException {
 		try {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
@@ -107,6 +147,7 @@ public class SchedulerSubsystem {
 			try {
 				logger.info("Waiting to receive port information from " + systemType + "...");
 				HostActions.receive(packet, receiveSocket);
+				receiveSocket.close();
 				if(systemType.equals(SubsystemConstants.ELEVATOR)) this.elevatorSubsystemAddress = packet.getAddress();
 				else this.floorSubsystemAddress = packet.getAddress();
 				convertPacketToMap(packet.getData(), packet.getLength(), systemType);
@@ -122,9 +163,8 @@ public class SchedulerSubsystem {
 		byte SPACER = (byte) 0;
 		if(data != null && data[0] != SPACER) {
 			
-			boolean isValid = true;
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
-			for(int i = 0; i < length; i = i + 3) {
+			for(int i = 0; i < length; i = i + 8) {
 				int elevNumber = data[i];
 				
 				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};

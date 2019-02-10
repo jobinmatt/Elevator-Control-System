@@ -120,7 +120,7 @@ public class FloorThread extends Thread {
         DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
         tempPacket.setData(data);
         tempPacket.setAddress(this.schedulerSubsystemAddress);
-        tempPacket.setPort(port);
+        tempPacket.setPort(FloorSubsystem.getSchedulerPorts().get(floorNumber));
         logger.info("Buffer Data: "+ Arrays.toString(data));
         HostActions.send( tempPacket, Optional.of(receiveSocket));
     }
