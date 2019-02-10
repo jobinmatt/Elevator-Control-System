@@ -23,15 +23,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+import core.Exceptions.*;
+import core.Utils.PortParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.ConfigurationParser;
 import core.LoggingManager;
-import core.Exceptions.ConfigurationParserException;
-import core.Exceptions.ElevatorSubsystemException;
-import core.Exceptions.HostActionsException;
-import core.Exceptions.SchedulerSubsystemException;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 import core.Utils.Utils;
@@ -72,90 +70,16 @@ public class ElevatorSubsystem {
 				LoggingManager.terminate();
 			}
 		});
-		
-		sendPortsToScheduler(initPort);
+
+		PortParser.sendPortsToScheduler(initPort,carPool,SubsystemConstants.ELEVATOR);
 		ConfigurationParser configurationParser = ConfigurationParser.getInstance();
 		int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
-		receivePortsFromScheduler(initSchedulerPort);
-	}
-	
-	private void receivePortsFromScheduler(int listenPort) throws ElevatorSubsystemException {
 		try {
-			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
-			DatagramSocket receiveSocket = new DatagramSocket(listenPort);
-			try {
-				logger.info("Waiting to receive port information from SCHEDULER...");
-				HostActions.receive(packet, receiveSocket);
-				receiveSocket.close();
-				convertPacketToMap(packet.getData(), packet.getLength());
-			} catch (HostActionsException e) {
-				throw new ElevatorSubsystemException("Unable to receive scheduler ports packet", e);
-			}
-		} catch (SocketException e) {
-			throw new ElevatorSubsystemException("Unable to create a DatagramSocket", e);
+			schedulerPorts = PortParser.receivePortsFromScheduler(initSchedulerPort);
+		} catch (PortParserException e) {
+			new ElevatorSubsystemException(e);
 		}
 	}
-
-	private void convertPacketToMap(byte[] data, int length) throws ElevatorSubsystemException {
-		byte SPACER = (byte) 0;
-		if(data != null && data[0] != SPACER) {
-			
-			HashMap<Integer, Integer> tempPorts = new HashMap<>();
-			for(int i = 0; i < length; i = i + 8) {
-				int pipelineNumber = data[i];
-				
-				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};
-				int schedulerPort = ByteBuffer.wrap(portNumInByte).getInt();
-				tempPorts.put(pipelineNumber, schedulerPort);
-				if(data.length<(i+8) || data[i+8] == SPACER) {
-					break;
-				}
-			}
-			this.setSchedulerPorts(tempPorts);
-		}
-		else throw new ElevatorSubsystemException("Cannot convert null to elevator ports map or invalid data found");
-	}
-
-	/**
-	 * Sends a packet to the Scheduler with the port information of each elevator
-	 * @param initPort
-	 * @throws ElevatorSubsystemException
-	 * @throws HostActionsException
-	 * @throws IOException 
-	 */
-	public void sendPortsToScheduler(int initPort) throws ElevatorSubsystemException, HostActionsException, IOException {
-		byte[] packetData = createPortsArray((HashMap<String, ElevatorCarThread>) carPool);
-		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
-	    HostActions.send(packet, Optional.empty());
-	}
-	
-	/**
-	 * Creates a data array with the port information
-	 * @param map
-	 * @return
-	 * @throws IOException 
-	 */
-	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) throws IOException {
-		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		byte SPACER = (byte) 0;
-		
-		for (Map.Entry<String, ElevatorCarThread> entry : map.entrySet()) {
-	        System.out.println(entry.getKey() + ":" + entry.getValue());
-	        int elevNumber = entry.getValue().getElevatorNumber();
-	        int elevPort = entry.getValue().getPort();
-	        data.write(elevNumber);
-	        data.write(SPACER);
-	        try {
-				data.write(ByteBuffer.allocate(4).putInt(elevPort).array());
-			} catch (IOException e) {
-				throw new IOException("" + e);
-			}
-	        data.write(SPACER);
-	        data.write(SPACER);
-	    }
-	    data.write(SPACER);
-		return data.toByteArray();
-	}	
 
 	/**
 	 * Starts the thread (powering on elevator)

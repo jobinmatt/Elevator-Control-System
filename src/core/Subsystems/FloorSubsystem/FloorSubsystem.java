@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Timer;
 
+import core.Utils.PortParser;
+import core.Utils.SubsystemConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,6 +41,8 @@ import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
 
+import javax.sound.sampled.Port;
+
 
 /**
  * The floor subsystem handles the initialization of each floor thread and the events to be simulated.
@@ -52,7 +56,7 @@ public class FloorSubsystem {
 	private static Map<Integer, Integer> schedulerPorts = new HashMap<>();
 	private List<SimulationRequest> events;
 	private int numberOfFloors;
-	private InetAddress floorSubsystemAddress;
+	private InetAddress schedulerAddress;
 	private int floorInitPort;
 	private Timer sharedTimer;
 	
@@ -63,21 +67,20 @@ public class FloorSubsystem {
 	 * @throws IOException 
 	 * @throws FloorSubsystemException
 	 */
-	public FloorSubsystem(int numOfFloors, InetAddress floorSubsystemAddress, int floorInitPort) throws GeneralException, IOException {
+	public FloorSubsystem(int numOfFloors, InetAddress schedulerAddress, int floorInitPort) throws GeneralException, IOException {
 		
 		this.floors = new HashMap<String, FloorThread>();
 		this.numberOfFloors = numOfFloors;
-		this.floorSubsystemAddress = floorSubsystemAddress;
+		this.schedulerAddress = schedulerAddress;
 		this.floorInitPort = floorInitPort;
 		this.sharedTimer = new Timer();
 		try {
 			readFile();
 
-			//****** ?? send List<SimulationEvent> events to the scheduler ?? ****
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
 				floors.put(FLOOR_NAME + i,
-						new FloorThread(FLOOR_NAME + i, i, floorSubsystemAddress, this.sharedTimer));
+						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer));
 			}			
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -90,94 +93,16 @@ public class FloorSubsystem {
 					LoggingManager.terminate();
 				}
 			});
-			
-			sendPortsToScheduler(floorInitPort);
+
+			PortParser.sendPortsToScheduler(floorInitPort, floors, SubsystemConstants.FLOOR);
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
 			int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
-			receivePortsFromScheduler(initSchedulerPort + 1);//to avoid conflict with Elevator
+			FloorSubsystem.schedulerPorts = PortParser.receivePortsFromScheduler(initSchedulerPort + 1);//to avoid conflict with Elevator
 
 		} catch (InputParserException e) {
 			throw new FloorSubsystemException(e);
 		}
 	}
-	
-	private void receivePortsFromScheduler(int listenPort) throws FloorSubsystemException {
-		try {
-			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
-			DatagramSocket receiveSocket = new DatagramSocket(listenPort);
-			try {
-				logger.info("Waiting to receive port information from SCHEDULER...");
-				HostActions.receive(packet, receiveSocket);
-				receiveSocket.close();
-				convertPacketToMap(packet.getData(), packet.getLength());
-			} catch (HostActionsException e) {
-				throw new FloorSubsystemException("Unable to receive scheduler ports packet", e);
-			}
-		} catch (SocketException e) {
-			throw new FloorSubsystemException("Unable to create a DatagramSocket", e);
-		}
-	}
-
-	private void convertPacketToMap(byte[] data, int length) throws FloorSubsystemException {
-		byte SPACER = (byte) 0;
-		if(data != null && data[0] != SPACER) {
-			
-			HashMap<Integer, Integer> tempPorts = new HashMap<>();
-			for(int i = 0; i < length; i = i + 8) {
-				int pipelineNumber = data[i];
-				
-				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};
-				int schedulerPort = ByteBuffer.wrap(portNumInByte).getInt();
-				tempPorts.put(pipelineNumber, schedulerPort);
-				if(data.length<(i+8) || data[i+8] == SPACER) {
-					break;
-				}
-			}
-			this.setSchedulerPorts(tempPorts);
-		}
-		else throw new FloorSubsystemException("Cannot convert null to elevator ports map or invalid data found");
-	}
-	
-	/**
-	 * Sends a packet to the Scheduler with the port information of each elevator
-	 * @param initPort
-	 * @throws HostActionsException
-	 * @throws IOException 
-	 */
-	public void sendPortsToScheduler(int initPort) throws HostActionsException, IOException {
-		byte[] packetData = createPortsArray((HashMap<String, FloorThread>) floors);
-		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
-	    HostActions.send(packet, Optional.empty());
-	}
-	
-	/**
-	 * Creates a data array with the port information
-	 * @param map
-	 * @return
-	 * @throws IOException 
-	 */
-	private byte[] createPortsArray(HashMap<String, FloorThread> map) throws IOException {
-		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		byte SPACER = (byte) 0;
-        
-		for (Map.Entry<String, FloorThread> entry : map.entrySet()) {
-	        System.out.println(entry.getKey() + ":" + entry.getValue());
-	        int floorNumber = entry.getValue().getFloorNumber();
-	        int floorPort = entry.getValue().getPort();
-	        data.write(floorNumber);
-	        data.write(SPACER);
-	        try {
-				data.write(ByteBuffer.allocate(4).putInt(floorPort).array());
-			} catch (IOException e) {
-				throw new IOException("" + e);
-			}
-	        data.write(SPACER);
-	        data.write(SPACER);
-	    }
-	    data.write(SPACER);
-	    data.write(SPACER);
-		return data.toByteArray();
-	}	
 
 	/**
 	 * Reads the input file to obtain the list of simulation events
@@ -206,10 +131,6 @@ public class FloorSubsystem {
 
 	public static Map<Integer, Integer> getSchedulerPorts() {
 		return schedulerPorts;
-	}
-
-	public void setSchedulerPorts(Map<Integer, Integer> schedulerPorts) {
-		FloorSubsystem.schedulerPorts = schedulerPorts;
 	}
 
 }
