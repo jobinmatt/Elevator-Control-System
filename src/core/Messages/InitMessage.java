@@ -20,7 +20,7 @@ public class InitMessage implements SubsystemMessage {
 	@Override
 	public byte[] generatePacketData() throws CommunicationException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		stream.write((byte)2); // floor packet flag
+		stream.write((byte)2);
 		try {
 			stream.write(INIT_MESSAGE.getBytes());
 		} catch (IOException e) {

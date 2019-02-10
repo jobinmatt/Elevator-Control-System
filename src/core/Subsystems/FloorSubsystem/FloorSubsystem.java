@@ -15,10 +15,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +28,12 @@ import org.apache.logging.log4j.Logger;
 import core.ConfigurationParser;
 import core.InputParser;
 import core.LoggingManager;
+import core.Exceptions.CommunicationException;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.InputParserException;
+import core.Messages.InitMessage;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
 
@@ -140,8 +140,9 @@ public class FloorSubsystem {
 	 * @param initPort
 	 * @throws HostActionsException
 	 * @throws IOException 
+	 * @throws CommunicationException 
 	 */
-	public void sendPortsToScheduler(int initPort) throws HostActionsException, IOException {
+	public void sendPortsToScheduler(int initPort) throws HostActionsException, IOException, CommunicationException {
 		byte[] packetData = createPortsArray((HashMap<String, FloorThread>) floors);
 		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
 	    HostActions.send(packet, Optional.empty());
@@ -152,9 +153,11 @@ public class FloorSubsystem {
 	 * @param map
 	 * @return
 	 * @throws IOException 
+	 * @throws CommunicationException 
 	 */
-	private byte[] createPortsArray(HashMap<String, FloorThread> map) throws IOException {
+	private byte[] createPortsArray(HashMap<String, FloorThread> map) throws IOException, CommunicationException {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		data.write(new InitMessage().generatePacketData());
 		for (Map.Entry<String, FloorThread> entry : map.entrySet()) {
 	        System.out.println(entry.getKey() + ":" + entry.getValue());
 	        int floorNumber = entry.getValue().getFloorNumber();

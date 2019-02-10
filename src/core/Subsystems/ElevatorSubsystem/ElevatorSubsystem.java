@@ -28,10 +28,12 @@ import org.apache.logging.log4j.Logger;
 
 import core.ConfigurationParser;
 import core.LoggingManager;
+import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubsystemException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Messages.InitMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 import core.Utils.Utils;
@@ -48,7 +50,7 @@ public class ElevatorSubsystem {
 	private static Map<Integer, Integer> schedulerPorts = new HashMap<>();
 	private InetAddress schedulerAddress;
 
-	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubsystemException, ConfigurationParserException, HostActionsException, IOException {
+	public ElevatorSubsystem(int numElev, int numFloors, int initPort, InetAddress schedulerAddress) throws ElevatorSubsystemException, ConfigurationParserException, HostActionsException, IOException, CommunicationException {
 
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfElev = numElev;
@@ -121,8 +123,9 @@ public class ElevatorSubsystem {
 	 * @throws ElevatorSubsystemException
 	 * @throws HostActionsException
 	 * @throws IOException 
+	 * @throws CommunicationException 
 	 */
-	public void sendPortsToScheduler(int initPort) throws ElevatorSubsystemException, HostActionsException, IOException {
+	public void sendPortsToScheduler(int initPort) throws ElevatorSubsystemException, HostActionsException, IOException, CommunicationException {
 		byte[] packetData = createPortsArray((HashMap<String, ElevatorCarThread>) carPool);
 		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
 	    HostActions.send(packet, Optional.empty());
@@ -133,9 +136,11 @@ public class ElevatorSubsystem {
 	 * @param map
 	 * @return
 	 * @throws IOException 
+	 * @throws CommunicationException 
 	 */
-	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) throws IOException {
-		ByteArrayOutputStream data = new ByteArrayOutputStream();		
+	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) throws IOException, CommunicationException {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		data.write(new InitMessage().generatePacketData());
 		for (Map.Entry<String, ElevatorCarThread> entry : map.entrySet()) {
 	        System.out.println(entry.getKey() + ":" + entry.getValue());
 	        int elevNumber = entry.getValue().getElevatorNumber();

@@ -164,7 +164,8 @@ public class SchedulerSubsystem {
 	private void convertPacketToMap(byte[] data, int length, SubsystemConstants systemType) throws SchedulerSubsystemException {
 		if(data != null && data[0] != SPACER) {
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
-			for(int i = 0; i < length; i = i + 8) {
+			//13 because of InitMessage
+			for(int i = 13; i < length; i = i + 8) {
 				int elevNumber = data[i];
 				
 				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};
