@@ -10,6 +10,7 @@ package core.Subsystems.SchedulerSubsystem;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.LinkedList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,9 +36,12 @@ public class ElevatorPipeline extends Thread implements Pipeline{
 	
 	private DatagramSocket receiveSocket;
 	private SchedulerSubsystem schedulerSubsystem;
+	private Elevator elevator;
+	private LinkedList<SchedulerRequest> elevatorEvents;
 
 
-	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort,
+			int floorPort, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
 		this.schedulerSubsystem = subsystem;
 		String threadName = ELEVATOR_PIPELINE + portOffset;
@@ -92,7 +96,6 @@ public class ElevatorPipeline extends Thread implements Pipeline{
 			} else {
 				schedulerPacket = elevatorPacket.toSchedulerRequest(packet.getAddress(), packet.getPort());
 				logger.debug("Recieved packet from elevator: " + elevatorPacket.toString());
-				schedulerSubsystem.addEvent(schedulerPacket);
 			}
 		}
 	}
@@ -104,7 +107,7 @@ public class ElevatorPipeline extends Thread implements Pipeline{
 			if (elevator != null) {
 				schedulerSubsystem.updateFloors(elevator);
 				schedulerSubsystem.removeServicedEvents(elevator);
-				ElevatorMessage sendPacket = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), packet.getTargetFloor());
+				ElevatorMessage sendPacket = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());
 				
 				try {
 					schedulerSubsystem.sendUpdatePacket(sendPacket, elevator);

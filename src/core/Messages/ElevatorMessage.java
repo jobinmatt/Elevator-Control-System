@@ -27,7 +27,7 @@ public class ElevatorMessage implements SubsystemMessage {
 
 	private int currentFloor = -1; //Current floor the elevator is on
 	private int destinationFloor = -1; //where it is going to stop next
-	private int targetFloor = -1; //Floor requested by user (end destination)
+//	private int targetFloor = -1; //Floor requested by user (end destination)
 	private int elevatorNumber = -1;//dont leave this empty we neeeeeeeeeeeeeed ITTTTT
 	private boolean arrived = false;
 	private boolean isValid = true;
@@ -40,15 +40,15 @@ public class ElevatorMessage implements SubsystemMessage {
 
 	public ElevatorMessage(int requestedFloor, int elevatorNumber) {
 
-		this.targetFloor = requestedFloor;
+		this.destinationFloor = requestedFloor;
 		this.elevatorNumber = elevatorNumber;
 	}
 
-	public ElevatorMessage(int currentFloor, int destinationFloor, int selectedFloors) {
+	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber) {
 
 		this.currentFloor = currentFloor;
 		this.destinationFloor = destinationFloor;
-		this.targetFloor = selectedFloors;
+		this.elevatorNumber = elevNumber;
 	}
 
 	public ElevatorMessage(byte[] data, int dataLength) {
@@ -68,11 +68,6 @@ public class ElevatorMessage implements SubsystemMessage {
 			isValid = false;
 		}
 
-		targetFloor = data[i++];
-		// must be zero
-		if (data[i++] != SPACER) {
-			isValid = false;
-		}
 		if ((byte)1 == data[i]) {
 			arrived = true;
 		} else if ((byte)0 == data[i]) {
@@ -117,12 +112,6 @@ public class ElevatorMessage implements SubsystemMessage {
 			
 			// add space
 			stream.write(SPACER);
-
-			if (targetFloor != -1 ) {
-				stream.write(targetFloor);
-			} else {
-				stream.write(SPACER);
-			}
 			
 			// add space
 			stream.write(SPACER);
@@ -168,11 +157,6 @@ public class ElevatorMessage implements SubsystemMessage {
 		return this.destinationFloor;
 	}
 	
-	public int getTargetFloor() {
-		
-		return this.targetFloor;
-	}
-	
 	public int getElevatorNumber() {
 		
 		return this.elevatorNumber;
@@ -185,17 +169,17 @@ public class ElevatorMessage implements SubsystemMessage {
 	
 	public String toString() {
 
-		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Requested Floor: " + targetFloor + " Elevator Number: " + elevatorNumber;
+		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
 	}
 
 	@Override
 	public SchedulerRequest toSchedulerRequest(InetAddress receivedAddress, int receivedPort) {
 		Direction dir = null;
-		if (this.currentFloor>this.targetFloor) {
+		if (this.currentFloor>this.destinationFloor) {
 			dir = Direction.DOWN;
 		}else {
 			dir = Direction.UP;
 		}
-		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.targetFloor );
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.destinationFloor );
 	}
 }

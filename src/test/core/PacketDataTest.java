@@ -42,7 +42,7 @@ class PacketDataTest {
 	void test() {
 		assertEquals(floorData1[0],packetElevator.getCurrentFloor(),floorData1[0]+"!= "+packetElevator.getCurrentFloor());
 		assertEquals(floorData1[1],packetElevator.getDestinationFloor(),floorData1[1]+"!= "+packetElevator.getDestinationFloor());
-		assertEquals(floorData1[2],packetElevator.getTargetFloor(),floorData1[2]+"!= "+packetElevator.getTargetFloor());
+		assertEquals(floorData1[2],packetElevator.getDestinationFloor(),floorData1[2]+"!= "+packetElevator.getDestinationFloor());
 
 		try {
 			byte[] actualElevatorData = generateActualElevatorData(floorData1[0], floorData1[1],floorData1[2],floorData1[3]);

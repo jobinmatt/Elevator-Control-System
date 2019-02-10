@@ -80,11 +80,16 @@ public class FloorPipeline extends Thread implements Pipeline {
 	 */
 	public void parsePacket(DatagramPacket packet) throws CommunicationException {
 		
-		SubsystemMessage message = ElevatorSysMessageFactory.generateMessage(packet.getData(), packet.getLength());
-		if (message instanceof FloorMessage) {
-			FloorMessage floorPacket = (FloorMessage) message;
-			SchedulerRequest schedulerPacket = floorPacket.toSchedulerRequest(packet.getAddress(), packet.getPort());
-			schedulerSubsystem.addEvent(schedulerPacket);
+		try {
+			SubsystemMessage message = ElevatorSysMessageFactory.generateMessage(packet.getData(), packet.getLength());
+			if (message instanceof FloorMessage) {
+				FloorMessage floorPacket = (FloorMessage) message;
+				SchedulerRequest schedulerPacket = floorPacket.toSchedulerRequest(packet.getAddress(),
+						packet.getPort());
+				schedulerSubsystem.scheduleEvent(schedulerPacket);
+			} 
+		} catch (SchedulerSubsystemException e) {
+			logger.error(e.getLocalizedMessage());
 		}
 	}
 

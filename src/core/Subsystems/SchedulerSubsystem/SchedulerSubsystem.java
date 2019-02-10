@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +47,9 @@ public class SchedulerSubsystem {
 
 	private static Logger logger = LogManager.getLogger(SchedulerSubsystem.class);
 
-	private Pipeline[] listeners;
-	private static Map<Integer,SchedulerRequest> events = new ConcurrentHashMap<Integer,SchedulerRequest>();
+	private ElevatorPipeline[] elevatorListeners;
+	private FloorPipeline[] floorListeners;
+	private static Set<SchedulerRequest> events = new HashSet<SchedulerRequest>();
 	private Map<Elevator, LinkedList<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private static int numberOfElevators;
 	private static int numberOfFloors;
@@ -66,13 +68,14 @@ public class SchedulerSubsystem {
 		this.elevatorSubsystemAddress = elevatorSubsystemAddress;
 		this.floorSubsystemAddress = floorSubsystemAddress;
 
-		this.listeners = new Pipeline[numberOfElevators + numberOfFloors];
+		this.elevatorListeners = new ElevatorPipeline[numberOfElevators];
+		this.floorListeners = new FloorPipeline[numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.listeners[i]= new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort, this);
+			this.elevatorListeners[i]= new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort, this);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.listeners[numberOfElevators + i]= new FloorPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort, this);
+			this.floorListeners[numberOfElevators + i]= new FloorPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort, this);
 		}
 
 		for (int i = 0; i < numberOfElevators; i++) {
@@ -83,7 +86,12 @@ public class SchedulerSubsystem {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				for (Pipeline listener: listeners) {
+				for (ElevatorPipeline listener: elevatorListeners) {
+					if (listener != null) {
+						listener.terminate();
+					}
+				}
+				for (FloorPipeline listener: floorListeners) {
 					if (listener != null) {
 						listener.terminate();
 					}
@@ -130,7 +138,15 @@ public class SchedulerSubsystem {
 				selectedElevator.incRequests();
 			}
 		} else {
-			throw new SchedulerSubsystemException("Request recieved was null or invalid");
+			events.add(request);
+		}
+	}
+	
+	public synchronized void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
+		if(!events.isEmpty()) {
+			for(SchedulerRequest req : events) {
+				scheduleEvent(req);
+			}
 		}
 	}
 
@@ -249,16 +265,18 @@ public class SchedulerSubsystem {
 	public void startListeners() throws InterruptedException {
 
 		logger.info("Starting listeners...");
-		for (int i = 0; i < listeners.length; i++) {
-			((Thread)this.listeners[i]).start();
+		for (int i = 0; i < elevatorListeners.length; i++) {
+			((Thread)this.elevatorListeners[i]).start();
+			Thread.sleep(100);
+		}
+		
+		for (int i = 0; i < floorListeners.length; i++) {
+			((Thread)this.floorListeners[i]).start();
 			Thread.sleep(100);
 		}
 		logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 	}
 
-	public void addEvent(SchedulerRequest e) {
-		events.put(events.size() + 1, e);
-	}
 
 	public Elevator getElevator(int elevatorNumber) {
 		for (Elevator e : elevatorEvents.keySet()) {
@@ -354,7 +372,7 @@ public class SchedulerSubsystem {
 				}
 				elevatorEvents.get(elev).removeAll(tempList);
 				ElevatorMessage sendPacket = new ElevatorMessage(elev.getCurrentFloor(), elev.getDestFloor(),
-						packet.getTargetFloor());
+						elev.getElevatorId());
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 				DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,sendPacket.generatePacketData().length, 
 						elevatorSubsystemAddress, elev.getElevatorId() + 50000);//TODO GET RID OF THE CONSTANT

@@ -178,12 +178,12 @@ public class ElevatorCarThread extends Thread {
 					Utils.Sleep(doorSleepTime);
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 					
-					if (ePacket.getTargetFloor() != -1) {
-						selectedFloors[ePacket.getTargetFloor()] = true;
-						logger.info("User Selected Floor: " + ePacket.getTargetFloor());
+					if (ePacket.getDestinationFloor() != -1) {
+						selectedFloors[ePacket.getDestinationFloor()] = true;
+						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
 					}
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
-					ElevatorMessage requestFloor = new ElevatorMessage(ePacket.getTargetFloor(), elevatorNumber);
+					ElevatorMessage requestFloor = new ElevatorMessage(ePacket.getDestinationFloor(), elevatorNumber);
 					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, port);
 					logger.debug("Arrived dest.\n");
 					if (!sentArrivalSensor) {						
