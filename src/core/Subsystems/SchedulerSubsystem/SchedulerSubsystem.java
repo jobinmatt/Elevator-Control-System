@@ -120,8 +120,13 @@ public class SchedulerSubsystem {
 			Elevator selectedElevator = getBestElevator(request);
 			if(selectedElevator != null) {
 				if(selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
-					
+					SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(), request.getReceivedPort(), SubsystemConstants.FLOOR, 
+							selectedElevator.getCurrentFloor(), request.getRequestDirection(), request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
+					elevatorEvents.get(selectedElevator).add(tempRequest);
+					selectedElevator.incRequests();
 				}
+				elevatorEvents.get(selectedElevator).add(request);
+				selectedElevator.incRequests();
 			}
 		} else {
 			throw new SchedulerSubsystemException("Request recieved was null or invalid");
@@ -168,7 +173,7 @@ public class SchedulerSubsystem {
 			if (elevatorEvents.get(elev).getFirst() != null) {
 				ElevatorMessage p = new ElevatorMessage(elev.getCurrentFloor(),
 						elevatorEvents.get(elev).getFirst().getDestFloor(),
-						elevatorEvents.get(elev).getFirst().getCarButton());
+						elevatorEvents.get(elev).getFirst().getTargetFloor());
 				return p.generatePacketData();
 			}
 			throw new CommunicationException(
@@ -297,7 +302,7 @@ public class SchedulerSubsystem {
 	public void removeServicedEvents(Elevator elev) {
 		List<SchedulerRequest> tempList = new ArrayList<SchedulerRequest>();
 		for (SchedulerRequest e : elevatorEvents.get(elev)) {
-			if (e.getDestFloor() == elev.getCurrentFloor() && e.getCarButton() == elev.getCurrentFloor()) {
+			if (e.getDestFloor() == elev.getCurrentFloor() && e.getTargetFloor() == elev.getCurrentFloor()) {
 				tempList.add(e);
 			}
 		}

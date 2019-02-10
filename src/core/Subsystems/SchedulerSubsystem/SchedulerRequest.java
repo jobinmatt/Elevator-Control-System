@@ -165,11 +165,11 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.elevatorNumber = elevatorNumber;
 	}
 
-	public int getCarButton() {
+	public int getTargetFloor() {
 		return targetFloor;
 	}
 
-	public void setCarButton(int carButton) {
+	public void setTargetFloor(int carButton) {
 		this.targetFloor = carButton;
 	}
 	@Override
