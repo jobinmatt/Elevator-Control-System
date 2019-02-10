@@ -167,6 +167,9 @@ public class ElevatorMessage implements SubsystemMessage {
 		return arrived;
 	}
 	
+	public void setArrivalSensor(boolean isArrive) {
+		this.arrived = isArrive;
+	}
 	public String toString() {
 
 		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
