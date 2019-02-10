@@ -78,7 +78,7 @@ public class FloorPipeline extends Thread implements Pipeline {
 	 * @throws SchedulerSubsystemException
 	 * @throws HostActionsException
 	 */
-	private void parsePacket(DatagramPacket packet) throws CommunicationException {
+	public void parsePacket(DatagramPacket packet) throws CommunicationException {
 		
 		SubsystemMessage message = ElevatorSysMessageFactory.generateMessage(packet.getData(), packet.getLength());
 		if (message instanceof FloorMessage) {
