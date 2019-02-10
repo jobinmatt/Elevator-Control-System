@@ -58,7 +58,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.receivedPort = receivedPort;
 		this.type = type;
 		this.sourceFloor = sourceFloor;
-		this.requestId = System.currentTimeMillis() / 1000L;
+		this.requestId = System.currentTimeMillis();
 		this.destFloor = Integer.MIN_VALUE;
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = -1;
@@ -165,11 +165,11 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.elevatorNumber = elevatorNumber;
 	}
 
-	public int getCarButton() {
+	public int getTargetFloor() {
 		return targetFloor;
 	}
 
-	public void setCarButton(int carButton) {
+	public void setTargetFloor(int carButton) {
 		this.targetFloor = carButton;
 	}
 	@Override
@@ -187,10 +187,24 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 		@Override
 		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
-			if (arg0.getDestFloor() > arg1.getDestFloor()) {
+			if (arg0.getSourceFloor() < arg1.getSourceFloor()) {
 				return 1;
 			}
-			else if(arg0.getDestFloor() == arg1.getDestFloor()) {
+			else if(arg0.getSourceFloor() == arg1.getSourceFloor()) {
+				return 0;
+			}
+			return -1;
+		}
+	};
+	
+	static final Comparator<SchedulerRequest> BY_DECENDING = new Comparator<SchedulerRequest>() {
+
+		@Override
+		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
+			if (arg0.getSourceFloor() > arg1.getSourceFloor()) {
+				return 1;
+			}
+			else if(arg0.getSourceFloor() == arg1.getSourceFloor()) {
 				return 0;
 			}
 			return -1;
@@ -200,8 +214,12 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof SchedulerRequest && o != null) {
-			if (((SchedulerRequest) o).getrRequestId() == this.requestId) {
-				return true;
+			if (((SchedulerRequest) o).getElevatorNumber() == this.elevatorNumber) {
+				if (((SchedulerRequest) o).getDestFloor() == this.destFloor) {
+					if (((SchedulerRequest) o).getSourceFloor() == this.sourceFloor) {
+						return true;
+					}
+				}
 			}
 		}
 		return false;

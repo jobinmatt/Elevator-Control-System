@@ -54,7 +54,6 @@ public class HostActions {
 
 		try {
 			socket.receive(packet);
-			logger.debug("Packet recieved: " + Arrays.toString(packet.getData()));
 		} catch (IOException e) {
 			throw new HostActionsException("Data packet not received.", e);
 		}
