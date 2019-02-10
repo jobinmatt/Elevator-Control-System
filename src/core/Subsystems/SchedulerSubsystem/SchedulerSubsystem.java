@@ -65,10 +65,10 @@ public class SchedulerSubsystem {
 		this.floorListeners = new FloorPipeline[numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.elevatorListeners[i]= new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort, this);
+			this.elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, this);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.floorListeners[numberOfElevators + i]= new FloorPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort, this);
+			this.floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i+1, floorInitPort, this);
 		}
 
 		for (int i = 0; i < numberOfElevators; i++) {
@@ -101,12 +101,12 @@ public class SchedulerSubsystem {
 
 		logger.info("Starting listeners...");
 		for (int i = 0; i < elevatorListeners.length; i++) {
-			((Thread)this.elevatorListeners[i]).start();
+			this.elevatorListeners[i].start();
 			Thread.sleep(100);
 		}
 		
 		for (int i = 0; i < floorListeners.length; i++) {
-			((Thread)this.floorListeners[i]).start();
+			this.floorListeners[i].start();
 			Thread.sleep(100);
 		}
 		logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);

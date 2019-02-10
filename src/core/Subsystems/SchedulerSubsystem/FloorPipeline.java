@@ -27,7 +27,7 @@ import core.Utils.SubsystemConstants;
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent 
  **/
-public class FloorPipeline extends Thread implements Pipeline {
+public class FloorPipeline extends Thread {
 
 	private static Logger logger = LogManager.getLogger(FloorPipeline.class);
 	private static final String FLOOR_PIPELINE = "Floor pipeline ";
@@ -37,11 +37,11 @@ public class FloorPipeline extends Thread implements Pipeline {
 	private SchedulerSubsystem schedulerSubsystem;
 
 
-	public FloorPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort, int floorPort, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public FloorPipeline(SubsystemConstants objectType, int portOffset, int port, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
 		this.schedulerSubsystem = subsystem;
 		String threadName = FLOOR_PIPELINE + portOffset;
-		int portNumber = floorPort + portOffset;
+		int portNumber = port + portOffset;
 		this.setName(threadName);
 
 		try {

@@ -36,11 +36,11 @@ public class SchedulerSubsystemMain {
 			//input the right address
 			SchedulerSubsystem scheduler = new SchedulerSubsystem(numElevators, numFloors, elevatorSubsystemAddress, floorSubsystemAddress, elevatorInitPort, floorInitPort);
 			scheduler.startListeners();
+		
 		} catch (Exception e) {
 			logger.error("", e);
 			System.exit(-1);
 		}
-		System.exit(0);
 	}
 
 }

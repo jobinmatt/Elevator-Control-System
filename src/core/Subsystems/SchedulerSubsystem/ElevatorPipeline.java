@@ -28,7 +28,7 @@ import core.Utils.SubsystemConstants;
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
  * */
-public class ElevatorPipeline extends Thread implements Pipeline{
+public class ElevatorPipeline extends Thread {
 
 	private static Logger logger = LogManager.getLogger(ElevatorPipeline.class);
 	private static final String ELEVATOR_PIPELINE = "Elevator pipeline ";
@@ -41,12 +41,11 @@ public class ElevatorPipeline extends Thread implements Pipeline{
 	private LinkedList<SchedulerRequest> elevatorEvents;
 
 
-	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int elevatorPort,
-			int floorPort, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int port, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
 		this.setName(ELEVATOR_PIPELINE + portOffset);
 		this.schedulerSubsystem = subsystem;
-		int portNumber = elevatorPort + portOffset;
+		int portNumber = port + portOffset;
 		elevatorEvents = new LinkedList<SchedulerRequest>();
 		elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
 		
