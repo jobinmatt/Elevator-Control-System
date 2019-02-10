@@ -170,7 +170,6 @@ public class FloorSubsystem {
 	        data.write(SPACER);
 	    }
 	    data.write(SPACER);
-	    data.write(SPACER);
 		return data.toByteArray();
 	}	
 
