@@ -148,8 +148,12 @@ public class SchedulerSubsystem {
 				logger.info("Waiting to receive port information from " + systemType + "...");
 				HostActions.receive(packet, receiveSocket);
 				receiveSocket.close();
-				if(systemType.equals(SubsystemConstants.ELEVATOR)) this.elevatorSubsystemAddress = packet.getAddress();
-				else this.floorSubsystemAddress = packet.getAddress();
+				if(systemType.equals(SubsystemConstants.ELEVATOR)) {
+					this.elevatorSubsystemAddress = packet.getAddress();
+				}
+				else {
+					this.floorSubsystemAddress = packet.getAddress();
+				}
 				convertPacketToMap(packet.getData(), packet.getLength(), systemType);
 			} catch (HostActionsException e) {
 				throw new SchedulerSubsystemException("Unable to receive elevator ports packet in SchedulerSubsystem", e);
@@ -174,8 +178,12 @@ public class SchedulerSubsystem {
 					break;
 				}
 			}
-			if(systemType.equals(SubsystemConstants.ELEVATOR)) this.elevatorPorts = tempPorts;
-			else this.floorPorts = tempPorts;
+			if(systemType.equals(SubsystemConstants.ELEVATOR)) {
+				this.elevatorPorts = tempPorts;
+			}
+			else {
+				this.floorPorts = tempPorts;
+			}
 		}
 		else throw new SchedulerSubsystemException("Cannot convert null to elevator ports map or invalid data found");
 	}

@@ -30,12 +30,10 @@ import org.apache.logging.log4j.Logger;
 import core.ConfigurationParser;
 import core.InputParser;
 import core.LoggingManager;
-import core.Exceptions.ElevatorSubsystemException;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.InputParserException;
-import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
 
