@@ -46,7 +46,7 @@ public class SchedulerSubsystem {
 
 	private static Logger logger = LogManager.getLogger(SchedulerSubsystem.class);
 
-	private SchedulerPipeline[] listeners;
+	private ElevatorPipeline[] listeners;
 	private static Map<Integer,SchedulerRequest> events = new ConcurrentHashMap<Integer,SchedulerRequest>();
 	private Map<Elevator, LinkedList<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private static int numberOfElevators;
@@ -66,13 +66,13 @@ public class SchedulerSubsystem {
 		this.elevatorSubsystemAddress = elevatorSubsystemAddress;
 		this.floorSubsystemAddress = floorSubsystemAddress;
 
-		this.listeners = new SchedulerPipeline[numberOfElevators + numberOfFloors];
+		this.listeners = new ElevatorPipeline[numberOfElevators + numberOfFloors];
 
 		for (int i = 0; i < numberOfElevators; i++) {
-			this.listeners[i]= new SchedulerPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort, this);
+			this.listeners[i]= new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, elevatorInitPort, floorInitPort, this);
 		}
 		for (int i = 0; i < numberOfFloors; i++) {
-			this.listeners[numberOfElevators + i]= new SchedulerPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort, this);
+			this.listeners[numberOfElevators + i]= new ElevatorPipeline(SubsystemConstants.FLOOR, i+1, elevatorInitPort, floorInitPort, this);
 		}
 
 		for (int i = 0; i < numberOfElevators; i++) {
@@ -83,7 +83,7 @@ public class SchedulerSubsystem {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				for (SchedulerPipeline listener: listeners) {
+				for (ElevatorPipeline listener: listeners) {
 					if (listener != null) {
 						listener.terminate();
 					}
