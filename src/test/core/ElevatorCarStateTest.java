@@ -17,11 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.runners.MethodSorters;
 
 import core.ConfigurationParser;
-import core.ElevatorPacket;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubystemException;
 import core.Exceptions.HostActionsException;
+import core.Messages.ElevatorMessage;
 import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Subsystems.ElevatorSubsystem.ElevatorComponentStates;
 import core.Utils.HostActions;
@@ -73,7 +73,7 @@ class ElevatorCarStateTest {
 		
 		byte[] byteArray;
 		try {
-			byteArray = new ElevatorPacket(1, 2, 2).generatePacketData();
+			byteArray = new ElevatorMessage(1, 2, 2).generatePacketData();
 		} catch (CommunicationException e1) {
 			throw new CommunicationException("" + e1);
 		}
@@ -100,7 +100,7 @@ class ElevatorCarStateTest {
 		
 		byte[] byteArray;
 		try {
-			byteArray = new ElevatorPacket(2, 1, 1).generatePacketData();
+			byteArray = new ElevatorMessage(2, 1, 1).generatePacketData();
 		} catch (CommunicationException e1) {
 			throw new CommunicationException("" + e1);
 		}
@@ -149,7 +149,7 @@ class ElevatorCarStateTest {
 		
 		byte[] byteArray;
 		try {
-			byteArray = new ElevatorPacket(1, 2, 2).generatePacketData();
+			byteArray = new ElevatorMessage(1, 2, 2).generatePacketData();
 			sendPacket = new DatagramPacket(byteArray, byteArray.length);
 			sendPacket.setAddress(localAddress);
 			sendPacket.setPort(PORT_NUMBER);

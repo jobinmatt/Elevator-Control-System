@@ -21,11 +21,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import core.ConfigurationParser;
-import core.ElevatorPacket;
-import core.FloorPacket;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubystemException;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
 import core.Utils.Utils;
 
 /**
@@ -43,7 +43,7 @@ public class ElevatorCarThread extends Thread {
 	private DatagramSocket elevatorSocket;
 	private DatagramPacket elevatorPacket;
 
-	private ElevatorPacket ePacket;
+	private ElevatorMessage ePacket;
 	private int port;
 	private InetAddress schedulerDomain;
 	private int doorSleepTime;
@@ -178,12 +178,12 @@ public class ElevatorCarThread extends Thread {
 					Utils.Sleep(doorSleepTime);
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 					
-					if (ePacket.getRequestedFloor() != -1) {
-						selectedFloors[ePacket.getRequestedFloor()] = true;
-						logger.info("User Selected Floor: " + ePacket.getRequestedFloor());
+					if (ePacket.getTargetFloor() != -1) {
+						selectedFloors[ePacket.getTargetFloor()] = true;
+						logger.info("User Selected Floor: " + ePacket.getTargetFloor());
 					}
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
-					ElevatorPacket requestFloor = new ElevatorPacket(ePacket.getRequestedFloor(), elevatorNumber);
+					ElevatorMessage requestFloor = new ElevatorMessage(ePacket.getTargetFloor(), elevatorNumber);
 					DatagramPacket requestedFloorPacket = new DatagramPacket (requestFloor.generatePacketData(), requestFloor.generatePacketData().length, schedulerDomain, port);
 					logger.debug("Arrived dest.\n");
 					if (!sentArrivalSensor) {						
@@ -214,7 +214,7 @@ public class ElevatorCarThread extends Thread {
 	public void sendArrivalSensorPacket() throws ElevatorSubystemException {
 		
 		try {
-			ElevatorPacket arrivalSensor = new ElevatorPacket(true, elevatorNumber);		
+			ElevatorMessage arrivalSensor = new ElevatorMessage(true, elevatorNumber);		
 			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerDomain, port);
 //			logger.debug("Sending to: " + schedulerDomain+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
 //			logger.debug("Elevator Packet "+ arrivalSensor.toString());
@@ -228,7 +228,7 @@ public class ElevatorCarThread extends Thread {
 	public void receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
 		
 		this.elevatorSocket.receive(packet);
-		this.ePacket = new ElevatorPacket(packet.getData(), packet.getLength());
+		this.ePacket = new ElevatorMessage(packet.getData(), packet.getLength());
 		
 		if (!ePacket.isValid()) {
 			throw new CommunicationException("Invalid packet data, how you do?");
