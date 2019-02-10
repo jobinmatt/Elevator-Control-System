@@ -118,6 +118,11 @@ public class SchedulerSubsystem {
 	public synchronized void scheduleEvent(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
 		if(request != null) {
 			Elevator selectedElevator = getBestElevator(request);
+			if(selectedElevator != null) {
+				if(selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
+					
+				}
+			}
 		} else {
 			throw new SchedulerSubsystemException("Request recieved was null or invalid");
 		}
