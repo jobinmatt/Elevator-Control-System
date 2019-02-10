@@ -175,10 +175,10 @@ public class SchedulerSubsystem {
 				}
 			}
 			if(systemType.equals(SubsystemConstants.ELEVATOR)) {
-				this.elevatorPorts = tempPorts;
+				this.setElevatorPorts(tempPorts);
 			}
 			else {
-				this.floorPorts = tempPorts;
+				this.setFloorPorts(tempPorts);
 			}
 		}
 		else throw new SchedulerSubsystemException("Cannot convert null to elevator ports map or invalid data found");
@@ -301,11 +301,11 @@ public class SchedulerSubsystem {
 		if (request.getType().equals(SubsystemConstants.ELEVATOR)) {
 			request.setType(SubsystemConstants.FLOOR);
 			request.setReceivedAddress(floorSubsystemAddress);
-			request.setReceivedPort(request.getSourceFloor() + 40000);
+			request.setReceivedPort(floorPorts.get(request.getSourceFloor()));
 		} else {
 			request.setType(SubsystemConstants.ELEVATOR);
 			request.setReceivedAddress(elevatorSubsystemAddress);
-			request.setReceivedPort(request.getElevatorNumber() + 50000);
+			request.setReceivedPort(elevatorPorts.get(request.getElevatorNumber()));
 		}
 
 		logger.debug("Forwarding request: " + request.toString());
@@ -415,7 +415,7 @@ public class SchedulerSubsystem {
 	public void sendUpdatePacket(ElevatorMessage sendPacket, Elevator elev)
 			throws CommunicationException, HostActionsException {
 		DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,
-				sendPacket.generatePacketData().length, elevatorSubsystemAddress, elev.getElevatorId() + 50000);// TODO (50000)change me plssssss
+				sendPacket.generatePacketData().length, elevatorSubsystemAddress, elevatorPorts.get(elev.getElevatorId()));// TODO (50000)change me plssssss
 		// GET
 		// RID
 		// OF
@@ -460,7 +460,7 @@ public class SchedulerSubsystem {
 						packet.getTargetFloor());
 				logger.debug("Elevator update packet created: " + sendPacket.toString());
 				DatagramPacket sendElevPacket = new DatagramPacket(sendPacket.generatePacketData(), 0,sendPacket.generatePacketData().length, 
-						elevatorSubsystemAddress, elev.getElevatorId() + 50000);//TODO GET RID OF THE CONSTANT
+						elevatorSubsystemAddress, elevatorPorts.get(elev.getElevatorId()));//TODO GET RID OF THE CONSTANT
 				sendElevPacket.setData(sendPacket.generatePacketData());
 				HostActions.send(sendElevPacket, Optional.of(sendSocket));
 
@@ -468,5 +468,21 @@ public class SchedulerSubsystem {
 				throw new SchedulerSubsystemException("Elevator not found: " + packet.toString());
 			}
 		}
+	}
+
+	public Map<Integer, Integer> getElevatorPorts() {
+		return elevatorPorts;
+	}
+
+	public void setElevatorPorts(Map<Integer, Integer> elevatorPorts) {
+		this.elevatorPorts = elevatorPorts;
+	}
+
+	public Map<Integer, Integer> getFloorPorts() {
+		return floorPorts;
+	}
+
+	public void setFloorPorts(Map<Integer, Integer> floorPorts) {
+		this.floorPorts = floorPorts;
 	}
 }

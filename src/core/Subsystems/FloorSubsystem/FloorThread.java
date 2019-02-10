@@ -9,8 +9,8 @@
 
 package core.Subsystems.FloorSubsystem;
 
-import core.FloorPacket;
 import core.Exceptions.GeneralException;
+import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
 import org.apache.logging.log4j.LogManager;
@@ -110,11 +110,11 @@ public class FloorThread extends Thread {
 
     private void serviceRequest(SimulationRequest event) throws GeneralException {
     	
-        FloorPacket floorPacket = null;
+        FloorMessage floorPacket = null;
         byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         
-        floorPacket = new FloorPacket(event.getFloorButton(), event.getFloor(), event.getCarButton());
+        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton());
         data = floorPacket.generatePacketData();
             
         DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
