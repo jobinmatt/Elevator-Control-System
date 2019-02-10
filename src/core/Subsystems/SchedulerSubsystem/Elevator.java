@@ -52,18 +52,15 @@ public class Elevator {
 	public void setDestFloor(int destFloor) {
 		this.destFloor = destFloor;
 	}
-	
-	public void incRequests() {
-		this.numRequests++;
-	}
-	
-	public void decRequests() {
-		this.numRequests--;
-	}
 
 	public int getNumRequests() {
 		return this.numRequests;
 	}
+	
+	public void setNumRequests(int requests) {
+		numRequests = requests;
+	}
+	
 	@Override
 	public String toString() {
 		return "Elevator " + elevatorId + " current floor: " + currentFloor + " destination floor: " + destFloor
