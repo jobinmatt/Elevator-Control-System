@@ -54,6 +54,7 @@ public class SchedulerSubsystem {
 	private Map<Elevator, TreeSet<SchedulerRequest>> elevatorEvents = new HashMap<>();
 	private Map<Integer, Integer> elevatorPorts = new HashMap<>();
 	private Map<Integer, Integer> floorPorts = new HashMap<>();
+	private final byte SPACER = (byte) 0;
 	private static final int DATA_SIZE = 1024;
 	private static int numberOfElevators;
 	private static int numberOfFloors;
@@ -121,8 +122,6 @@ public class SchedulerSubsystem {
 	 */
 	private byte[] createPortsArray(SchedulerPipeline[] pipelines, SubsystemConstants systemType) throws IOException {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		byte SPACER = (byte) 0;
-		
 		for (SchedulerPipeline pipe: pipelines) {
 			if(pipe.getObjectType() == systemType) {
 				data.write(pipe.getPipeNumber());
@@ -164,9 +163,7 @@ public class SchedulerSubsystem {
 	}
 	
 	private void convertPacketToMap(byte[] data, int length, SubsystemConstants systemType) throws SchedulerSubsystemException {
-		byte SPACER = (byte) 0;
 		if(data != null && data[0] != SPACER) {
-			
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
 			for(int i = 0; i < length; i = i + 8) {
 				int elevNumber = data[i];

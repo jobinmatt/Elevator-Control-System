@@ -41,7 +41,7 @@ public class ElevatorSubsystem {
 	private static final int DATA_SIZE = 1024;
 	private final String ELEVATOR_NAME = "ElevatorCar";
 	private static Logger logger = LogManager.getLogger(ElevatorSubsystem.class);
-
+	private final byte SPACER = (byte) 0;
 	private int numberOfFloors;
 	private int numberOfElev;
 	private Map<String, ElevatorCarThread> carPool;
@@ -97,7 +97,6 @@ public class ElevatorSubsystem {
 	}
 
 	private void convertPacketToMap(byte[] data, int length) throws ElevatorSubsystemException {
-		byte SPACER = (byte) 0;
 		if(data != null && data[0] != SPACER) {
 			
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
@@ -136,9 +135,7 @@ public class ElevatorSubsystem {
 	 * @throws IOException 
 	 */
 	private byte[] createPortsArray(HashMap<String, ElevatorCarThread> map) throws IOException {
-		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		byte SPACER = (byte) 0;
-		
+		ByteArrayOutputStream data = new ByteArrayOutputStream();		
 		for (Map.Entry<String, ElevatorCarThread> entry : map.entrySet()) {
 	        System.out.println(entry.getKey() + ":" + entry.getValue());
 	        int elevNumber = entry.getValue().getElevatorNumber();

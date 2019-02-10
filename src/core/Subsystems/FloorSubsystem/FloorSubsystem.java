@@ -46,6 +46,7 @@ public class FloorSubsystem {
 	private static final int DATA_SIZE = 1024;
 	private static Logger logger = LogManager.getLogger(FloorSubsystem.class);
 	private final String FLOOR_NAME = "Floor";
+	private final byte SPACER = (byte) 0;
 	private Map<String, FloorThread> floors;
 	private static Map<Integer, Integer> schedulerPorts = new HashMap<>();
 	private List<SimulationRequest> events;
@@ -117,9 +118,7 @@ public class FloorSubsystem {
 	}
 
 	private void convertPacketToMap(byte[] data, int length) throws FloorSubsystemException {
-		byte SPACER = (byte) 0;
-		if(data != null && data[0] != SPACER) {
-			
+		if(data != null && data[0] != SPACER) {			
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
 			for(int i = 0; i < length; i = i + 8) {
 				int pipelineNumber = data[i];
@@ -156,8 +155,6 @@ public class FloorSubsystem {
 	 */
 	private byte[] createPortsArray(HashMap<String, FloorThread> map) throws IOException {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		byte SPACER = (byte) 0;
-        
 		for (Map.Entry<String, FloorThread> entry : map.entrySet()) {
 	        System.out.println(entry.getKey() + ":" + entry.getValue());
 	        int floorNumber = entry.getValue().getFloorNumber();
