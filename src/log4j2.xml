@@ -7,7 +7,7 @@
 
     <appenders>
         <Console name="LEVEL_INFO" target="SYSTEM_OUT">
-            <PatternLayout pattern="%msg%n"/>
+            <PatternLayout pattern="%d{HH:mm:ss}-[%tn]%msg%n"/>
             <Filters>
                 <ThresholdFilter level="warn"  onMatch="DENY"   onMismatch="NEUTRAL"/>
                 <ThresholdFilter level="info"  onMatch="ACCEPT" onMismatch="DENY"/>
@@ -15,21 +15,21 @@
         </Console>
 
         <Console name="LEVEL_DEBUG" target="SYSTEM_OUT">
-            <PatternLayout pattern="%msg%n"/>
+            <PatternLayout pattern="%d{HH:mm:ss}-[%tn]%msg%n"/>
             <Filters>
                 <ThresholdFilter level="info" onMatch="DENY" onMismatch="ACCEPT"/>
             </Filters>
         </Console>
 
         <Console name="DEV" target="SYSTEM_ERR">
-            <PatternLayout pattern="%msg%ex{full}%n}"/>
+            <PatternLayout pattern="%d{HH:mm:ss}-[%tn]%msg%ex{full}%n}"/>
             <Filters>
                 <ThresholdFilter level="warn" onMatch="ACCEPT"/>
             </Filters>
         </Console>
 
         <Console name="RELEASE" target="SYSTEM_ERR">
-            <PatternLayout pattern="%msg%ex{short.localizedmessage}%n}"/>
+            <PatternLayout pattern="%d{HH:mm:ss}-[%tn]%msg%ex{short.localizedmessage}%n}"/>
             <Filters>
                 <ThresholdFilter level="warn" onMatch="ACCEPT"/>
             </Filters>
@@ -46,7 +46,7 @@
         </RollingFile>
 
         <File name="IndividualLogger" filename="logs/temp.log" append="false">
-            <PatternLayout pattern="%msg%ex{short.localizedmessage} %n" />
+            <PatternLayout pattern="%d{HH:mm:ss}-[%tn]%msg%ex{short.localizedmessage} %n" />
         </File>
     </appenders>
 
