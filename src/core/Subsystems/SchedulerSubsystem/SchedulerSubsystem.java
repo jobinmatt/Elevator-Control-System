@@ -115,6 +115,7 @@ public class SchedulerSubsystem {
 	 * @throws CommunicationException
 	 * @formatter:on
 	 */
+	
 	public synchronized void scheduleEvent(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
 		if(request != null) {
 			Elevator selectedElevator = getBestElevator(request);
