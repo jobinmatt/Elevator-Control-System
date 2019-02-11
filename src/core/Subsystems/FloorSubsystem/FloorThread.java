@@ -37,24 +37,24 @@ public class FloorThread extends Thread {
 	private Queue<SimulationRequest> events;
 	private int floorNumber;
 	DatagramSocket receiveSocket;
-	private InetAddress schedulerSubsystemAddress;
+	private InetAddress schedulerAddress;
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
 
 	/**
 	 * Creates a floor thread
 	 */
-	public FloorThread(String name, int floorNumber, InetAddress schedulerSubsystemAddress, int port, Timer sharedTimer) throws GeneralException {
+	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer) throws GeneralException {
 
 		super(name);
 
 		events = new LinkedList<>();
 		this.floorNumber = floorNumber;
-		this.schedulerSubsystemAddress = schedulerSubsystemAddress;
-		this.port = port;
+		this.schedulerAddress = schedulerAddress;
 		this.atFloorTimer = sharedTimer;
 		try {
-			receiveSocket = new DatagramSocket(port);
+			receiveSocket = new DatagramSocket();
+			this.port = receiveSocket.getLocalPort();
 		} catch (SocketException e) {
 			throw new GeneralException("Socket could not be created", e);
 		}
@@ -103,11 +103,27 @@ public class FloorThread extends Thread {
             
         DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
         tempPacket.setData(data);
-        tempPacket.setAddress(this.schedulerSubsystemAddress);
-        tempPacket.setPort(port);
+        tempPacket.setAddress(this.schedulerAddress);
+        tempPacket.setPort(FloorSubsystem.getSchedulerPorts().get(floorNumber));
         logger.info("Buffer Data: "+ Arrays.toString(data));
         HostActions.send( tempPacket, Optional.of(receiveSocket));
     }
+    
+    /**
+	 * Get the port that the socket is running on
+	 * @return port: int
+	 * */
+	public int getPort() {		
+		return this.port;
+	}
+	
+	/**
+	 * Get the port that the socket is running on
+	 * @return floorNumber: int
+	 * */
+	public int getFloorNumber() {		
+		return this.floorNumber;
+	}
 
 	public void terminate() {
 		receiveSocket.close();

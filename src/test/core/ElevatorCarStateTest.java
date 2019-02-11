@@ -19,7 +19,7 @@ import org.junit.runners.MethodSorters;
 import core.ConfigurationParser;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
-import core.Exceptions.ElevatorSubystemException;
+import core.Exceptions.ElevatorSubsystemException;
 import core.Exceptions.HostActionsException;
 import core.Messages.ElevatorMessage;
 import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
@@ -40,7 +40,7 @@ class ElevatorCarStateTest {
 	private static int doorOpenTime;
 	
 	@BeforeAll
-	static void setUpBeforeAll() throws UnknownHostException, SocketException, ElevatorSubystemException, ConfigurationParserException {
+	static void setUpBeforeAll() throws UnknownHostException, SocketException, ElevatorSubsystemException, ConfigurationParserException {
 		localAddress = InetAddress.getLocalHost();
 		try {
 			floorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000;
@@ -94,7 +94,7 @@ class ElevatorCarStateTest {
 	
 	@Test
 	@DisplayName("Testing Elevator Moves Down")
-	void TestC() throws HostActionsException, ElevatorSubystemException, UnknownHostException, CommunicationException{
+	void TestC() throws HostActionsException, ElevatorSubsystemException, UnknownHostException, CommunicationException{
 		System.out.println("\nTest:");
 		System.out.println("ElevatorCarState_MoveDOWN");
 		
@@ -121,7 +121,7 @@ class ElevatorCarStateTest {
 	
 	@Test
 	@DisplayName("Testing Elevator Arrives at destination and Stops")
-	void TestD() throws HostActionsException, ElevatorSubystemException, UnknownHostException{
+	void TestD() throws HostActionsException, ElevatorSubsystemException, UnknownHostException{
 		System.out.println("\nTest:");
 		System.out.println("ElevatorCarState_Stopping");
 		
@@ -143,7 +143,7 @@ class ElevatorCarStateTest {
 	
 	@Test
 	@DisplayName("Testing Elevator Arrives and Stops, Opens and Closes The Door")
-	void TestE() throws HostActionsException, ElevatorSubystemException, UnknownHostException, CommunicationException{
+	void TestE() throws HostActionsException, ElevatorSubsystemException, UnknownHostException, CommunicationException{
 		System.out.println("\nTest:");
 		System.out.println("ElevatorCarState_DoorOpening_DoorClosing");
 		
@@ -170,14 +170,14 @@ class ElevatorCarStateTest {
 		System.out.println("\nTest Successful");
 	}
 	
-	static void createElevatorCarAndStart() throws ElevatorSubystemException, UnknownHostException {
+	static void createElevatorCarAndStart() throws ElevatorSubsystemException, UnknownHostException {
 		if (eThread != null) {
 			eThread.terminate();
 		}
 		try {
-			eThread = new ElevatorCarThread(ELEVATOR_CAR_NAME, NUMBER_OF_FLOORS, PORT_NUMBER, InetAddress.getLocalHost());
-		} catch (ElevatorSubystemException e) {
-			throw new ElevatorSubystemException("" + e);
+			eThread = new ElevatorCarThread(ELEVATOR_CAR_NAME, NUMBER_OF_FLOORS, InetAddress.getLocalHost());
+		} catch (ElevatorSubsystemException e) {
+			throw new ElevatorSubsystemException("" + e);
 		}catch(UnknownHostException e) {
 			throw new UnknownHostException("" + e);
 		}

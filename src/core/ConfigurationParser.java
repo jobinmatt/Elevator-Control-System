@@ -44,6 +44,7 @@ public class ConfigurationParser {
 	public static final String FLOOR_ADDRESS = "FloorAddress";
 	public static final String FLOOR_INIT_PORT = "FloorInitPort";
 	public static final String ELEVATOR_INIT_PORT = "ElevatorInitPort";
+	public static final String SCHEDULER_INIT_PORT = "SchedulerInitPort";
 
 	public static String initialPath = "//Config/";
 

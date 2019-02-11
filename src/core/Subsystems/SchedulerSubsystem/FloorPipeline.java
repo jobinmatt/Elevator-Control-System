@@ -28,26 +28,35 @@ import core.Utils.SubsystemConstants;
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent 
  **/
-public class FloorPipeline extends Thread {
+public class FloorPipeline extends Thread implements SchedulerPipeline{
 
 	private static Logger logger = LogManager.getLogger(FloorPipeline.class);
 	private static final String FLOOR_PIPELINE = "Floor pipeline ";
 	private static final int DATA_SIZE = 50;
 
 	private DatagramSocket receiveSocket;
+	private DatagramSocket sendSocket; 
+	private int sendPort;
+	private int receivePort;
 	private SchedulerSubsystem schedulerSubsystem;
 	private InetAddress floorSubSystemAddress;
+	
+	private SubsystemConstants objectType;
+	private int pipeNumber;
 
-	public FloorPipeline(SubsystemConstants objectType, int portOffset, int port, InetAddress floorSubSystemAddress,SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public FloorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
+		this.objectType = objectType;
+		this.pipeNumber = portOffset;
 		this.schedulerSubsystem = subsystem;
 		String threadName = FLOOR_PIPELINE + portOffset;
-		int portNumber = port + portOffset;
 		this.setName(threadName);
-		this.floorSubSystemAddress = floorSubSystemAddress;
+		this.floorSubSystemAddress = subsystem.getFloorSubsystemAddress();
 		try {
 			//need to make sure data is received the same way, matching the ports
-			this.receiveSocket = new DatagramSocket(portNumber);
+			this.receiveSocket = new DatagramSocket();
+			this.receivePort = receiveSocket.getLocalPort();
+			this.sendSocket = new DatagramSocket();
 		}
 		catch(SocketException e) {
 			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
@@ -92,10 +101,32 @@ public class FloorPipeline extends Thread {
 		}
 	}
 
-	public void terminate() {
-		
+	public void terminate() {		
 		this.receiveSocket.close();
 	}
 
+	public SubsystemConstants getObjectType() {
+		return this.objectType;
+	}
+
+	public DatagramSocket getSendSocket() {
+		return this.sendSocket;
+	}
+	
+	public DatagramSocket getReceiveSocket() {
+		return this.receiveSocket;
+	}
+
+	public int getSendPort() {
+		return this.sendPort;
+	}
+
+	public int getReceivePort() {
+		return this.receivePort;
+	}
+
+	public int getPipeNumber() {
+		return this.pipeNumber;
+	}
 
 }

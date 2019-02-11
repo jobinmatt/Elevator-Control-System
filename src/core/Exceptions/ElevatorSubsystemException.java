@@ -1,6 +1,6 @@
 //****************************************************************************
 //
-// Filename: ElevatorSubystemException.java
+// Filename: ElevatorSubsystemException.java
 //
 // Description: Elevator Subsystem Exception class
 //
@@ -8,21 +8,21 @@
 
 package core.Exceptions;
 
-public class ElevatorSubystemException extends GeneralException {
+public class ElevatorSubsystemException extends GeneralException {
 
     private static final long serialVersionUID = -4002692838353295206L;
 
-    public ElevatorSubystemException(String message) {
+    public ElevatorSubsystemException(String message) {
 
         super(message);
     }
 
-    public ElevatorSubystemException(Throwable cause) {
+    public ElevatorSubsystemException(Throwable cause) {
 
         super(cause);
     }
 
-    public ElevatorSubystemException(String message, Throwable cause) {
+    public ElevatorSubsystemException(String message, Throwable cause) {
 
         super(message, cause);
     }
