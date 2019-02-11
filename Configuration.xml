@@ -16,10 +16,6 @@
         
         <SchedulerAddress>localhost</SchedulerAddress>
         
-        <ElevatorAddress>localhost</ElevatorAddress>
-        
-        <FloorAddress>localhost</FloorAddress>
-        
 		<FloorInitPort>40000</FloorInitPort>
 		
 		<ElevatorInitPort>50000</ElevatorInitPort>
