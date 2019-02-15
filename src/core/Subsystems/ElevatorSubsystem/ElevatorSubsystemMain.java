@@ -32,8 +32,8 @@ public class ElevatorSubsystemMain {
 			int numElev = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 			int initElevatorPort = configurationParser.getInt(ConfigurationParser.ELEVATOR_INIT_PORT);
-			InetAddress schedulerSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
-			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors, initElevatorPort, schedulerSubsystemAddress  );
+			InetAddress schedulerAddress = InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
+			ElevatorSubsystem elevatorSystem = new ElevatorSubsystem(numElev, numFloors, initElevatorPort, schedulerAddress);
 			elevatorSystem.activateElevators();		
 			
 			elevatorSystem.listen(); 

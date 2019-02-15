@@ -33,7 +33,7 @@ import core.Utils.SubsystemConstants;
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
  * */
-public class ElevatorPipeline extends Thread {
+public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 	private static Logger logger = LogManager.getLogger(ElevatorPipeline.class);
 	private static final String ELEVATOR_PIPELINE = "Elevator pipeline ";
@@ -41,25 +41,32 @@ public class ElevatorPipeline extends Thread {
 	
 	private DatagramSocket receiveSocket;
 	private DatagramSocket sendSocket; 
+	private int sendPort;
+	private int receivePort;
 	private SchedulerSubsystem schedulerSubsystem;
 	private Elevator elevator;
 	private LinkedList<SchedulerRequest> elevatorEvents;
 	private InetAddress elevatorSubsystemAddress;
+	
+	private SubsystemConstants objectType;
+	private int pipeNumber;
 
 
-	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, int port, InetAddress elevatorSubsystemAddress,SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
+		this.objectType = objectType;
+		this.pipeNumber = portOffset;
 		this.setName(ELEVATOR_PIPELINE + portOffset);
 		this.schedulerSubsystem = subsystem;
-		int portNumber = port + portOffset;
 		elevatorEvents = new LinkedList<SchedulerRequest>();
 		elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
-		this.elevatorSubsystemAddress = elevatorSubsystemAddress;
-		
+		this.elevatorSubsystemAddress = subsystem.getElevatorSubsystemAddress();
+		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
 
 		try {
 			//need to make sure data is received the same way, matching the ports
-			this.receiveSocket = new DatagramSocket(portNumber);
+			this.receiveSocket = new DatagramSocket();
+			this.receivePort = receiveSocket.getLocalPort();
 			this.sendSocket = new DatagramSocket();
 		}
 		catch(SocketException e) {
@@ -95,7 +102,7 @@ public class ElevatorPipeline extends Thread {
 					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());	
 					
 					byte[] data = elevatorMessage.generatePacketData();
-					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, 50000 + elevator.getElevatorId());
+					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
 					
 					ElevatorMessage elevatorRecieveMessage = recieve();
@@ -177,5 +184,28 @@ public class ElevatorPipeline extends Thread {
 		//cleanup goes here
 	}
 
+	public SubsystemConstants getObjectType() {
+		return this.objectType;
+	}
+
+	public DatagramSocket getSendSocket() {
+		return this.sendSocket;
+	}
+	
+	public DatagramSocket getReceiveSocket() {
+		return this.receiveSocket;
+	}
+
+	public int getSendPort() {
+		return this.sendPort;
+	}
+
+	public int getReceivePort() {
+		return this.receivePort;
+	}
+
+	public int getPipeNumber() {
+		return this.pipeNumber;
+	}
 
 }
