@@ -48,7 +48,8 @@ public class InputParser {
 	private static final String FLOOR_BUTTON_HEADER = "Floor_Button";
 	private static final String CAR_BUTTON_HEADER = "Car_Button";
 	private static final String FLOOR_HEADER = "Floor";
-
+	private static final String TRANSIENT_ERROR_HEADER = "Transient";
+	private static final String HARD_ERROR_HEADER = "Hard";
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public static List<SimulationRequest> parseCVSFile() throws InputParserException {
@@ -93,7 +94,7 @@ public class InputParser {
 
 						simulationEvents
 						.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
-								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER))));
+								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER)), Integer.valueOf(eventInfo.get(TRANSIENT_ERROR_HEADER)), Integer.valueOf(eventInfo.get(HARD_ERROR_HEADER))));
 
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
@@ -121,14 +122,19 @@ public class InputParser {
 	private static boolean isValidData(LinkedHashMap<String, String> eventInfo) throws InputParserException {
 
 		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) &&
-				eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER)) {
+				eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER) &&
+				eventInfo.containsKey(TRANSIENT_ERROR_HEADER) && eventInfo.containsKey(HARD_ERROR_HEADER)) {
 
 			if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER)) &&
-					!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER))) {
+					!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER)) &&
+					!StringUtils.isEmpty(eventInfo.get(TRANSIENT_ERROR_HEADER)) &&
+					!StringUtils.isEmpty(eventInfo.get(HARD_ERROR_HEADER))) {
 
-				if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER))) {
+				if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
+						isNumber(eventInfo.get(TRANSIENT_ERROR_HEADER)) && isNumber(eventInfo.get(HARD_ERROR_HEADER))
+						&& isBinary(eventInfo.get(TRANSIENT_ERROR_HEADER)) && isBinary(eventInfo.get(HARD_ERROR_HEADER))) {
 					return true;
 				}
 			}
@@ -143,6 +149,14 @@ public class InputParser {
 			isNumber = isNumber && Character.isDigit(c);
 		}
 		return isNumber;
+	}
+
+	private static boolean isBinary(String s) {
+		int i = Integer.parseInt(s);
+		if(i == 0 || i == 0) {
+			return true;
+		}
+		return false;
 	}
 
 	public static void main(String[] args) throws InputParserException {
