@@ -153,14 +153,10 @@ public class InputParser {
 
 	private static boolean isBinary(String s) {
 		int i = Integer.parseInt(s);
-		if(i == 0 || i == 0) {
+		if(i == 0 || i == 1) {
 			return true;
 		}
 		return false;
-	}
-
-	public static void main(String[] args) throws InputParserException {
-		parseCVSFile();
 	}
 
 }
