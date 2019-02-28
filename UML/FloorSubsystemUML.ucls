@@ -1,145 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<class-diagram version="1.2.3" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
-  associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
-  <class id="1" language="java" name="core.Subsystems.FloorSubsystem.Shaft" project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/FloorSubsystem/Shaft.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="119" width="162" x="211" y="101"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="2" language="java" name="core.Subsystems.FloorSubsystem.FloorThread" project="Elevator-Control-System" 
+<class-diagram version="1.2.3" icons="true" automaticImage="PNG" always-add-relationships="false" generalizations="true" 
+  realizations="true" associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
+  <class id="1" language="java" name="core.Subsystems.FloorSubsystem.FloorThread" project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/FloorSubsystem/FloorThread.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="245" width="229" x="413" y="350"/>    
+    <position height="-1" width="-1" x="519" y="476"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="core.Subsystems.FloorSubsystem.FloorSubsystem" project="Elevator-Control-System" 
+  <class id="2" language="java" name="core.Subsystems.FloorSubsystem.FloorSubsystem" project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/FloorSubsystem/FloorSubsystem.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="209" width="188" x="413" y="101"/>    
+    <position height="-1" width="-1" x="175" y="213"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="4" language="java" name="core.Subsystems.FloorSubsystem.FloorSubsystemMain" 
+  <class id="3" language="java" name="core.Subsystems.FloorSubsystem.FloorSubsystemMain" 
     project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/FloorSubsystem/FloorSubsystemMain.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="119" width="166" x="641" y="101"/>    
+    <position height="-1" width="-1" x="538" y="76"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="5" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerRequest" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerRequest.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1589" y="1181"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="6" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerSubsystemMain" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerSubsystemMain.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="916" y="44"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <enumeration id="7" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerPriorityConstants" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerPriorityConstants.java" 
-    binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1191" y="44"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </enumeration>  
-  <class id="8" language="java" name="core.Subsystems.SchedulerSubsystem.Elevator" project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/Elevator.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1921" y="152"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="9" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerSubsystem" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerSubsystem.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1543" y="581"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="10" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerPipeline" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerPipeline.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1571" y="116"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <association id="11">    
-    <end type="SOURCE" refId="3" navigable="false">      
-      <attribute id="12" name="floors">        
-        <position height="0" width="0" x="0" y="0"/>      
+  <association id="4">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="5" name="floors">        
+        <position height="0" width="0" x="-8" y="4"/>      
       </attribute>      
-      <multiplicity id="13" minimum="0" maximum="2147483647">        
-        <position height="0" width="0" x="0" y="0"/>      
+      <multiplicity id="6" minimum="0" maximum="2147483647">        
+        <position height="0" width="0" x="-8" y="4"/>      
       </multiplicity>    
     </end>    
-    <end type="TARGET" refId="2" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="14">    
-    <end type="SOURCE" refId="9" navigable="false">      
-      <attribute id="15" name="listeners"/>      
-      <multiplicity id="16" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="10" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="17">    
-    <end type="SOURCE" refId="9" navigable="false">      
-      <attribute id="18" name="events"/>      
-      <multiplicity id="19" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="5" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="20">    
-    <end type="SOURCE" refId="10" navigable="false">      
-      <attribute id="21" name="schedulerSubsystem"/>      
-      <multiplicity id="22" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="9" navigable="true"/>    
+    <end type="TARGET" refId="1" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 

@@ -1,60 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <class-diagram version="1.2.3" icons="true" automaticImage="PNG" always-add-relationships="false" generalizations="true" 
   realizations="true" associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
-  <class id="1" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerSubsystemMain" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerSubsystemMain.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="536" y="26"/>    
+  <class id="1" language="java" name="core.Messages.ElevatorMessage" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Messages/ElevatorMessage.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="145" y="260"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="2" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerRequest" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerRequest.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="217" y="454"/>    
+  <class id="2" language="java" name="core.Messages.InitMessage" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Messages/InitMessage.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="482" y="143"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerSubsystem" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerSubsystem.java" binary="false" 
+  <class id="3" language="java" name="core.Messages.ElevatorSysMessageFactory" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Messages/ElevatorSysMessageFactory.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="639" y="504"/>    
+    <position height="-1" width="-1" x="1139" y="98"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <interface id="4" language="java" name="core.Subsystems.SchedulerSubsystem.SchedulerPipeline" 
-    project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/SchedulerPipeline.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="799" y="70"/>    
+  <class id="4" language="java" name="core.Messages.FloorMessage" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Messages/FloorMessage.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="819" y="251"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <interface id="5" language="java" name="core.Messages.SubsystemMessage" project="Elevator-Control-System" 
+    file="/Elevator-Control-System/src/core/Messages/SubsystemMessage.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="482" y="579"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </interface>  
-  <class id="5" language="java" name="core.Subsystems.SchedulerSubsystem.Elevator" project="Elevator-Control-System" 
-    file="/Elevator-Control-System/src/core/Subsystems/SchedulerSubsystem/Elevator.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="978" y="395"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
+  <realization id="6">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="7">    
+    <end type="SOURCE" refId="4"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="8">    
+    <end type="SOURCE" refId="1"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
     <attributes public="true" package="true" protected="true" private="true" static="true"/>    
