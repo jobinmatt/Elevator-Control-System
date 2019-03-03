@@ -37,7 +37,6 @@ import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
-import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
 import core.Messages.ElevatorMessage;
 import core.Messages.FloorMessage;
 import core.Utils.HostActions;
@@ -63,9 +62,6 @@ public class SchedulerSubsystem {
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
 	private InetAddress floorSubsystemAddress;
-	private static final int HARD_ERROR_CODE = 1;
-	private static final int TRANSIENT_ERROR_CODE = 2;
-	private static final int SYSTEM_OKAY = 0;
 	
 	public SchedulerSubsystem(int numElevators, int numFloors,
 			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException, ConfigurationParserException, HostActionsException, IOException {
@@ -245,57 +241,59 @@ public class SchedulerSubsystem {
 	
 	public synchronized void scheduleEvent(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
 		if(request != null) {
-			if (request.getErrorCode() == SYSTEM_OKAY) {
-				Elevator selectedElevator = getBestElevator(request);
-				if (selectedElevator != null) {
-					request.setElevatorNumber(selectedElevator.getElevatorId());
-					if (selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
-						Direction dir = null;
-						if (selectedElevator.getCurrentFloor() > request.getDestFloor()) {
-							dir = Direction.DOWN;
-						} else {
-							dir = Direction.UP;
-						}
-						SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(),
-								request.getReceivedPort(), SubsystemConstants.FLOOR, selectedElevator.getCurrentFloor(),
-								dir, request.getSourceFloor(), selectedElevator.getElevatorId(),
-								request.getTargetFloor(), 0, 0);
-						elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(tempRequest);
-						logger.debug("\n" + "Intermediate event added " + tempRequest.toString() + " FOR Elevator "
-								+ selectedElevator.getElevatorId());
-						selectedElevator.incRequests();
+			Elevator selectedElevator = getBestElevator(request);
+			if (selectedElevator != null) {
+				request.setElevatorNumber(selectedElevator.getElevatorId());
+				if (selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
+					Direction dir = null;
+					if (selectedElevator.getCurrentFloor() > request.getDestFloor()) {
+						dir = Direction.DOWN;
+					} else {
+						dir = Direction.UP;
 					}
-					logger.debug("\n" + "Event added " + request.toString() + " FOR Elevator "
+					SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(),
+							request.getReceivedPort(), SubsystemConstants.FLOOR, selectedElevator.getCurrentFloor(),
+							dir, request.getSourceFloor(), selectedElevator.getElevatorId(),
+							request.getTargetFloor(), request.getErrorCode(), request.getErrorFloor());
+					elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(tempRequest);
+					logger.debug("Intermediate event added " + tempRequest.toString() + " FOR Elevator "
 							+ selectedElevator.getElevatorId());
-					elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(request);
 					selectedElevator.incRequests();
-				} else {
-					unscheduledEvents.add(request);
-				} 
-			} else {
-				if(request.getErrorCode() == HARD_ERROR_CODE) {
-					LinkedList<SchedulerRequest> elevatorEvents = elevatorListeners[request.getErrorElevator() - 1].getElevatorEvents();
-					Elevator selectedElevator = elevatorStatus.get(request.getErrorElevator());
-					List<SchedulerRequest> tempList = new ArrayList<>();
-					for (SchedulerRequest event: elevatorEvents) {
-						if (event.getDestFloor() == selectedElevator.getCurrentFloor() && event.getRequestDirection().equals(selectedElevator.getRequestDirection())) {
-							tempList.add(event);
-						}
-					}
-					if (!tempList.isEmpty()) {
-						logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
-					}
-					elevatorEvents.removeAll(tempList);
-					
-					unscheduledEvents.addAll(elevatorEvents);
-					elevatorStatus.remove(request.getErrorElevator());
-					elevatorListeners[request.getErrorElevator() - 1].sendStopSignal();
 				}
-			}
+				logger.debug("Event added " + request.toString() + " FOR Elevator "
+						+ selectedElevator.getElevatorId());
+				elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(request);
+				selectedElevator.incRequests();
+			} else {
+				unscheduledEvents.add(request);
+			} 
 		}
 	}
 	
-	public void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
+	
+	public void removeElevator(int id) throws SchedulerSubsystemException, CommunicationException {
+		
+		LinkedList<SchedulerRequest> elevatorEvents = elevatorListeners[id - 1].getElevatorEvents();
+		Elevator selectedElevator = elevatorStatus.get(id);
+		List<SchedulerRequest> tempList = new ArrayList<>();
+		for (SchedulerRequest event: elevatorEvents) {
+			if (event.getDestFloor() == selectedElevator.getCurrentFloor() && event.getRequestDirection().equals(selectedElevator.getRequestDirection())) {
+				tempList.add(event);
+			}
+			if(event.getErrorFloor() == selectedElevator.getCurrentFloor()) {
+				tempList.add(event);
+			}
+		}
+		if (!tempList.isEmpty()) {
+			logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
+		}
+		elevatorEvents.removeAll(tempList);
+		unscheduledEvents.addAll(elevatorEvents);
+		elevatorStatus.remove(id);
+		reEvaluateEvents();
+	}
+	
+ 	public void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
 		List<SchedulerRequest> tempList = new ArrayList<>();
 		if(!unscheduledEvents.isEmpty()) {
 			for(SchedulerRequest request : unscheduledEvents) {

@@ -35,7 +35,7 @@ public class FloorMessage implements SubsystemMessage {
 	private int targetFloor; //DESTINATION FLOOR (end goal)
 	private boolean isValid = true;
 	private int errorCode;
-	private int errorElevator;
+	private int errorFloor;
 	
 	private int elevatorNum =0; //this is needed for updateing elevator states in the floor
 	/**
@@ -51,7 +51,7 @@ public class FloorMessage implements SubsystemMessage {
 		this.direction = direction;
 		this.targetFloor = targetFloor;
 		this.errorCode = errorCode;
-		this.errorElevator = errorFloor;
+		this.errorFloor = errorFloor;
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class FloorMessage implements SubsystemMessage {
 
 		//format:
 
-		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  targetFloor SPACER elevNum SPACER errorCode SPACER errorElevator SPACER
+		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  targetFloor SPACER elevNum SPACER errorCode SPACER errorFloor SPACER
 		//	0			1			2		3			4		5		6        7       8      9			10		11			12		13
 		// extract read or write request
 
@@ -108,7 +108,7 @@ public class FloorMessage implements SubsystemMessage {
 			isValid = false;
 		}
 		
-		errorElevator = data[i++];
+		errorFloor = data[i++];
 		
 		if (data[i++] != SPACER) { //i = 13
 			isValid = false;
@@ -164,7 +164,7 @@ public class FloorMessage implements SubsystemMessage {
 			
 			stream.write(SPACER);
 			
-			stream.write(errorElevator);
+			stream.write(errorFloor);
 			
 			stream.write(SPACER);
 
@@ -190,7 +190,7 @@ public class FloorMessage implements SubsystemMessage {
 			return false;
 		}
 		
-		if (errorElevator == -1) {
+		if (errorFloor == -1) {
 			return false;
 		}
 
@@ -219,8 +219,8 @@ public class FloorMessage implements SubsystemMessage {
 	public int getElevatorNum() {
 		return this.elevatorNum;
 	}
-	public int getErrorElevator() {
-		return this.errorElevator;
+	public int getErrorFloor() {
+		return this.errorFloor;
 	}
 	/**
 	 * Method used by the Scheduler to send the elevatorNumber of the elevator to the floor
@@ -236,11 +236,11 @@ public class FloorMessage implements SubsystemMessage {
 	public String toString() {
 
 		return "Direction: " + direction.name() + " Source Location: " + sourceFloor + " Car Button Pressed Number: "
-				+ targetFloor + " Error Code: " + errorCode + " Error Floor: " + errorElevator;
+				+ targetFloor + " Error Code: " + errorCode + " Error Floor: " + errorFloor;
 	}
 	
 	public SchedulerRequest toSchedulerRequest(InetAddress receivedAddress, int receivedPort) {
-		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.sourceFloor, this.direction,this.targetFloor, this.targetFloor,this.errorCode,this.errorElevator);
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.sourceFloor, this.direction,this.targetFloor, this.targetFloor,this.errorCode,this.errorFloor);
 		
 	}
 }

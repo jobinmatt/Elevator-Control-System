@@ -34,7 +34,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private int elevatorNumber = -1;
 	private int targetFloor = -1;
 	private int errorCode;
-	private int errorElevator;
+	private int errorFloor;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -67,7 +67,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.destFloor = destFloor;
 		this.targetFloor = carButton;
 		this.errorCode = errorCode;
-		this.errorElevator = errorFloor;
+		this.errorFloor = errorFloor;
 	}
 	//for elevator its the current floor is the source floor 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
@@ -82,7 +82,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.elevatorNumber = elevNumber;
 		this.targetFloor = targetFloor; //final destination 
 		this.errorCode = errorCode;
-		this.errorElevator = errorFloor;
+		this.errorFloor = errorFloor;
 	}
 
 	/**
@@ -183,8 +183,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		return errorCode;
 	}
 
-	public int getErrorElevator() {
-		return errorElevator;
+	public int getErrorFloor() {
+		return errorFloor;
 	}
 
 	@Override
@@ -241,10 +241,10 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 	
 	public SubsystemMessage toFloorPacket() {
-		return new FloorMessage(this.requestDirection,this.sourceFloor, this.targetFloor, this.errorCode, this.errorElevator);
+		return new FloorMessage(this.requestDirection,this.sourceFloor, this.targetFloor, this.errorCode, this.errorFloor);
 	}
 	
 	public SubsystemMessage toElevatorPacket() {
-		return new ElevatorMessage(this.sourceFloor, this.destFloor, this.targetFloor);
+		return new ElevatorMessage(this.sourceFloor, this.destFloor, this.targetFloor, this.errorCode, this.errorFloor);
 	}
 }

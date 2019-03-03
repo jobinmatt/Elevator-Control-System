@@ -33,6 +33,8 @@ public class ElevatorMessage implements SubsystemMessage {
 	private int elevatorNumber = -1;//dont leave this empty we neeeeeeeeeeeeeed ITTTTT
 	private boolean arrived = false;
 	private boolean isValid = true;
+	private int errorCode;
+	private int errorFloor;
 
 	public ElevatorMessage(boolean stop) {
 		
@@ -56,6 +58,15 @@ public class ElevatorMessage implements SubsystemMessage {
 		this.currentFloor = currentFloor;
 		this.destinationFloor = destinationFloor;
 		this.elevatorNumber = elevNumber;
+	}
+	
+	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber, int errorCode, int errorFloor) {
+
+		this.currentFloor = currentFloor;
+		this.destinationFloor = destinationFloor;
+		this.elevatorNumber = elevNumber;
+		this.errorCode = errorCode; 
+		this.errorFloor = errorFloor;
 	}
 
 	public ElevatorMessage(byte[] data, int dataLength) {
@@ -91,7 +102,19 @@ public class ElevatorMessage implements SubsystemMessage {
 			isValid = false;
 		}
 
-		elevatorNumber = data[i++];
+		elevatorNumber = data[i++];		
+		// must be zero
+		if (data[i++] != SPACER) {
+			isValid = false;
+		}
+
+		errorCode = data[i++];
+		// must be zero
+		if (data[i++] != SPACER) {
+			isValid = false;
+		}
+		
+		errorFloor = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
 			if (data[i++] != SPACER) {
@@ -147,6 +170,24 @@ public class ElevatorMessage implements SubsystemMessage {
 			
 			// add space
 			stream.write(SPACER);
+			
+			if (errorCode != -1 ) {
+				stream.write(errorCode);
+			} else {
+				stream.write(SPACER);
+			}
+			
+			// add space
+			stream.write(SPACER);
+			
+			if (errorFloor != -1 ) {
+				stream.write(errorFloor);
+			} else {
+				stream.write(SPACER);
+			}
+			
+			// add space
+			stream.write(SPACER);
 
 			return stream.toByteArray();
 		} catch (NullPointerException e) {
@@ -180,6 +221,16 @@ public class ElevatorMessage implements SubsystemMessage {
 	public boolean getArrivalSensor() {
 		
 		return arrived;
+	}
+	
+	public int getErrorCode() {
+		
+		return errorCode;
+	}
+	
+	public int getErrorFloor() {
+		
+		return errorFloor;
 	}
 	
 	public void setArrivalSensor(boolean isArrive) {

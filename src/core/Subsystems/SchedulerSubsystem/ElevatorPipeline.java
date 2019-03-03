@@ -17,12 +17,17 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.ConfigurationParser;
 import core.Direction;
 import core.Exceptions.CommunicationException;
+import core.Exceptions.ConfigurationParserException;
+import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
@@ -106,23 +111,28 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					}
 					updateSubsystem(elevatorEvents.getFirst());
 					
-					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());	
+					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevatorEvents.getFirst().getErrorCode(), elevatorEvents.getFirst().getErrorFloor());	
 					
 					byte[] data = elevatorMessage.generatePacketData();
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
 					
+					long startTime = System.currentTimeMillis();
 					ElevatorMessage elevatorRecieveMessage = recieve();
+					long endTime = System.currentTimeMillis();
+					
+					if (!((endTime - startTime) <= 5500)) {
+						//(ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000) + 500)
+						schedulerSubsystem.removeElevator(elevator.getElevatorId());
+						break;
+					}
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
 						logger.debug("arrival sensor recieved");
 						updateStates(elevatorRecieveMessage);
 					}
-				} catch (HostActionsException | CommunicationException e) {
+				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException e) {
 					logger.error("Unable to send/recieve packet", e);
-				} catch (SchedulerSubsystemException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
 		}		
@@ -132,21 +142,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		synchronized (elevatorEvents) {
 			elevatorEvents.add(request);
 			elevatorEvents.notifyAll();
-		}
-	}
-	
-	public void sendStopSignal() {
-		ElevatorMessage message = new ElevatorMessage(true);
-		byte[] data;
-		try {
-			data = message.generatePacketData();
-			DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
-			HostActions.send(elevatorPacket, Optional.of(sendSocket));
-		} catch (CommunicationException e) {
-			logger.error("Unable to send/recieve packet", e);
-		} catch (HostActionsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
