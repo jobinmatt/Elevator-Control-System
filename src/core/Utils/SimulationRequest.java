@@ -24,20 +24,24 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 
 	private final Date startTime;
 	private final int floor;
-	private final Direction floorButton;// Up true
+	private final Direction floorButton;
 	private final int carButton;
 	private long intervalTime;
+	private final int errorCode;
+	private final int errorFloor;
 
-	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton) {
+	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, int errorCode, int errorFloor) {
 
 		super();
 		this.startTime = startTime;
 		this.floor = floor;
 		this.floorButton = floorButton;
 		this.carButton = carButton;
+		this.errorCode = errorCode;
+		this.errorFloor = errorFloor;
 	}
 
-	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, long intervalTime) {
+	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, long intervalTime, int errorCode, int errorFloor) {
 
 		super();
 		this.startTime = startTime;
@@ -45,6 +49,8 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		this.floorButton = floorButton;
 		this.carButton = carButton;
 		this.intervalTime = intervalTime;
+		this.errorCode = errorCode;
+		this.errorFloor = errorFloor;
 	}
 
 	public Date getStartTime() {
@@ -75,6 +81,14 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 	public long getIntervalTime() {
 
 		return this.intervalTime;
+	}
+
+	public int getErrorCode() {
+		return this.errorCode;
+	}
+
+	public int getErrorFloor() {
+		return this.errorFloor;
 	}
 
 	@Override
