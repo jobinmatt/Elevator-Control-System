@@ -34,8 +34,8 @@ public class FloorMessage implements SubsystemMessage {
 	private Direction direction;
 	private int targetFloor; //DESTINATION FLOOR (end goal)
 	private boolean isValid = true;
-
-
+	
+	private int elevatorNum =0; //this is needed for updateing elevator states in the floor
 	/**
 	 *
 	 * @param direction Direction
@@ -61,8 +61,8 @@ public class FloorMessage implements SubsystemMessage {
 		isValid = true;
 
 		//format:
-		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER
-		//	0			1			2		3			4		5		6        7
+		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  targetFloor SPACER elevNum SPACER
+		//	0			1			2		3			4		5		6        7       8      9
 		// extract read or write request
 
 		if (data[1] == UP[0] && data[2] == UP[1]) {
@@ -87,8 +87,11 @@ public class FloorMessage implements SubsystemMessage {
 			isValid = false;
 		}
 
-		targetFloor = data[i++];
-
+		targetFloor = data[i++]; 
+		if (data[i++] != SPACER) { //i = 5
+			isValid = false;
+		}
+		this.elevatorNum = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
 			if (data[i++] != SPACER) {
@@ -132,6 +135,9 @@ public class FloorMessage implements SubsystemMessage {
 
 			stream.write(SPACER);
 
+			stream.write(elevatorNum);
+			
+			stream.write(SPACER);
 			return stream.toByteArray();
 		} catch (IOException | NullPointerException e) {
 			throw new CommunicationException("Unable to generate packet", e);
@@ -165,7 +171,12 @@ public class FloorMessage implements SubsystemMessage {
 
 		return direction;
 	}
-
+	public void setElevatorNum(int num) {
+		this.elevatorNum = num;
+	}
+	public int getElevatorNum() {
+		return this.elevatorNum;
+	}
 	/**
 	 * Method used by the Scheduler to send the elevatorNumber of the elevator to the floor
 	 * @param elevatorNumber

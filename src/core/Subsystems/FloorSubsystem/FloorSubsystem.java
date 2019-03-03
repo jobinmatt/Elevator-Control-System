@@ -54,7 +54,7 @@ public class FloorSubsystem {
 	private InetAddress schedulerAddress;
 	private int floorInitPort;
 	private Timer sharedTimer;
-	
+	private int numOfElevators;
 	/**
 	 * Creates a floorSubsystem object
 	 * 
@@ -62,10 +62,11 @@ public class FloorSubsystem {
 	 * @throws IOException 
 	 * @throws FloorSubsystemException
 	 */
-	public FloorSubsystem(int numOfFloors, InetAddress schedulerAddress, int floorInitPort) throws GeneralException, IOException {
+	public FloorSubsystem(int numOfFloors, InetAddress schedulerAddress, int floorInitPort, int numOfElevators) throws GeneralException, IOException {
 		
 		this.floors = new HashMap<String, FloorThread>();
 		this.numberOfFloors = numOfFloors;
+		this.numOfElevators = numOfElevators;
 		this.setSchedulerAddress(schedulerAddress);
 		this.setFloorInitPort(floorInitPort);
 		this.sharedTimer = new Timer();
@@ -76,7 +77,7 @@ public class FloorSubsystem {
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
 				floors.put(FLOOR_NAME + i,
-						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer));
+						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer, numOfElevators));
 			}
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
