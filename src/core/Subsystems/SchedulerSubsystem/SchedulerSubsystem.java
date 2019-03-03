@@ -35,6 +35,8 @@ import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
@@ -328,6 +330,22 @@ public class SchedulerSubsystem {
 		synchronized (elevatorStatus) {
 			elevatorStatus.put(elevator.getElevatorId(), elevator);
 			this.reEvaluateEvents();
+		}
+	}
+	
+	public void updateFloorStates (ElevatorMessage elevator) throws HostActionsException, CommunicationException {
+		Direction dir;
+		if (elevator.getCurrentFloor()>elevator.getDestinationFloor()) 
+			dir = Direction.DOWN;
+		else if (elevator.getCurrentFloor()<elevator.getDestinationFloor())
+			dir = Direction.UP;
+		else
+			dir = Direction.STATIONARY;
+			
+		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1); // source floor will be current floor, and dont need dest becuase we dont care
+		floorState.setElevatorNum(elevator.getElevatorNumber());
+		for (FloorPipeline listeners : this.floorListeners) {
+			listeners.sendElevatorStateToFloor(floorState);
 		}
 	}
 

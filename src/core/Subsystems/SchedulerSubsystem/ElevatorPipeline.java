@@ -104,7 +104,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					byte[] data = elevatorMessage.generatePacketData();
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
-					
+					this.schedulerSubsystem.updateFloorStates(elevatorMessage);
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
@@ -146,6 +146,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		elevator.setRequestDirection(packet.getRequestDirection());
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
+		
 	}
 	
 	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException {
