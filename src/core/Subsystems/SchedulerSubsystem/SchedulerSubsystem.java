@@ -153,12 +153,15 @@ public class SchedulerSubsystem {
 	
 	private void sendSchedulerPorts(int sendPort, SubsystemConstants systemType) throws IOException, HostActionsException {
 		byte[] packetData;
+		InetAddress sendAddress;
 		if(systemType.equals(SubsystemConstants.ELEVATOR)) {
 			packetData = createPortsArray(elevatorListeners, systemType);
+			sendAddress = getElevatorSubsystemAddress();
 		}else {
 			packetData = createPortsArray(floorListeners, systemType);
+			sendAddress = getFloorSubsystemAddress();
 		}
-		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), sendPort);
+		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, sendAddress, sendPort);
 	    HostActions.send(packet, Optional.empty());
 	}
 	
