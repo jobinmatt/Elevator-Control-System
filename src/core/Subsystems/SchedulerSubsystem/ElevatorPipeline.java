@@ -135,6 +135,21 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		}
 	}
 	
+	public void sendStopSignal() {
+		ElevatorMessage message = new ElevatorMessage(true);
+		byte[] data;
+		try {
+			data = message.generatePacketData();
+			DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
+			HostActions.send(elevatorPacket, Optional.of(sendSocket));
+		} catch (CommunicationException e) {
+			logger.error("Unable to send/recieve packet", e);
+		} catch (HostActionsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public ElevatorMessage recieve() throws CommunicationException {
 		
 		DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
@@ -213,6 +228,10 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 	public int getPipeNumber() {
 		return this.pipeNumber;
+	}
+
+	public LinkedList<SchedulerRequest> getElevatorEvents() {
+		return elevatorEvents;
 	}
 
 }

@@ -33,6 +33,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	private Direction requestDirection;
 	private int elevatorNumber = -1;
 	private int targetFloor = -1;
+	private int errorCode;
+	private int errorElevator;
 
 	public SchedulerRequest(DatagramPacket packet) {
 		receivedPort = packet.getPort();
@@ -53,7 +55,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 	//for floor the source floor is where the initial request came from
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
-			int sourceFloor, Direction requestDirection, int destFloor, int carButton) {// Floor
+			int sourceFloor, Direction requestDirection, int destFloor, int carButton, int errorCode, int errorFloor) {// Floor
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
@@ -64,10 +66,12 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.elevatorNumber = -1;
 		this.destFloor = destFloor;
 		this.targetFloor = carButton;
+		this.errorCode = errorCode;
+		this.errorElevator = errorFloor;
 	}
 	//for elevator its the current floor is the source floor 
 	public SchedulerRequest(InetAddress receivedAddress, int receivedPort, SubsystemConstants type,
-			int currentFloor, Direction requestDirection, int destFloor, int elevNumber, int targetFloor) {// Elev
+			int currentFloor, Direction requestDirection, int destFloor, int elevNumber, int targetFloor, int errorCode, int errorFloor) {// Elev
 		this.receivedAddress = receivedAddress;
 		this.receivedPort = receivedPort;
 		this.type = type;
@@ -77,6 +81,8 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 		this.requestDirection = requestDirection;
 		this.elevatorNumber = elevNumber;
 		this.targetFloor = targetFloor; //final destination 
+		this.errorCode = errorCode;
+		this.errorElevator = errorFloor;
 	}
 
 	/**
@@ -172,6 +178,15 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	public void setTargetFloor(int carButton) {
 		this.targetFloor = carButton;
 	}
+	
+	public int getErrorCode() {
+		return errorCode;
+	}
+
+	public int getErrorElevator() {
+		return errorElevator;
+	}
+
 	@Override
 	public int compareTo(SchedulerRequest arg1) {
 		if(getDestFloor() > arg1.getDestFloor()) {
@@ -226,7 +241,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 	
 	public SubsystemMessage toFloorPacket() {
-		return new FloorMessage(this.requestDirection,this.sourceFloor, this.targetFloor );
+		return new FloorMessage(this.requestDirection,this.sourceFloor, this.targetFloor, this.errorCode, this.errorElevator);
 	}
 	
 	public SubsystemMessage toElevatorPacket() {

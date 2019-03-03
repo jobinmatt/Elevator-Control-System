@@ -25,7 +25,7 @@ class PacketDataTest {
 	void setUp() throws Exception {
 		bufferSetup();
 		packetElevator = new ElevatorMessage(floorData1[0], floorData1[1],floorData1[2]); 
-		packetFloor = new FloorMessage(this.dir, floorData2[1],floorData2[2]);
+		packetFloor = new FloorMessage(this.dir, floorData2[1],floorData2[2], 0 ,0);
 	}
 
 	@AfterEach

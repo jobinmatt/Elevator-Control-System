@@ -24,6 +24,8 @@ public class ElevatorMessage implements SubsystemMessage {
 
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
+	private byte STOP_SIGNAL = (byte) 99;
+	private boolean stop = false;
 
 	private int currentFloor = -1; //Current floor the elevator is on
 	private int destinationFloor = -1; //where it is going to stop next
@@ -32,6 +34,11 @@ public class ElevatorMessage implements SubsystemMessage {
 	private boolean arrived = false;
 	private boolean isValid = true;
 
+	public ElevatorMessage(boolean stop) {
+		
+		this.stop = stop;
+	}
+	
 	public ElevatorMessage(boolean arrived, int elevatorNumber) {
 
 		this.arrived = arrived; 
@@ -56,6 +63,11 @@ public class ElevatorMessage implements SubsystemMessage {
 		isValid = true;
 		int i = 1;
 
+		if (data[1] == STOP_SIGNAL && data[2] == SPACER) {
+			stop = true;
+			return;
+		}
+		
 		currentFloor = data[i++];
 		// must be zero
 		if (data[i++] != SPACER) {
@@ -95,6 +107,12 @@ public class ElevatorMessage implements SubsystemMessage {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(ELEVATOR_FLAG); // elevator packet flag
 
+			if (stop) {
+				stream.write(STOP_SIGNAL);
+				stream.write(SPACER);
+				return stream.toByteArray();
+			}
+			
 			if (currentFloor != -1 ) {
 				stream.write(currentFloor);
 			} else {
@@ -167,6 +185,9 @@ public class ElevatorMessage implements SubsystemMessage {
 	public void setArrivalSensor(boolean isArrive) {
 		this.arrived = isArrive;
 	}
+	public boolean isStop() {
+		return this.stop;
+	}
 	public String toString() {
 
 		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
@@ -180,6 +201,6 @@ public class ElevatorMessage implements SubsystemMessage {
 		}else {
 			dir = Direction.UP;
 		}
-		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.destinationFloor );
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.destinationFloor,0,0 );
 	}
 }

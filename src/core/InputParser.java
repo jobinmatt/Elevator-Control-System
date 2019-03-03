@@ -49,7 +49,7 @@ public class InputParser {
 	private static final String CAR_BUTTON_HEADER = "Car_Button";
 	private static final String FLOOR_HEADER = "Floor";
 	private static final String ERROR_CODE_HEADER = "ErrorCode";
-	private static final String ERROR_FLOOR_HEADER = "ErrorFloor";
+	private static final String ERROR_ELEVATOR_HEADER = "ErrorElevator";
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public static List<SimulationRequest> parseCVSFile() throws InputParserException {
@@ -94,7 +94,7 @@ public class InputParser {
 
 						simulationEvents
 						.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
-								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER)), Integer.valueOf(eventInfo.get(ERROR_CODE_HEADER)), Integer.valueOf(eventInfo.get(ERROR_FLOOR_HEADER))));
+								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER)), Integer.valueOf(eventInfo.get(ERROR_CODE_HEADER)), Integer.valueOf(eventInfo.get(ERROR_ELEVATOR_HEADER))));
 
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
@@ -123,17 +123,17 @@ public class InputParser {
 
 		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) &&
 				eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER) &&
-				eventInfo.containsKey(ERROR_CODE_HEADER) && eventInfo.containsKey(ERROR_FLOOR_HEADER)) {
+				eventInfo.containsKey(ERROR_CODE_HEADER) && eventInfo.containsKey(ERROR_ELEVATOR_HEADER)) {
 
 			if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER)) &&
-					!StringUtils.isEmpty(eventInfo.get(ERROR_FLOOR_HEADER)) &&
+					!StringUtils.isEmpty(eventInfo.get(ERROR_ELEVATOR_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(ERROR_CODE_HEADER))) {
 
 				if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
-						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && isNumber(eventInfo.get(ERROR_FLOOR_HEADER))) {
+						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && isNumber(eventInfo.get(ERROR_ELEVATOR_HEADER))) {
 					return true;
 				}
 			}

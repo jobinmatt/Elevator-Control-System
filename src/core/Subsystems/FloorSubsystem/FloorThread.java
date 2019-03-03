@@ -98,7 +98,7 @@ public class FloorThread extends Thread {
         byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         
-        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton());
+        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton(), event.getErrorCode(), event.getErrorElevator());
         data = floorPacket.generatePacketData();
             
         DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
@@ -106,7 +106,7 @@ public class FloorThread extends Thread {
         tempPacket.setAddress(this.schedulerAddress);
         tempPacket.setPort(FloorSubsystem.getSchedulerPorts().get(floorNumber));
         logger.info("Buffer Data: "+ Arrays.toString(data));
-        HostActions.send( tempPacket, Optional.of(receiveSocket));
+        HostActions.send(tempPacket, Optional.of(receiveSocket));
     }
     
     /**

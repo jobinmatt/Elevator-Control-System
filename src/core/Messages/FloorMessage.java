@@ -34,6 +34,8 @@ public class FloorMessage implements SubsystemMessage {
 	private Direction direction;
 	private int targetFloor; //DESTINATION FLOOR (end goal)
 	private boolean isValid = true;
+	private int errorCode;
+	private int errorElevator;
 
 
 	/**
@@ -43,11 +45,13 @@ public class FloorMessage implements SubsystemMessage {
 	 * @param date  The Date
 	 * @param targetFloor Button pressed in the elevator
 	 */
-	public FloorMessage(Direction direction, int sourceFloor, int targetFloor) {
+	public FloorMessage(Direction direction, int sourceFloor, int targetFloor, int errorCode, int errorFloor) {
 
 		this.sourceFloor = sourceFloor;
 		this.direction = direction;
 		this.targetFloor = targetFloor;
+		this.errorCode = errorCode;
+		this.errorElevator = errorFloor;
 	}
 
 	/**
@@ -61,8 +65,8 @@ public class FloorMessage implements SubsystemMessage {
 		isValid = true;
 
 		//format:
-		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER
-		//	0			1			2		3			4		5		6        7
+		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER errorCode SPACER errorElevator
+		//	0			1			2		3			4		5		6        7			8       9       10
 		// extract read or write request
 
 		if (data[1] == UP[0] && data[2] == UP[1]) {
@@ -88,6 +92,19 @@ public class FloorMessage implements SubsystemMessage {
 		}
 
 		targetFloor = data[i++];
+		
+		if (data[i++] != SPACER) { //i = 7
+			isValid = false;
+		}
+		
+		errorCode = data[i++];
+		
+		if (data[i++] != SPACER) { //i = 9
+			isValid = false;
+		}
+		
+		errorElevator = data[i++];
+		
 
 		// must be zero at end
 		while (i < dataLength) {
@@ -131,6 +148,14 @@ public class FloorMessage implements SubsystemMessage {
 			stream.write(targetFloor); //add the button pressed in the elevator
 
 			stream.write(SPACER);
+			
+			stream.write(errorCode);
+			
+			stream.write(SPACER);
+			
+			stream.write(errorElevator);
+			
+			stream.write(SPACER);
 
 			return stream.toByteArray();
 		} catch (IOException | NullPointerException e) {
@@ -149,6 +174,14 @@ public class FloorMessage implements SubsystemMessage {
 		if (sourceFloor == -1) {
 			return false;
 		}
+		
+		if (errorCode == -1) {
+			return false;
+		}
+		
+		if (errorElevator == -1) {
+			return false;
+		}
 
 		return true;
 	}
@@ -165,7 +198,14 @@ public class FloorMessage implements SubsystemMessage {
 
 		return direction;
 	}
+	
+	public int getErrorCode() {
+		return this.errorCode;
+	}
 
+	public int getErrorElevator() {
+		return this.errorElevator;
+	}
 	/**
 	 * Method used by the Scheduler to send the elevatorNumber of the elevator to the floor
 	 * @param elevatorNumber
@@ -180,11 +220,11 @@ public class FloorMessage implements SubsystemMessage {
 	public String toString() {
 
 		return "Direction: " + direction.name() + " Source Location: " + sourceFloor + " Car Button Pressed Number: "
-				+ targetFloor;
+				+ targetFloor + " Error Code: " + errorCode + " Error Floor: " + errorElevator;
 	}
 	
 	public SchedulerRequest toSchedulerRequest(InetAddress receivedAddress, int receivedPort) {
-		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.sourceFloor, this.direction,this.targetFloor, this.targetFloor );
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.sourceFloor, this.direction,this.targetFloor, this.targetFloor,this.errorCode,this.errorElevator);
 		
 	}
 }

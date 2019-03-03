@@ -63,7 +63,7 @@ public class ElevatorCarThread extends Thread {
 	public ElevatorCarThread(String name, int numFloors, InetAddress schedulerAddress) throws ElevatorSubsystemException {
 		
 		super (name);
-		name = name;
+		this.name = name;
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfFloors = numFloors;
 		this.setSentArrivalSensor(false);
@@ -100,33 +100,39 @@ public class ElevatorCarThread extends Thread {
 			//if source = dest here
 			try {
 				this.receivePacket(elevatorPacket);
-				currentFloor = ePacket.getCurrentFloor();
-				destinationFloor = ePacket.getDestinationFloor();
-				
-				if (currentFloor > destinationFloor) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
-					moveFloor(ePacket, Direction.DOWN);
+				if(ePacket.isStop()) {
+					logger.info("Hard error message received, elevator thread being interrupted");
+					break;
+				} else {
+					currentFloor = ePacket.getCurrentFloor();
+					destinationFloor = ePacket.getDestinationFloor();
 					
-				} else if (currentFloor < destinationFloor) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
-					moveFloor(ePacket, Direction.UP);
+					if (currentFloor > destinationFloor) {
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
+						moveFloor(ePacket, Direction.DOWN);
+						
+					} else if (currentFloor < destinationFloor) {
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
+						moveFloor(ePacket, Direction.UP);
 
-				}
-				
-				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					Utils.Sleep(doorSleepTime);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-					
-					if (destinationFloor != -1) {
-						selectedFloors[ePacket.getDestinationFloor()] = true;
-						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
 					}
 					
-					logger.debug("Arrived destination.\n");
+					if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
+						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+						Utils.Sleep(doorSleepTime);
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+						
+						if (destinationFloor != -1) {
+							selectedFloors[ePacket.getDestinationFloor()] = true;
+							logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
+						}
+						
+						logger.debug("Arrived destination.\n");
+					}
+					sendArrivalSensorPacket(ePacket);
 				}
-				sendArrivalSensorPacket(ePacket);
+				
 			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
 				logger.error(e);
 			}
