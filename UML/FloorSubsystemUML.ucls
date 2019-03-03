@@ -4,7 +4,7 @@
   <class id="1" language="java" name="core.Subsystems.FloorSubsystem.FloorThread" project="Elevator-Control-System" 
     file="/Elevator-Control-System/src/core/Subsystems/FloorSubsystem/FloorThread.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="519" y="476"/>    
+    <position height="-1" width="-1" x="518" y="390"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -35,10 +35,10 @@
   <association id="4">    
     <end type="SOURCE" refId="2" navigable="false">      
       <attribute id="5" name="floors">        
-        <position height="0" width="0" x="-8" y="4"/>      
+        <position height="0" width="0" x="-9" y="-82"/>      
       </attribute>      
       <multiplicity id="6" minimum="0" maximum="2147483647">        
-        <position height="0" width="0" x="-8" y="4"/>      
+        <position height="0" width="0" x="-9" y="-82"/>      
       </multiplicity>    
     </end>    
     <end type="TARGET" refId="1" navigable="true"/>    
