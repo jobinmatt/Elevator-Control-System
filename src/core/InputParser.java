@@ -150,12 +150,4 @@ public class InputParser {
 		return isNumber;
 	}
 
-	private static boolean isBinary(String s) {
-		int i = Integer.parseInt(s);
-		if(i == 0 || i == 1) {
-			return true;
-		}
-		return false;
-	}
-
 }
