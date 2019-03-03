@@ -27,21 +27,21 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 	private final Direction floorButton;
 	private final int carButton;
 	private long intervalTime;
-	private final int transient_error; //0 or 1
-	private final int hard_error; //0 or 1
+	private final int errorCode;
+	private final int errorFloor;
 
-	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, int transient_error, int hard_error) {
+	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, int errorCode, int errorFloor) {
 
 		super();
 		this.startTime = startTime;
 		this.floor = floor;
 		this.floorButton = floorButton;
 		this.carButton = carButton;
-		this.transient_error = transient_error;
-		this.hard_error = hard_error;
+		this.errorCode = errorCode;
+		this.errorFloor = errorFloor;
 	}
 
-	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, long intervalTime, int transient_error, int hard_error) {
+	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, long intervalTime, int errorCode, int errorFloor) {
 
 		super();
 		this.startTime = startTime;
@@ -49,8 +49,8 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		this.floorButton = floorButton;
 		this.carButton = carButton;
 		this.intervalTime = intervalTime;
-		this.transient_error = transient_error;
-		this.hard_error = hard_error;
+		this.errorCode = errorCode;
+		this.errorFloor = errorFloor;
 	}
 
 	public Date getStartTime() {
@@ -83,12 +83,12 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		return this.intervalTime;
 	}
 
-	public int getTransient_error() {
-		return this.transient_error;
+	public int getErrorCode() {
+		return this.errorCode;
 	}
 
-	public int getHard_error() {
-		return this.hard_error;
+	public int getErrorFloor() {
+		return this.errorFloor;
 	}
 
 	@Override
