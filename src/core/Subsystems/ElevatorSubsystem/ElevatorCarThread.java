@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import core.ConfigurationParser;
 import core.Direction;
+import core.LoggingManager;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubsystemException;
@@ -40,6 +41,7 @@ public class ElevatorCarThread extends Thread {
 	private Map<ElevatorComponentConstants, ElevatorComponentStates> carProperties;
 	private int numberOfFloors;
 	private int elevatorNumber;
+	private String name;
 
 	private DatagramSocket elevatorSocket;
 	private DatagramPacket elevatorPacket;
@@ -61,6 +63,7 @@ public class ElevatorCarThread extends Thread {
 	public ElevatorCarThread(String name, int numFloors, InetAddress schedulerAddress) throws ElevatorSubsystemException {
 		
 		super (name);
+		name = name;
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfFloors = numFloors;
 		this.setSentArrivalSensor(false);
@@ -86,6 +89,50 @@ public class ElevatorCarThread extends Thread {
 		}
 	}
 
+	@Override
+	public void run() {
+		//init
+		logger.debug(getName() + ": Powered On");
+
+		while (true) {
+			// if source > dest then going down
+			//if soure < dest doing up
+			//if source = dest here
+			try {
+				this.receivePacket(elevatorPacket);
+				currentFloor = ePacket.getCurrentFloor();
+				destinationFloor = ePacket.getDestinationFloor();
+				
+				if (currentFloor > destinationFloor) {
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
+					moveFloor(ePacket, Direction.DOWN);
+					
+				} else if (currentFloor < destinationFloor) {
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
+					moveFloor(ePacket, Direction.UP);
+
+				}
+				
+				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+					Utils.Sleep(doorSleepTime);
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+					
+					if (destinationFloor != -1) {
+						selectedFloors[ePacket.getDestinationFloor()] = true;
+						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
+					}
+					
+					logger.debug("Arrived destination.\n");
+				}
+				sendArrivalSensorPacket(ePacket);
+			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
+				logger.error(e);
+			}
+		}		
+	}
+	
 	/**
 	 * checks if the specified floor button is pressed
 	 * @param index
@@ -159,50 +206,6 @@ public class ElevatorCarThread extends Thread {
 	public int getPort() {
 		
 		return this.port; 
-	}
-
-	@Override
-	public void run() {
-		//init
-		logger.debug(getName() + ": Powered On");
-
-		while (true) {
-			// if source > dest then going down
-			//if soure < dest doing up
-			//if source = dest here
-			try {
-				this.receivePacket(elevatorPacket);
-				currentFloor = ePacket.getCurrentFloor();
-				destinationFloor = ePacket.getDestinationFloor();
-				
-				if (currentFloor > destinationFloor) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
-					moveFloor(ePacket, Direction.DOWN);
-					
-				} else if (currentFloor < destinationFloor) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
-					moveFloor(ePacket, Direction.UP);
-
-				}
-				
-				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					Utils.Sleep(doorSleepTime);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-					
-					if (destinationFloor != -1) {
-						selectedFloors[ePacket.getDestinationFloor()] = true;
-						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
-					}
-					
-					logger.debug("Arrived destination.\n");
-				}
-				sendArrivalSensorPacket(ePacket);
-			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
-				logger.error(e);
-			}
-		}		
 	}
 	
 	public void moveFloor(ElevatorMessage em, Direction dir) throws ElevatorSubsystemException {
