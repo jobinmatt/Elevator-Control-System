@@ -9,6 +9,7 @@
 package core.Messages;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 
 import core.Direction;
@@ -20,7 +21,7 @@ import core.Utils.SubsystemConstants;
  * @author Rajat Bansal
  * Refactored: Shounak Amladi
  * */
-public class ElevatorMessage implements SubsystemMessage {
+public class  ElevatorMessage implements SubsystemMessage {
 
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
@@ -31,6 +32,9 @@ public class ElevatorMessage implements SubsystemMessage {
 	private int elevatorNumber = -1;//dont leave this empty we neeeeeeeeeeeeeed ITTTTT
 	private boolean arrived = false;
 	private boolean isValid = true;
+	private boolean isValidDoorStatus = true;
+	private int doorStatus;
+
 
 	public ElevatorMessage(boolean arrived, int elevatorNumber) {
 
@@ -49,6 +53,40 @@ public class ElevatorMessage implements SubsystemMessage {
 		this.currentFloor = currentFloor;
 		this.destinationFloor = destinationFloor;
 		this.elevatorNumber = elevNumber;
+	}
+
+	public ElevatorMessage(){}
+
+	public void parseForDoorStatus(byte[] data, int length) {
+		isValidDoorStatus = true;
+		int i = 0;
+
+		if(data[i] != ELEVATOR_FLAG) {
+			isValidDoorStatus = false;
+		}
+		doorStatus = data[i++];
+
+		while (i < length) {
+			if (data[i++] != SPACER) {
+				isValidDoorStatus = false;
+				break;
+			}
+		}
+
+	}
+
+	public byte[] generateDoorRequest(String status) throws CommunicationException{
+
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		stream.write(ELEVATOR_FLAG); // elevator packet flag
+		stream.write(SPACER);
+		try {
+			stream.write(status.getBytes());
+		} catch (IOException e) {
+			throw new CommunicationException("Unable to generate packet", e);
+		}
+		stream.write(SPACER);
+		return stream.toByteArray();
 	}
 
 	public ElevatorMessage(byte[] data, int dataLength) {
@@ -143,7 +181,14 @@ public class ElevatorMessage implements SubsystemMessage {
 
 		return true;
 	}
-	
+
+	public boolean isValidDoorStatus() {
+		if(!isValidDoorStatus) {
+			return false;
+		}
+		return true;
+	}
+
 	public int getCurrentFloor() {
 		
 		return this.currentFloor;
@@ -153,7 +198,11 @@ public class ElevatorMessage implements SubsystemMessage {
 		
 		return this.destinationFloor;
 	}
-	
+
+	public int getDoorStatus() {
+		return doorStatus;
+	}
+
 	public int getElevatorNumber() {
 		
 		return this.elevatorNumber;
@@ -167,6 +216,7 @@ public class ElevatorMessage implements SubsystemMessage {
 	public void setArrivalSensor(boolean isArrive) {
 		this.arrived = isArrive;
 	}
+
 	public String toString() {
 
 		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;

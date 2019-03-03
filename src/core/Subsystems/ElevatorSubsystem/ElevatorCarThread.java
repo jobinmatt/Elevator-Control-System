@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import core.Subsystems.SchedulerSubsystem.Elevator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -87,50 +88,6 @@ public class ElevatorCarThread extends Thread {
 		} catch (ConfigurationParserException | SocketException e) {
 			throw new ElevatorSubsystemException(e);
 		}
-	}
-
-	@Override
-	public void run() {
-		//init
-		logger.debug(getName() + ": Powered On");
-
-		while (true) {
-			// if source > dest then going down
-			//if soure < dest doing up
-			//if source = dest here
-			try {
-				this.receivePacket(elevatorPacket);
-				currentFloor = ePacket.getCurrentFloor();
-				destinationFloor = ePacket.getDestinationFloor();
-				
-				if (currentFloor > destinationFloor) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
-					moveFloor(ePacket, Direction.DOWN);
-					
-				} else if (currentFloor < destinationFloor) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
-					moveFloor(ePacket, Direction.UP);
-
-				}
-				
-				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					Utils.Sleep(doorSleepTime);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-					
-					if (destinationFloor != -1) {
-						selectedFloors[ePacket.getDestinationFloor()] = true;
-						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
-					}
-					
-					logger.debug("Arrived destination.\n");
-				}
-				sendArrivalSensorPacket(ePacket);
-			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
-				logger.error(e);
-			}
-		}		
 	}
 	
 	/**
@@ -207,6 +164,56 @@ public class ElevatorCarThread extends Thread {
 		
 		return this.port; 
 	}
+
+	@Override
+	public void run() {
+		//init
+		logger.debug(getName() + ": Powered On");
+
+		while (true) {
+			// if source > dest then going down
+			//if soure < dest doing up
+			//if source = dest here
+			try {
+				this.receivePacket(elevatorPacket);
+				currentFloor = ePacket.getCurrentFloor();
+				destinationFloor = ePacket.getDestinationFloor();
+				
+				if (currentFloor > destinationFloor) {
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
+					moveFloor(ePacket, Direction.DOWN);
+					
+				} else if (currentFloor < destinationFloor) {
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
+					moveFloor(ePacket, Direction.UP);
+
+				}
+				
+				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
+					sendDoorRequest("Doors opening");
+					if(receiveStatusofDoors(elevatorPacket) == 0) {
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+						Utils.Sleep(doorSleepTime);
+					}
+					sendDoorRequest("Doors closing");
+					if(receiveStatusofDoors(elevatorPacket) == 0) {
+						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+					}
+
+					if (destinationFloor != -1) {
+						selectedFloors[ePacket.getDestinationFloor()] = true;
+						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
+					}
+					
+					logger.debug("Arrived destination.\n");
+				}
+				sendArrivalSensorPacket(ePacket);
+			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
+				logger.error(e);
+			}
+		}		
+	}
 	
 	public void moveFloor(ElevatorMessage em, Direction dir) throws ElevatorSubsystemException {
 		
@@ -235,6 +242,35 @@ public class ElevatorCarThread extends Thread {
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubsystemException(e);
 		}
+	}
+
+	public void sendDoorRequest(String s) throws ElevatorSubsystemException{
+
+		try {
+			ElevatorMessage msg = new ElevatorMessage();
+			int port = ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber);
+			DatagramPacket packet = new DatagramPacket(msg.generateDoorRequest(s), msg.generateDoorRequest("Doors opening").length, schedulerAddress, port);
+			logger.debug("Sending to: " + schedulerAddress+":"+port+" data: "+Arrays.toString(packet.getData()));
+			logger.debug("Elevator Packet: " + s);
+		} catch (CommunicationException e) {
+			throw new ElevatorSubsystemException(e);
+		}
+
+	}
+
+	public int receiveStatusofDoors(DatagramPacket packet) throws IOException, CommunicationException {
+
+		this.elevatorSocket.receive(packet);
+		this.elevatorSocket.receive(packet);
+		ElevatorMessage receivedInfo = new ElevatorMessage();
+		receivedInfo.parseForDoorStatus(packet.getData(), packet.getLength());
+
+		if (!receivedInfo.isValidDoorStatus()) {
+			throw new CommunicationException("Invalid packet data, how you do?");
+		}
+		logger.debug("Received: Door status");
+		return receivedInfo.getDoorStatus();
+
 	}
 	
 	public void receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
