@@ -122,7 +122,7 @@ public class ElevatorSubsystem {
 	 */
 	public void sendPortsToScheduler(int initPort) throws HostActionsException, IOException, CommunicationException {
 		byte[] packetData = createPortsArray((HashMap<String, ElevatorCarThread>) carPool);
-		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), initPort);
+		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, schedulerAddress, initPort);
 	    HostActions.send(packet, Optional.empty());
 	}
 	
@@ -178,6 +178,10 @@ public class ElevatorSubsystem {
 	}
 
 	public static void setSchedulerPorts(Map<Integer, Integer> schedulerPorts) {
-		ElevatorSubsystem.schedulerPorts = schedulerPorts;
+		if(schedulerPorts != null) {
+			ElevatorSubsystem.schedulerPorts = schedulerPorts;
+		}else {
+			logger.error("Failed to setSchedulerPorts");
+		}
 	}
 }

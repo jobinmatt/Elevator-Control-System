@@ -14,6 +14,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,7 +105,7 @@ public class SchedulerSubsystem {
 		});
 	}
 	
-	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException {
+	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException, UnknownHostException {
 		try {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			DatagramSocket receiveSocket = new DatagramSocket(listenPort);
@@ -113,10 +114,18 @@ public class SchedulerSubsystem {
 				HostActions.receive(packet, receiveSocket);
 				receiveSocket.close();
 				if(systemType.equals(SubsystemConstants.ELEVATOR)) {
-					this.setElevatorSubsystemAddress(packet.getAddress());
+					if(packet.getAddress() != null) {
+						this.setElevatorSubsystemAddress(packet.getAddress());
+					}else {
+						this.setElevatorSubsystemAddress(InetAddress.getLocalHost());
+					}
 				}
 				else {
-					this.setFloorSubsystemAddress(packet.getAddress());
+					if(packet.getAddress() != null) {
+						this.setFloorSubsystemAddress(packet.getAddress());
+					}else {
+						this.setFloorSubsystemAddress(InetAddress.getLocalHost());
+					}
 				}
 				convertPacketToMap(packet.getData(), packet.getLength(), systemType);
 			} catch (HostActionsException e) {
@@ -153,12 +162,15 @@ public class SchedulerSubsystem {
 	
 	private void sendSchedulerPorts(int sendPort, SubsystemConstants systemType) throws IOException, HostActionsException {
 		byte[] packetData;
+		InetAddress sendAddress;
 		if(systemType.equals(SubsystemConstants.ELEVATOR)) {
 			packetData = createPortsArray(elevatorListeners, systemType);
+			sendAddress = getElevatorSubsystemAddress();
 		}else {
 			packetData = createPortsArray(floorListeners, systemType);
+			sendAddress = getFloorSubsystemAddress();
 		}
-		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), sendPort);
+		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, sendAddress, sendPort);
 	    HostActions.send(packet, Optional.empty());
 	}
 	
