@@ -192,14 +192,14 @@ public class ElevatorCarThread extends Thread {
 				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 					sendDoorRequest("Doors opening");
-					if(receiveStatusofDoors(elevatorPacket) == 0) {
-						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-						Utils.Sleep(doorSleepTime);
-					}
+					receiveStatusofDoors(elevatorPacket);
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+					Utils.Sleep(doorSleepTime);
+
 					sendDoorRequest("Doors closing");
-					if(receiveStatusofDoors(elevatorPacket) == 0) {
-						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-					}
+					receiveStatusofDoors(elevatorPacket);
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+
 
 					if (destinationFloor != -1) {
 						selectedFloors[ePacket.getDestinationFloor()] = true;
@@ -233,6 +233,7 @@ public class ElevatorCarThread extends Thread {
 			ElevatorMessage arrivalSensor ;
 			arrivalSensor = new ElevatorMessage(currentFloor, -1, elevatorNumber);
 			arrivalSensor.setArrivalSensor(true);
+			arrivalSensor.setDoorsOpen(false);
 			int port = ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber);
 			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerAddress, port);
 			logger.debug("Sending to: " + schedulerAddress+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
@@ -247,29 +248,31 @@ public class ElevatorCarThread extends Thread {
 	public void sendDoorRequest(String s) throws ElevatorSubsystemException{
 
 		try {
-			ElevatorMessage msg = new ElevatorMessage();
+			ElevatorMessage msg = new ElevatorMessage(currentFloor, destinationFloor, elevatorNumber);
+			msg.setDoorsOpen(true);
+			msg.setArrivalSensor(false);
 			int port = ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber);
-			DatagramPacket packet = new DatagramPacket(msg.generateDoorRequest(s), msg.generateDoorRequest("Doors opening").length, schedulerAddress, port);
+			DatagramPacket packet = new DatagramPacket(msg.generatePacketData(), msg.generatePacketData().length, schedulerAddress, port);
 			logger.debug("Sending to: " + schedulerAddress+":"+port+" data: "+Arrays.toString(packet.getData()));
-			logger.debug("Elevator Packet: " + s);
+			logger.debug("Elevator Packet: " + msg.toString());
 		} catch (CommunicationException e) {
 			throw new ElevatorSubsystemException(e);
 		}
 
 	}
 
-	public int receiveStatusofDoors(DatagramPacket packet) throws IOException, CommunicationException {
+	public void receiveStatusofDoors(DatagramPacket packet) throws IOException, CommunicationException {
 
 		this.elevatorSocket.receive(packet);
 		this.elevatorSocket.receive(packet);
-		ElevatorMessage receivedInfo = new ElevatorMessage();
-		receivedInfo.parseForDoorStatus(packet.getData(), packet.getLength());
+		ElevatorMessage receivedInfo = new ElevatorMessage(packet.getData(), packet.getLength());
 
-		if (!receivedInfo.isValidDoorStatus()) {
+
+		if (!receivedInfo.isValid()) {
 			throw new CommunicationException("Invalid packet data, how you do?");
 		}
-		logger.debug("Received: Door status");
-		return receivedInfo.getDoorStatus();
+
+		logger.debug("Received: "+ ePacket.toString());
 
 	}
 	
