@@ -29,6 +29,7 @@ import core.Exceptions.SchedulerSubsystemException;
 import core.Messages.ElevatorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
+import core.Utils.Utils;
 
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
@@ -87,18 +88,24 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				}
 			}
 		}
-		SchedulerRequest event = elevatorEvents.getFirst();
-		try {
-			updateSubsystem(event);
-		} catch (SchedulerSubsystemException | CommunicationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+//		SchedulerRequest event = elevatorEvents.getFirst();
+//		try {
+//			updateSubsystem(event);
+//		} catch (SchedulerSubsystemException | CommunicationException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
 		while (true) {
 			if (!elevatorEvents.isEmpty()) {								
 				try {
 
-//					updateStates(request);
+					if (elevator.getRequestDirection() == Direction.UP) {
+						Collections.sort(elevatorEvents, SchedulerRequest.BY_ASCENDING);
+					} else {
+						Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
+					}
+					updateSubsystem(elevatorEvents.getFirst());
+					
 					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());	
 					
 					byte[] data = elevatorMessage.generatePacketData();
