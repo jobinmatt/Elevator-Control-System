@@ -87,24 +87,25 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				}
 			}
 		}
-		SchedulerRequest event = elevatorEvents.getFirst();
-		try {
-			updateSubsystem(event);
-		} catch (SchedulerSubsystemException | CommunicationException | HostActionsException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+
 		while (true) {
 			if (!elevatorEvents.isEmpty()) {								
 				try {
 
-//					updateStates(request);
+
+					if (elevator.getRequestDirection() == Direction.UP) {
+						Collections.sort(elevatorEvents, SchedulerRequest.BY_ASCENDING);
+					} else {
+						Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
+					}
+					updateSubsystem(elevatorEvents.getFirst());
+					
 					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId());	
 					
 					byte[] data = elevatorMessage.generatePacketData();
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
-//					this.schedulerSubsystem.updateFloorStates(elevatorMessage);
+
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
