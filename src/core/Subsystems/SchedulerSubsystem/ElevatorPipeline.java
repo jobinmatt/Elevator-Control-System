@@ -32,6 +32,7 @@ import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Messages.ElevatorMessage;
+import core.Subsystems.ElevatorSubsystem.ElevatorComponentStates;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 import core.Utils.Utils;
@@ -131,6 +132,17 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 						logger.debug("arrival sensor recieved");
 						updateStates(elevatorRecieveMessage);
 					}
+					
+					if (elevatorRecieveMessage.getDoorStatus() == ElevatorComponentStates.ELEV_DOORS_OPEN) {
+						logger.debug("Door Status Recieved, Open");
+						sendOkayMessage();						
+						elevatorRecieveMessage = recieve();					
+					    if (elevatorRecieveMessage.getDoorStatus() == ElevatorComponentStates.ELEV_DOORS_CLOSE) {
+					    	logger.debug("Door Status Recieved, Closed");
+					    	sendOkayMessage();
+					    }
+					}
+					
 				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException e) {
 					logger.error("Unable to send/recieve packet", e);
 				}
@@ -138,6 +150,15 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		}		
 	}
 
+	
+	public void sendOkayMessage() throws CommunicationException, HostActionsException {
+		
+		ElevatorMessage okayMessage = new ElevatorMessage();
+		byte[] data = okayMessage.generateOkayMessage();
+		DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
+		HostActions.send(elevatorPacket, Optional.of(sendSocket));
+	}
+	
 	public void addEvent(SchedulerRequest request) {
 		synchronized (elevatorEvents) {
 			elevatorEvents.add(request);

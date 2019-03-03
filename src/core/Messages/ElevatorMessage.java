@@ -9,10 +9,14 @@
 package core.Messages;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.System.Logger;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 import core.Direction;
 import core.Exceptions.CommunicationException;
+import core.Subsystems.ElevatorSubsystem.ElevatorComponentStates;
 import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
 import core.Utils.SubsystemConstants;
 /**
@@ -22,9 +26,12 @@ import core.Utils.SubsystemConstants;
  * */
 public class ElevatorMessage implements SubsystemMessage {
 
+	private String OKAY = "OKAY";
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
 	private byte STOP_SIGNAL = (byte) 99;
+	private byte DOOR_OPEN = (byte) 98; 
+	private byte DOOR_CLOSE = (byte) 97;
 	private boolean stop = false;
 
 	private int currentFloor = -1; //Current floor the elevator is on
@@ -35,10 +42,21 @@ public class ElevatorMessage implements SubsystemMessage {
 	private boolean isValid = true;
 	private int errorCode;
 	private int errorFloor;
+	private ElevatorComponentStates doorStatus;
+	private boolean okayStatus = false;
 
+	public ElevatorMessage () {
+		
+	}
+	
 	public ElevatorMessage(boolean stop) {
 		
 		this.stop = stop;
+	}
+	
+	public ElevatorMessage(ElevatorComponentStates doorStatus) {
+		
+		this.doorStatus = doorStatus;
 	}
 	
 	public ElevatorMessage(boolean arrived, int elevatorNumber) {
@@ -74,7 +92,22 @@ public class ElevatorMessage implements SubsystemMessage {
 		isValid = true;
 		int i = 1;
 
-		if (data[1] == STOP_SIGNAL && data[2] == SPACER) {
+		String str = new String(data, 0, dataLength, StandardCharsets.UTF_8);
+		if (str.equals(OKAY)) {
+			okayStatus = true;
+			return;
+		}
+		
+		if (data[i] == DOOR_OPEN && data[2] == SPACER) {
+			doorStatus = ElevatorComponentStates.ELEV_DOORS_OPEN;
+			return;
+		}
+		else if (data[i] == DOOR_CLOSE && data[2] == SPACER) {
+			doorStatus = ElevatorComponentStates.ELEV_DOORS_CLOSE;
+			return;
+		}
+		
+		else if (data[i] == STOP_SIGNAL && data[2] == SPACER) {
 			stop = true;
 			return;
 		}
@@ -136,6 +169,18 @@ public class ElevatorMessage implements SubsystemMessage {
 				return stream.toByteArray();
 			}
 			
+			if (doorStatus != null) {
+				if (doorStatus == ElevatorComponentStates.ELEV_DOORS_OPEN) {
+					stream.write(DOOR_OPEN);
+					stream.write(SPACER);
+					return stream.toByteArray();					
+				} else if (doorStatus == ElevatorComponentStates.ELEV_DOORS_CLOSE) {
+					stream.write(DOOR_CLOSE);
+					stream.write(SPACER);
+					return stream.toByteArray()	;				
+				}
+			}
+			
 			if (currentFloor != -1 ) {
 				stream.write(currentFloor);
 			} else {
@@ -194,6 +239,19 @@ public class ElevatorMessage implements SubsystemMessage {
 			throw new CommunicationException("Unable to generate packet", e);
 		}
 	}
+	
+	public byte[] generateOkayMessage() throws CommunicationException {
+
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			stream.write(OKAY.getBytes());
+			isValid = true;
+			return stream.toByteArray();
+		}  catch (NullPointerException | IOException e) {
+			throw new CommunicationException("Unable to generate packet", e);
+		}
+	}
+	
 	public boolean isValid() {
 
 		if (!isValid) {
@@ -236,9 +294,21 @@ public class ElevatorMessage implements SubsystemMessage {
 	public void setArrivalSensor(boolean isArrive) {
 		this.arrived = isArrive;
 	}
+	
 	public boolean isStop() {
 		return this.stop;
 	}
+	
+	public ElevatorComponentStates getDoorStatus() {
+		
+		return doorStatus;
+	}
+	
+	public boolean getOkayStatus() {
+		
+		return okayStatus;
+	}
+	
 	public String toString() {
 
 		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
