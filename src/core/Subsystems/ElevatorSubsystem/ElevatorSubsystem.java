@@ -178,6 +178,10 @@ public class ElevatorSubsystem {
 	}
 
 	public static void setSchedulerPorts(Map<Integer, Integer> schedulerPorts) {
-		ElevatorSubsystem.schedulerPorts = schedulerPorts;
+		if(schedulerPorts != null) {
+			ElevatorSubsystem.schedulerPorts = schedulerPorts;
+		}else {
+			logger.error("Failed to setSchedulerPorts");
+		}
 	}
 }
