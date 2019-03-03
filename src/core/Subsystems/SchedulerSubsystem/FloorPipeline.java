@@ -11,6 +11,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,6 +53,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		String threadName = FLOOR_PIPELINE + portOffset;
 		this.setName(threadName);
 		this.floorSubSystemAddress = subsystem.getFloorSubsystemAddress();
+		this.sendPort = schedulerSubsystem.getFloorPorts().get(portOffset);
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
@@ -101,6 +103,12 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		}
 	}
 
+	public void sendElevatorStateToFloor(FloorMessage fMsg) throws HostActionsException, CommunicationException {
+		byte[] data = fMsg.generatePacketData();
+		DatagramPacket fPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
+		HostActions.send(fPacket, Optional.of(sendSocket));
+	}
+	
 	public void terminate() {		
 		this.receiveSocket.close();
 	}

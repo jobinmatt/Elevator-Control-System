@@ -38,6 +38,8 @@ import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Subsystems.ElevatorSubsystem.ElevatorCarThread;
+import core.Messages.ElevatorMessage;
+import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
@@ -331,25 +333,27 @@ public class SchedulerSubsystem {
 		Elevator tempElevator = null;
 		for (int i = 1; i <= numberOfElevators; i++) {
 			Elevator elevator = elevatorStatus.get(i);
-			if (elevator.getNumRequests() == 0) {
-				return elevator;
-			} else {
-				if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
-					if(tempElevator == null) {
-						tempElevator = elevator;
-					}
-					if (elevator.getRequestDirection().equals(Direction.DOWN)
-							&& elevator.getCurrentFloor() > request.getSourceFloor()) {
-						if(elevator.getNumRequests() < tempElevator.getNumRequests()) {
+			if (elevator != null) {
+				if (elevator.getNumRequests() == 0) {
+					return elevator;
+				} else {
+					if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
+						if (tempElevator == null) {
 							tempElevator = elevator;
 						}
-					} else if (elevator.getRequestDirection().equals(Direction.UP)
-							&& elevator.getCurrentFloor() < request.getDestFloor()) {
-						if(elevator.getNumRequests() < tempElevator.getNumRequests()) {
-							tempElevator = elevator;
+						if (elevator.getRequestDirection().equals(Direction.DOWN)
+								&& elevator.getCurrentFloor() > request.getSourceFloor()) {
+							if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
+								tempElevator = elevator;
+							}
+						} else if (elevator.getRequestDirection().equals(Direction.UP)
+								&& elevator.getCurrentFloor() < request.getDestFloor()) {
+							if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
+								tempElevator = elevator;
+							}
 						}
 					}
-				}
+				} 
 			}
 		}
 		return tempElevator;
@@ -359,6 +363,22 @@ public class SchedulerSubsystem {
 		synchronized (elevatorStatus) {
 			elevatorStatus.put(elevator.getElevatorId(), elevator);
 			this.reEvaluateEvents();
+		}
+	}
+	
+	public void updateFloorStates (ElevatorMessage elevator) throws HostActionsException, CommunicationException {
+		Direction dir;
+		if (elevator.getCurrentFloor()>elevator.getDestinationFloor()) 
+			dir = Direction.DOWN;
+		else if (elevator.getCurrentFloor()<elevator.getDestinationFloor())
+			dir = Direction.UP;
+		else
+			dir = Direction.STATIONARY;
+			
+		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, 0, 0); // source floor will be current floor, and dont need dest becuase we dont care
+		floorState.setElevatorNum(elevator.getElevatorNumber());
+		for (FloorPipeline listeners : this.floorListeners) {
+			listeners.sendElevatorStateToFloor(floorState);
 		}
 	}
 

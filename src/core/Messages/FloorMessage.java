@@ -36,8 +36,8 @@ public class FloorMessage implements SubsystemMessage {
 	private boolean isValid = true;
 	private int errorCode;
 	private int errorElevator;
-
-
+	
+	private int elevatorNum =0; //this is needed for updateing elevator states in the floor
 	/**
 	 *
 	 * @param direction Direction
@@ -65,8 +65,9 @@ public class FloorMessage implements SubsystemMessage {
 		isValid = true;
 
 		//format:
-		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  carButton SPACER errorCode SPACER errorElevator
-		//	0			1			2		3			4		5		6        7			8       9       10
+
+		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  targetFloor SPACER elevNum SPACER errorCode SPACER errorElevator SPACER
+		//	0			1			2		3			4		5		6        7       8      9			10		11			12		13
 		// extract read or write request
 
 		if (data[1] == UP[0] && data[2] == UP[1]) {
@@ -96,16 +97,22 @@ public class FloorMessage implements SubsystemMessage {
 		if (data[i++] != SPACER) { //i = 7
 			isValid = false;
 		}
-		
-		errorCode = data[i++];
+		this.elevatorNum = data[i++];
 		
 		if (data[i++] != SPACER) { //i = 9
+			isValid = false;
+		}
+		errorCode = data[i++];
+		
+		if (data[i++] != SPACER) { //i = 11
 			isValid = false;
 		}
 		
 		errorElevator = data[i++];
 		
-
+		if (data[i++] != SPACER) { //i = 13
+			isValid = false;
+		}
 		// must be zero at end
 		while (i < dataLength) {
 			if (data[i++] != SPACER) {
@@ -147,6 +154,10 @@ public class FloorMessage implements SubsystemMessage {
 
 			stream.write(targetFloor); //add the button pressed in the elevator
 
+			stream.write(SPACER);
+			
+			stream.write(elevatorNum);
+			
 			stream.write(SPACER);
 			
 			stream.write(errorCode);
@@ -202,7 +213,12 @@ public class FloorMessage implements SubsystemMessage {
 	public int getErrorCode() {
 		return this.errorCode;
 	}
-
+	public void setElevatorNum(int num) {
+		this.elevatorNum = num;
+	}
+	public int getElevatorNum() {
+		return this.elevatorNum;
+	}
 	public int getErrorElevator() {
 		return this.errorElevator;
 	}
