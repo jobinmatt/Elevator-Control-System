@@ -122,10 +122,20 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					long endTime = System.currentTimeMillis();
 					
-					if (!((endTime - startTime) <= 5500)) {
-						//(ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000) + 500)
+					int elevatorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
+					int elevatorDoorTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
+					
+					if (!((endTime - startTime) <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
 						schedulerSubsystem.removeElevator(elevator.getElevatorId());
 						break;
+					}
+					
+					if (elevatorRecieveMessage.getDoorFailureStatus()) {
+						ElevatorMessage msg = new ElevatorMessage();	
+						data = msg.generateForceCloseMessage();
+						DatagramPacket packet = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
+						HostActions.send(packet, Optional.of(sendSocket));
+						elevatorRecieveMessage = recieve();
 					}
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
@@ -133,17 +143,8 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 						updateStates(elevatorRecieveMessage);
 					}
 					
-					if (elevatorRecieveMessage.getDoorStatus() == ElevatorComponentStates.ELEV_DOORS_OPEN) {
-						logger.debug("Door Status Recieved, Open");
-						sendOkayMessage();						
-						elevatorRecieveMessage = recieve();					
-					    if (elevatorRecieveMessage.getDoorStatus() == ElevatorComponentStates.ELEV_DOORS_CLOSE) {
-					    	logger.debug("Door Status Recieved, Closed");
-					    	sendOkayMessage();
-					    }
-					}
 					
-				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException e) {
+				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException | ConfigurationParserException e) {
 					logger.error("Unable to send/recieve packet", e);
 				}
 			}
@@ -154,7 +155,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	public void sendOkayMessage() throws CommunicationException, HostActionsException {
 		
 		ElevatorMessage okayMessage = new ElevatorMessage();
-		byte[] data = okayMessage.generateOkayMessage();
+		byte[] data = okayMessage.generateForceCloseMessage();
 		DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 		HostActions.send(elevatorPacket, Optional.of(sendSocket));
 	}

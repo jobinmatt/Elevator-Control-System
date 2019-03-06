@@ -92,10 +92,18 @@ public class InputParser {
 							throw new InputParserException("Floor Button string is not valid");
 						}
 
-						simulationEvents
-						.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
-								floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER)), Integer.valueOf(eventInfo.get(ERROR_CODE_HEADER)), Integer.valueOf(eventInfo.get(ERROR_FLOOR_HEADER))));
-
+						if (Integer.parseInt(eventInfo.get(ERROR_CODE_HEADER)) == 2) {
+							simulationEvents
+									.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+											floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER)),
+											Integer.valueOf(eventInfo.get(ERROR_CODE_HEADER)), -1));
+						} else {
+							simulationEvents
+							.add(new SimulationRequest(todayDate, Integer.valueOf(eventInfo.get(FLOOR_HEADER)),
+									floorButtonDirection, Integer.valueOf(eventInfo.get(CAR_BUTTON_HEADER)),
+									Integer.valueOf(eventInfo.get(ERROR_CODE_HEADER)),
+									Integer.valueOf(eventInfo.get(ERROR_FLOOR_HEADER))));
+						}
 						logger.debug("SimulationEvent: " + eventInfo.toString() + " created");
 					}
 				} else {
@@ -123,16 +131,21 @@ public class InputParser {
 
 		if (eventInfo.containsKey(TIME_HEADER) && eventInfo.containsKey(FLOOR_BUTTON_HEADER) &&
 				eventInfo.containsKey(FLOOR_HEADER) && eventInfo.containsKey(CAR_BUTTON_HEADER) &&
-				eventInfo.containsKey(ERROR_CODE_HEADER) && eventInfo.containsKey(ERROR_FLOOR_HEADER)) {
+				eventInfo.containsKey(ERROR_CODE_HEADER)) {
 
 			if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(FLOOR_BUTTON_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(FLOOR_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(CAR_BUTTON_HEADER)) &&
-					!StringUtils.isEmpty(eventInfo.get(ERROR_FLOOR_HEADER)) &&
 					!StringUtils.isEmpty(eventInfo.get(ERROR_CODE_HEADER))) {
 
-				if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
+				if(isNumber(eventInfo.get(ERROR_CODE_HEADER)) && Integer.parseInt(eventInfo.get(ERROR_CODE_HEADER)) == 2) {
+					if(isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
+						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && eventInfo.get(ERROR_FLOOR_HEADER) == null) {
+						return true;
+					}
+				}
+				else if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
 						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && isNumber(eventInfo.get(ERROR_FLOOR_HEADER))) {
 					return true;
 				}

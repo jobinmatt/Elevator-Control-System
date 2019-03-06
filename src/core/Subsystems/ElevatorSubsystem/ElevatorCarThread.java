@@ -38,6 +38,8 @@ public class ElevatorCarThread extends Thread {
 
 	private static final int DATA_SIZE = 1024;
 	private static final int HARD_CODE = 1;
+	private static final int TRANSIENT_CODE = 2;
+	private static final int WAIT_TIME = 3000;
 	private boolean[] selectedFloors; //if true then its is pressed
 	private Map<ElevatorComponentConstants, ElevatorComponentStates> carProperties;
 	private int numberOfFloors;
@@ -105,7 +107,7 @@ public class ElevatorCarThread extends Thread {
 				destinationFloor = ePacket.getDestinationFloor();
 
 				if(ePacket.getErrorCode() == HARD_CODE && ePacket.getErrorFloor() == currentFloor) {
-					Utils.Sleep(floorSleepTime + 2000);
+					Utils.Sleep(floorSleepTime + WAIT_TIME);
 					sendArrivalSensorPacket();
 					logger.info("Hard error message received, elevator thread being interrupted");
 					break;
@@ -123,30 +125,29 @@ public class ElevatorCarThread extends Thread {
 				
 				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
 
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
-					
-					sendDoorRequest(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					receivePacket(elevatorPacket);
-					
-					if (ePacket.getOkayStatus()) {
-						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					}
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);					
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
 					
 					Utils.Sleep(doorSleepTime);
-					
-					sendDoorRequest(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					receivePacket(elevatorPacket);
-					
-					if (ePacket.getOkayStatus()) {
-						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-					}
 					
 					if (destinationFloor != -1) {
 						selectedFloors[ePacket.getDestinationFloor()] = true;
 						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
 					}
 					
-					logger.debug("Arrived destination.\n");
+					if (ePacket.getErrorCode() == TRANSIENT_CODE) {
+						logger.info("Unable to Close Doors");
+						sendFailureDoorRequest();
+						this.receivePacket(elevatorPacket);
+						if (ePacket.getForceCloseStatus()) {
+							logger.info("Force Closing door in " + WAIT_TIME/1000 + " seconds");
+							Utils.Sleep(WAIT_TIME);
+						}
+					}
+					
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+										
+					logger.debug("Arrived destination\n");
 				}
 				sendArrivalSensorPacket();
 			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
@@ -263,13 +264,13 @@ public class ElevatorCarThread extends Thread {
 		}
 	}
 	
-	public void sendDoorRequest(ElevatorComponentStates status) throws ElevatorSubsystemException{
+	public void sendFailureDoorRequest() throws ElevatorSubsystemException{
 
 		try {
-			ElevatorMessage msg = new ElevatorMessage(status);
-			msg.setArrivalSensor(true);
+			ElevatorMessage msg = new ElevatorMessage();
+			byte[] data = msg.generateDoorFailureMessage();
 			int port = ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber);
-			DatagramPacket packet = new DatagramPacket(msg.generatePacketData(), msg.generatePacketData().length, schedulerAddress, port);
+			DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, port);
 			this.elevatorSocket.send(packet);
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubsystemException(e);
