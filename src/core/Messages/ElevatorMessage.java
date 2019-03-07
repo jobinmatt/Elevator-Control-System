@@ -9,10 +9,14 @@
 package core.Messages;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.System.Logger;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 import core.Direction;
 import core.Exceptions.CommunicationException;
+import core.Subsystems.ElevatorSubsystem.ElevatorComponentStates;
 import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
 import core.Utils.SubsystemConstants;
 /**
@@ -22,16 +26,41 @@ import core.Utils.SubsystemConstants;
  * */
 public class ElevatorMessage implements SubsystemMessage {
 
+	private String FORCE_CLOSE = "Force Close";
+	private String DOOR_FAILURE = "Door Failure";
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
+//	private byte STOP_SIGNAL = (byte) 99;
+//	private byte DOOR_OPEN = (byte) 98; 
+//	private byte DOOR_CLOSE = (byte) 97;
+	private boolean stop = false;
 
 	private int currentFloor = -1; //Current floor the elevator is on
 	private int destinationFloor = -1; //where it is going to stop next
 //	private int targetFloor = -1; //Floor requested by user (end destination)
-	private int elevatorNumber = -1;//dont leave this empty we neeeeeeeeeeeeeed ITTTTT
+	private int elevatorNumber = -1;
 	private boolean arrived = false;
 	private boolean isValid = true;
+	private int errorCode;
+	private int errorFloor;
+	private ElevatorComponentStates doorStatus;
+	private boolean forceCloseStatus = false;
+	private boolean doorFailureStatus = false;
 
+	public ElevatorMessage () {
+		
+	}
+	
+//	public ElevatorMessage(boolean stop) {
+//		
+//		this.stop = stop;
+//	}
+//	
+//	public ElevatorMessage(ElevatorComponentStates doorStatus) {
+//		
+//		this.doorStatus = doorStatus;
+//	}
+	
 	public ElevatorMessage(boolean arrived, int elevatorNumber) {
 
 		this.arrived = arrived; 
@@ -50,12 +79,44 @@ public class ElevatorMessage implements SubsystemMessage {
 		this.destinationFloor = destinationFloor;
 		this.elevatorNumber = elevNumber;
 	}
+	
+	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber, int errorCode, int errorFloor) {
+
+		this.currentFloor = currentFloor;
+		this.destinationFloor = destinationFloor;
+		this.elevatorNumber = elevNumber;
+		this.errorCode = errorCode; 
+		this.errorFloor = errorFloor;
+	}
 
 	public ElevatorMessage(byte[] data, int dataLength) {
 
 		isValid = true;
 		int i = 1;
 
+		String str = new String(data, 0, dataLength, StandardCharsets.UTF_8);
+		if (str.equals(FORCE_CLOSE)) {
+			forceCloseStatus = true;
+			return;
+		} else if (str.equals(DOOR_FAILURE)) {
+			doorFailureStatus = true;
+			return;
+		}
+			
+//		if (data[i] == DOOR_OPEN && data[2] == SPACER) {
+//			doorStatus = ElevatorComponentStates.ELEV_DOORS_OPEN;
+//			return;
+//		}
+//		else if (data[i] == DOOR_CLOSE && data[2] == SPACER) {
+//			doorStatus = ElevatorComponentStates.ELEV_DOORS_CLOSE;
+//			return;
+//		}
+//		
+//		else if (data[i] == STOP_SIGNAL && data[2] == SPACER) {
+//			stop = true;
+//			return;
+//		}
+		
 		currentFloor = data[i++];
 		// must be zero
 		if (data[i++] != SPACER) {
@@ -79,7 +140,19 @@ public class ElevatorMessage implements SubsystemMessage {
 			isValid = false;
 		}
 
-		elevatorNumber = data[i++];
+		elevatorNumber = data[i++];		
+		// must be zero
+		if (data[i++] != SPACER) {
+			isValid = false;
+		}
+
+		errorCode = data[i++];
+		// must be zero
+		if (data[i++] != SPACER) {
+			isValid = false;
+		}
+		
+		errorFloor = data[i++];
 		// must be zero at end
 		while (i < dataLength) {
 			if (data[i++] != SPACER) {
@@ -95,6 +168,24 @@ public class ElevatorMessage implements SubsystemMessage {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(ELEVATOR_FLAG); // elevator packet flag
 
+//			if (stop) {
+//				stream.write(STOP_SIGNAL);
+//				stream.write(SPACER);
+//				return stream.toByteArray();
+//			}
+//			
+//			if (doorStatus != null) {
+//				if (doorStatus == ElevatorComponentStates.ELEV_DOORS_OPEN) {
+//					stream.write(DOOR_OPEN);
+//					stream.write(SPACER);
+//					return stream.toByteArray();					
+//				} else if (doorStatus == ElevatorComponentStates.ELEV_DOORS_CLOSE) {
+//					stream.write(DOOR_CLOSE);
+//					stream.write(SPACER);
+//					return stream.toByteArray()	;				
+//				}
+//			}
+			
 			if (currentFloor != -1 ) {
 				stream.write(currentFloor);
 			} else {
@@ -129,12 +220,55 @@ public class ElevatorMessage implements SubsystemMessage {
 			
 			// add space
 			stream.write(SPACER);
+			
+			if (errorCode != -1 ) {
+				stream.write(errorCode);
+			} else {
+				stream.write(SPACER);
+			}
+			
+			// add space
+			stream.write(SPACER);
+			
+			if (errorFloor != -1 ) {
+				stream.write(errorFloor);
+			} else {
+				stream.write(SPACER);
+			}
+			
+			// add space
+			stream.write(SPACER);
 
 			return stream.toByteArray();
 		} catch (NullPointerException e) {
 			throw new CommunicationException("Unable to generate packet", e);
 		}
 	}
+	
+	public byte[] generateForceCloseMessage() throws CommunicationException {
+
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			stream.write(FORCE_CLOSE.getBytes());
+			isValid = true;
+			return stream.toByteArray();
+		}  catch (NullPointerException | IOException e) {
+			throw new CommunicationException("Unable to generate packet", e);
+		}
+	}
+	
+	public byte[] generateDoorFailureMessage() throws CommunicationException {
+
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			stream.write(DOOR_FAILURE.getBytes());
+			isValid = true;
+			return stream.toByteArray();
+		}  catch (NullPointerException | IOException e) {
+			throw new CommunicationException("Unable to generate packet", e);
+		}
+	}
+	
 	public boolean isValid() {
 
 		if (!isValid) {
@@ -164,9 +298,41 @@ public class ElevatorMessage implements SubsystemMessage {
 		return arrived;
 	}
 	
+	public int getErrorCode() {
+		
+		return errorCode;
+	}
+	
+	public int getErrorFloor() {
+		
+		return errorFloor;
+	}
+	
 	public void setArrivalSensor(boolean isArrive) {
+		
 		this.arrived = isArrive;
 	}
+	
+	public boolean isStop() {
+		
+		return this.stop;
+	}
+	
+	public ElevatorComponentStates getDoorStatus() {
+		
+		return doorStatus;
+	}
+	
+	public boolean getForceCloseStatus() {
+		
+		return forceCloseStatus;
+	}
+	
+	public boolean getDoorFailureStatus() {
+		
+		return doorFailureStatus;
+	}
+	
 	public String toString() {
 
 		return "Current Floor: " + currentFloor + " Destination Floor: " + destinationFloor + " Elevator Number: " + elevatorNumber;
@@ -180,6 +346,6 @@ public class ElevatorMessage implements SubsystemMessage {
 		}else {
 			dir = Direction.UP;
 		}
-		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.destinationFloor );
+		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.destinationFloor,0,0 );
 	}
 }

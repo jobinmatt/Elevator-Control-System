@@ -37,6 +37,9 @@ public class ElevatorCarThread extends Thread {
 	private static Logger logger = LogManager.getLogger(ElevatorCarThread.class);
 
 	private static final int DATA_SIZE = 1024;
+	private static final int HARD_CODE = 1;
+	private static final int TRANSIENT_CODE = 2;
+	private static final int WAIT_TIME = 3000;
 	private boolean[] selectedFloors; //if true then its is pressed
 	private Map<ElevatorComponentConstants, ElevatorComponentStates> carProperties;
 	private int numberOfFloors;
@@ -63,7 +66,7 @@ public class ElevatorCarThread extends Thread {
 	public ElevatorCarThread(String name, int numFloors, InetAddress schedulerAddress) throws ElevatorSubsystemException {
 		
 		super (name);
-		name = name;
+		this.name = name;
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfFloors = numFloors;
 		this.setSentArrivalSensor(false);
@@ -102,6 +105,13 @@ public class ElevatorCarThread extends Thread {
 				this.receivePacket(elevatorPacket);
 				currentFloor = ePacket.getCurrentFloor();
 				destinationFloor = ePacket.getDestinationFloor();
+
+				if(ePacket.getErrorCode() == HARD_CODE && ePacket.getErrorFloor() == currentFloor) {
+					Utils.Sleep(floorSleepTime + WAIT_TIME);
+					sendArrivalSensorPacket();
+					logger.info("Hard error message received, elevator thread being interrupted");
+					break;
+				}
 				
 				if (currentFloor > destinationFloor) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
@@ -114,19 +124,32 @@ public class ElevatorCarThread extends Thread {
 				}
 				
 				if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
-					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
+
+					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);					
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
+					
 					Utils.Sleep(doorSleepTime);
-					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
 					
 					if (destinationFloor != -1) {
 						selectedFloors[ePacket.getDestinationFloor()] = true;
 						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
 					}
 					
-					logger.debug("Arrived destination.\n");
+					if (ePacket.getErrorCode() == TRANSIENT_CODE) {
+						logger.info("Unable to Close Doors");
+						sendFailureDoorRequest();
+						this.receivePacket(elevatorPacket);
+						if (ePacket.getForceCloseStatus()) {
+							logger.info("Force Closing door in " + WAIT_TIME/1000 + " seconds");
+							Utils.Sleep(WAIT_TIME);
+						}
+					}
+					
+					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
+										
+					logger.debug("Arrived destination\n");
 				}
-				sendArrivalSensorPacket(ePacket);
+				sendArrivalSensorPacket();
 			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
 				logger.error(e);
 			}
@@ -210,7 +233,12 @@ public class ElevatorCarThread extends Thread {
 	
 	public void moveFloor(ElevatorMessage em, Direction dir) throws ElevatorSubsystemException {
 		
-		Utils.Sleep(floorSleepTime);
+		moveFloor(em, dir, floorSleepTime);
+	}
+	
+	public void moveFloor(ElevatorMessage em, Direction dir, int time) throws ElevatorSubsystemException {
+		
+		Utils.Sleep(time);
 		
 		if (dir == Direction.UP) {
 			currentFloor++;
@@ -220,7 +248,7 @@ public class ElevatorCarThread extends Thread {
 		}
 	}
 	
-	public void sendArrivalSensorPacket(ElevatorMessage em) throws ElevatorSubsystemException {
+	public void sendArrivalSensorPacket() throws ElevatorSubsystemException {
 		
 		try {
 			ElevatorMessage arrivalSensor ;
@@ -230,8 +258,20 @@ public class ElevatorCarThread extends Thread {
 			DatagramPacket arrivalSensorPacket = new DatagramPacket(arrivalSensor.generatePacketData(), arrivalSensor.generatePacketData().length, schedulerAddress, port);
 			logger.debug("Sending to: " + schedulerAddress+":"+port+" data: "+Arrays.toString(arrivalSensorPacket.getData()));
 			logger.debug("Elevator Packet "+ arrivalSensor.toString());
-//			logger.debug("sent Arrival Sensor.");
 			this.elevatorSocket.send(arrivalSensorPacket);
+		} catch (CommunicationException | IOException e) {
+			throw new ElevatorSubsystemException(e);
+		}
+	}
+	
+	public void sendFailureDoorRequest() throws ElevatorSubsystemException{
+
+		try {
+			ElevatorMessage msg = new ElevatorMessage();
+			byte[] data = msg.generateDoorFailureMessage();
+			int port = ElevatorSubsystem.getSchedulerPorts().get(elevatorNumber);
+			DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, port);
+			this.elevatorSocket.send(packet);
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubsystemException(e);
 		}

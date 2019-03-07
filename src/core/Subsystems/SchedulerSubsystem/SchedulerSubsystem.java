@@ -17,8 +17,10 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -240,31 +242,58 @@ public class SchedulerSubsystem {
 	public synchronized void scheduleEvent(SchedulerRequest request) throws SchedulerSubsystemException, CommunicationException {
 		if(request != null) {
 			Elevator selectedElevator = getBestElevator(request);
-			if(selectedElevator != null) {
+			if (selectedElevator != null) {
 				request.setElevatorNumber(selectedElevator.getElevatorId());
-				if(selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
+				if (selectedElevator.getCurrentFloor() != request.getSourceFloor()) {
 					Direction dir = null;
-					if(selectedElevator.getCurrentFloor() > request.getDestFloor()) {
+					if (selectedElevator.getCurrentFloor() > request.getDestFloor()) {
 						dir = Direction.DOWN;
 					} else {
 						dir = Direction.UP;
 					}
-					SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(), request.getReceivedPort(), SubsystemConstants.FLOOR, 
-							selectedElevator.getCurrentFloor(), dir, request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
+					SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(),
+							request.getReceivedPort(), SubsystemConstants.FLOOR, selectedElevator.getCurrentFloor(),
+							dir, request.getSourceFloor(), selectedElevator.getElevatorId(),
+							request.getTargetFloor(), request.getErrorCode(), request.getErrorFloor());
 					elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(tempRequest);
-					logger.debug("\n" +"Intermediate event added " + tempRequest.toString() + " FOR Elevator " + selectedElevator.getElevatorId());
+					logger.debug("Intermediate event added " + tempRequest.toString() + " FOR Elevator "
+							+ selectedElevator.getElevatorId());
 					selectedElevator.incRequests();
 				}
-				logger.debug("\n" +"Event added " + request.toString() + " FOR Elevator " + selectedElevator.getElevatorId());
+				logger.debug("Event added " + request.toString() + " FOR Elevator "
+						+ selectedElevator.getElevatorId());
 				elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(request);
 				selectedElevator.incRequests();
 			} else {
 				unscheduledEvents.add(request);
-			}
+			} 
 		}
 	}
 	
-	public void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
+	
+	public void removeElevator(int id) throws SchedulerSubsystemException, CommunicationException {
+		
+		LinkedList<SchedulerRequest> elevatorEvents = elevatorListeners[id - 1].getElevatorEvents();
+		Elevator selectedElevator = elevatorStatus.get(id);
+		List<SchedulerRequest> tempList = new ArrayList<>();
+		for (SchedulerRequest event: elevatorEvents) {
+			if (event.getDestFloor() == selectedElevator.getCurrentFloor() && event.getRequestDirection().equals(selectedElevator.getRequestDirection())) {
+				tempList.add(event);
+			}
+			if(event.getErrorFloor() == selectedElevator.getCurrentFloor()) {
+				tempList.add(event);
+			}
+		}
+		if (!tempList.isEmpty()) {
+			logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
+		}
+		elevatorEvents.removeAll(tempList);
+		unscheduledEvents.addAll(elevatorEvents);
+		elevatorStatus.remove(id);
+		reEvaluateEvents();
+	}
+	
+ 	public void reEvaluateEvents() throws SchedulerSubsystemException, CommunicationException {
 		List<SchedulerRequest> tempList = new ArrayList<>();
 		if(!unscheduledEvents.isEmpty()) {
 			for(SchedulerRequest request : unscheduledEvents) {
@@ -280,7 +309,7 @@ public class SchedulerSubsystem {
 								dir = Direction.UP;
 							}
 							SchedulerRequest tempRequest = new SchedulerRequest(request.getReceivedAddress(), request.getReceivedPort(), SubsystemConstants.FLOOR, 
-									selectedElevator.getCurrentFloor(), dir, request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor());
+									selectedElevator.getCurrentFloor(), dir, request.getSourceFloor(), selectedElevator.getElevatorId(), request.getTargetFloor(), 0, 0);
 							elevatorListeners[selectedElevator.getElevatorId() - 1].addEvent(tempRequest);
 							logger.debug("\n" +"Intermediate event added " + tempRequest.toString() + " FOR Elevator " + selectedElevator.getElevatorId());
 							selectedElevator.incRequests();
@@ -302,25 +331,27 @@ public class SchedulerSubsystem {
 		Elevator tempElevator = null;
 		for (int i = 1; i <= numberOfElevators; i++) {
 			Elevator elevator = elevatorStatus.get(i);
-			if (elevator.getNumRequests() == 0) {
-				return elevator;
-			} else {
-				if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
-					if(tempElevator == null) {
-						tempElevator = elevator;
-					}
-					if (elevator.getRequestDirection().equals(Direction.DOWN)
-							&& elevator.getCurrentFloor() > request.getSourceFloor()) {
-						if(elevator.getNumRequests() < tempElevator.getNumRequests()) {
+			if (elevator != null) {
+				if (elevator.getNumRequests() == 0) {
+					return elevator;
+				} else {
+					if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
+						if (tempElevator == null) {
 							tempElevator = elevator;
 						}
-					} else if (elevator.getRequestDirection().equals(Direction.UP)
-							&& elevator.getCurrentFloor() < request.getDestFloor()) {
-						if(elevator.getNumRequests() < tempElevator.getNumRequests()) {
-							tempElevator = elevator;
+						if (elevator.getRequestDirection().equals(Direction.DOWN)
+								&& elevator.getCurrentFloor() > request.getSourceFloor()) {
+							if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
+								tempElevator = elevator;
+							}
+						} else if (elevator.getRequestDirection().equals(Direction.UP)
+								&& elevator.getCurrentFloor() < request.getDestFloor()) {
+							if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
+								tempElevator = elevator;
+							}
 						}
 					}
-				}
+				} 
 			}
 		}
 		return tempElevator;
@@ -342,7 +373,7 @@ public class SchedulerSubsystem {
 		else
 			dir = Direction.STATIONARY;
 			
-		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1); // source floor will be current floor, and dont need dest becuase we dont care
+		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, 0, 0); // source floor will be current floor, and dont need dest becuase we dont care
 		floorState.setElevatorNum(elevator.getElevatorNumber());
 		for (FloorPipeline listeners : this.floorListeners) {
 			listeners.sendElevatorStateToFloor(floorState);
