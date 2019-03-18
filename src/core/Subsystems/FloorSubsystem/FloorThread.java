@@ -164,4 +164,7 @@ public class FloorThread extends Thread {
 		updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
 		logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
 	}
+	public int[] getElevatorFloorStates() {
+		return elevatorFloorStates;
+	}
 }

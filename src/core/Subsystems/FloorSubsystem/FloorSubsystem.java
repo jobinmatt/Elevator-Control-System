@@ -226,4 +226,7 @@ public class FloorSubsystem {
 		this.floorInitPort = floorInitPort;
 	}
 
+	public FloorThread getFirstFloor() {
+		return floors.get(FLOOR_NAME+"1");
+	}
 }
