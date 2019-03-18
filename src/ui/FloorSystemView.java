@@ -53,7 +53,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 		this.setTitle("Elevator Status");
 		this.pack();
 		this.setVisible(true);
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
 	}
 	
 	public FloorSystemView(int elevNum, FloorSubsystem mySub) {
