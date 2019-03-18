@@ -17,12 +17,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.Timer;
 import core.ConfigurationParser;
 import core.Direction;
 import core.Exceptions.CommunicationException;
@@ -94,13 +94,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				}
 			}
 		}
-//		SchedulerRequest event = elevatorEvents.getFirst();
-//		try {
-//			updateSubsystem(event);
-//		} catch (SchedulerSubsystemException | CommunicationException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
+
 		while (true) {
 			if (!elevatorEvents.isEmpty()) {								
 				try {
@@ -118,14 +112,15 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
 					
-					long startTime = System.currentTimeMillis();
+					Timer timer = new Timer();
+					timer.start();
 					ElevatorMessage elevatorRecieveMessage = recieve();
-					long endTime = System.currentTimeMillis();
+					timer.end();
 					
 					int elevatorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
 					int elevatorDoorTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
 					
-					if (!((endTime - startTime) <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
+					if (!(timer.getDelta() <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
 						schedulerSubsystem.removeElevator(elevator.getElevatorId());
 						break;
 					}
@@ -139,7 +134,8 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					}
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
-						logger.debug("arrival sensor recieved");
+						timer.end();
+						logger.debug("Arrival sensor recieved: " + timer.getDelta() + " nanoseconds");
 						updateStates(elevatorRecieveMessage);
 					}
 					

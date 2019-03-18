@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import core.ConfigurationParser;
 import core.Direction;
 import core.LoggingManager;
+import core.Timer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubsystemException;
@@ -102,7 +103,12 @@ public class ElevatorCarThread extends Thread {
 			//if soure < dest doing up
 			//if source = dest here
 			try {
+				Timer timer = new Timer();
+				timer.start();
 				this.receivePacket(elevatorPacket);
+				timer.end();
+				logger.info("Packet took: " + timer.getDelta() + " nanoseconds");
+				
 				currentFloor = ePacket.getCurrentFloor();
 				destinationFloor = ePacket.getDestinationFloor();
 
@@ -286,15 +292,6 @@ public class ElevatorCarThread extends Thread {
 			throw new CommunicationException("Invalid packet data, how you do?");
 		}
 		logger.debug("Received: "+ ePacket.toString());
-	}
-
-	public void sendPacket(DatagramPacket packet, int port, InetAddress domain) throws CommunicationException, IOException {
-		
-		packet.setData(ePacket.generatePacketData());
-		packet.setAddress(domain);
-		packet.setPort(port);
-		logger.debug("Sending: " + ePacket.toString());
-		this.elevatorSocket.send(packet);
 	}
 	
 	public void terminate() {
