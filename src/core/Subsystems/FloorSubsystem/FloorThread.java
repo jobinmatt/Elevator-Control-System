@@ -116,8 +116,12 @@ public class FloorThread extends Thread {
         byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
         
-        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton(), event.getErrorCode(), event.getErrorElevator());
-        data = floorPacket.generatePacketData();
+        if (event.getEnd()) {
+        	data = "End".getBytes();
+        } else {
+	        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton(), event.getErrorCode(), event.getErrorElevator());
+	        data = floorPacket.generatePacketData();
+        }
             
         DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
         tempPacket.setData(data);
@@ -127,8 +131,8 @@ public class FloorThread extends Thread {
         HostActions.send(tempPacket, Optional.of(receiveSocket));
     }
     
-    /**
-	 * Get the port that the socket is running on
+    /** 
+	 * Get the port that the socket is running on 
 	 * @return port: int
 	 * */
 	public int getPort() {		
@@ -159,7 +163,9 @@ public class FloorThread extends Thread {
 	}
 	public void receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
 		
+		
 		this.receiveSocket.receive(packet);
+		
 		FloorMessage floorMessage = new FloorMessage(packet.getData(), packet.getLength());
 		updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
 		logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));

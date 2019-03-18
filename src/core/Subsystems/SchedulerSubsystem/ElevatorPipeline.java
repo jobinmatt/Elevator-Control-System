@@ -135,7 +135,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
 						timer.end();
-						logger.debug("Arrival sensor recieved: " + timer.getDelta() + " nanoseconds");
+						logger.info("Arrival sensor recieved: " + timer.getDelta() + " nanoseconds");
 						updateStates(elevatorRecieveMessage);
 					}
 					
@@ -148,7 +148,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	}
 
 	
-	public void sendOkayMessage() throws CommunicationException, HostActionsException {
+	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
 		
 		ElevatorMessage okayMessage = new ElevatorMessage();
 		byte[] data = okayMessage.generateForceCloseMessage();

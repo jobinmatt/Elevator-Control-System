@@ -109,6 +109,11 @@ public class ElevatorCarThread extends Thread {
 				timer.end();
 				logger.info("Packet took: " + timer.getDelta() + " nanoseconds");
 				
+//				if (ePacket.getShutdownStatus()) {
+//					logger.info("Shutting down elevator!");
+//					break;
+//				}
+				
 				currentFloor = ePacket.getCurrentFloor();
 				destinationFloor = ePacket.getDestinationFloor();
 
@@ -139,7 +144,7 @@ public class ElevatorCarThread extends Thread {
 					if (destinationFloor != -1) {
 						selectedFloors[ePacket.getDestinationFloor()] = true;
 						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
-					}
+					} 
 					
 					if (ePacket.getErrorCode() == TRANSIENT_CODE) {
 						logger.info("Unable to Close Doors");

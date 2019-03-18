@@ -11,6 +11,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -91,6 +92,13 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	public void parsePacket(DatagramPacket packet) throws CommunicationException {
 		
 		try {
+			
+			String str = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
+			if (str.equalsIgnoreCase("End")) {
+				schedulerSubsystem.end();
+				return;
+			}
+
 			SubsystemMessage message = ElevatorSysMessageFactory.generateMessage(packet.getData(), packet.getLength());
 			if (message instanceof FloorMessage) {
 				FloorMessage floorPacket = (FloorMessage) message;

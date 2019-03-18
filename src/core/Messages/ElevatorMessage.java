@@ -27,11 +27,10 @@ public class ElevatorMessage implements SubsystemMessage {
 
 	private String FORCE_CLOSE = "Force Close";
 	private String DOOR_FAILURE = "Door Failure";
+	private String SHUTDOWN = "Shutdown";
+	
 	private byte ELEVATOR_FLAG = (byte) 1;
 	private byte SPACER = (byte) 0;
-//	private byte STOP_SIGNAL = (byte) 99;
-//	private byte DOOR_OPEN = (byte) 98; 
-//	private byte DOOR_CLOSE = (byte) 97;
 	private boolean stop = false;
 
 	private int currentFloor = -1; //Current floor the elevator is on
@@ -45,20 +44,11 @@ public class ElevatorMessage implements SubsystemMessage {
 	private ElevatorComponentStates doorStatus;
 	private boolean forceCloseStatus = false;
 	private boolean doorFailureStatus = false;
+	private boolean shutdownStatus = false;
 
 	public ElevatorMessage () {
 		
 	}
-	
-//	public ElevatorMessage(boolean stop) {
-//		
-//		this.stop = stop;
-//	}
-//	
-//	public ElevatorMessage(ElevatorComponentStates doorStatus) {
-//		
-//		this.doorStatus = doorStatus;
-//	}
 	
 	public ElevatorMessage(boolean arrived, int elevatorNumber) {
 
@@ -100,21 +90,10 @@ public class ElevatorMessage implements SubsystemMessage {
 		} else if (str.equals(DOOR_FAILURE)) {
 			doorFailureStatus = true;
 			return;
+		} else if (str.equals(SHUTDOWN)) {
+			shutdownStatus = true;
+			return;
 		}
-			
-//		if (data[i] == DOOR_OPEN && data[2] == SPACER) {
-//			doorStatus = ElevatorComponentStates.ELEV_DOORS_OPEN;
-//			return;
-//		}
-//		else if (data[i] == DOOR_CLOSE && data[2] == SPACER) {
-//			doorStatus = ElevatorComponentStates.ELEV_DOORS_CLOSE;
-//			return;
-//		}
-//		
-//		else if (data[i] == STOP_SIGNAL && data[2] == SPACER) {
-//			stop = true;
-//			return;
-//		}
 		
 		currentFloor = data[i++];
 		// must be zero
@@ -166,24 +145,6 @@ public class ElevatorMessage implements SubsystemMessage {
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			stream.write(ELEVATOR_FLAG); // elevator packet flag
-
-//			if (stop) {
-//				stream.write(STOP_SIGNAL);
-//				stream.write(SPACER);
-//				return stream.toByteArray();
-//			}
-//			
-//			if (doorStatus != null) {
-//				if (doorStatus == ElevatorComponentStates.ELEV_DOORS_OPEN) {
-//					stream.write(DOOR_OPEN);
-//					stream.write(SPACER);
-//					return stream.toByteArray();					
-//				} else if (doorStatus == ElevatorComponentStates.ELEV_DOORS_CLOSE) {
-//					stream.write(DOOR_CLOSE);
-//					stream.write(SPACER);
-//					return stream.toByteArray()	;				
-//				}
-//			}
 			
 			if (currentFloor != -1 ) {
 				stream.write(currentFloor);
@@ -246,21 +207,24 @@ public class ElevatorMessage implements SubsystemMessage {
 	
 	public byte[] generateForceCloseMessage() throws CommunicationException {
 
-		try {
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			stream.write(FORCE_CLOSE.getBytes());
-			isValid = true;
-			return stream.toByteArray();
-		}  catch (NullPointerException | IOException e) {
-			throw new CommunicationException("Unable to generate packet", e);
-		}
+		return generateCustomMessage(FORCE_CLOSE);
 	}
 	
 	public byte[] generateDoorFailureMessage() throws CommunicationException {
 
+		return generateCustomMessage(DOOR_FAILURE);
+	}
+	
+	public byte[] generateShutdownMessage() throws CommunicationException {
+
+		return generateCustomMessage(SHUTDOWN);
+	}
+	
+	public byte[] generateCustomMessage(String message) throws CommunicationException {
+
 		try {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			stream.write(DOOR_FAILURE.getBytes());
+			stream.write(message.getBytes());
 			isValid = true;
 			return stream.toByteArray();
 		}  catch (NullPointerException | IOException e) {
@@ -330,6 +294,11 @@ public class ElevatorMessage implements SubsystemMessage {
 	public boolean getDoorFailureStatus() {
 		
 		return doorFailureStatus;
+	}
+	
+	public boolean getShutdownStatus() {
+		
+		return shutdownStatus;
 	}
 	
 	public String toString() {
