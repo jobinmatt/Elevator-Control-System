@@ -129,13 +129,17 @@ public class ElevatorCarThread extends Thread {
 
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);					
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_OFF, destinationFloor);
+
 
 					Utils.Sleep(doorSleepTime);
 					
 					if (destinationFloor != -1) {
 						selectedFloors[ePacket.getDestinationFloor()] = true;
 						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
+						updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_ON, ePacket.getDestinationFloor());
+					}else{
+						selectedFloors[ePacket.getDestinationFloor()] = false; //arrived at destination
+						updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_OFF, ePacket.getDestinationFloor());
 					}
 					
 					if (ePacket.getErrorCode() == TRANSIENT_CODE) {
@@ -149,7 +153,7 @@ public class ElevatorCarThread extends Thread {
 					}
 					
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-										
+
 					logger.debug("Arrived destination\n");
 				}
 				sendArrivalSensorPacket();
