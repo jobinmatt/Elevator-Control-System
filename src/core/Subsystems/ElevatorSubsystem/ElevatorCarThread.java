@@ -112,7 +112,9 @@ public class ElevatorCarThread extends Thread {
 					logger.info("Hard error message received, elevator thread being interrupted");
 					break;
 				}
-				
+
+				updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_ON, destinationFloor);
+
 				if (currentFloor > destinationFloor) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 					moveFloor(ePacket, Direction.DOWN);
@@ -127,7 +129,8 @@ public class ElevatorCarThread extends Thread {
 
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);					
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					
+					updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_OFF, destinationFloor);
+
 					Utils.Sleep(doorSleepTime);
 					
 					if (destinationFloor != -1) {
@@ -211,6 +214,10 @@ public class ElevatorCarThread extends Thread {
 		
 		logger.info("\nElevator Motor: " + state.name());
 		carProperties.replace(ElevatorComponentConstants.ELEV_MOTOR, state);
+	}
+
+	public synchronized  void updateButtonStatus(ElevatorComponentStates state, int destinationFloor) {
+		logger.info("\nElevator Floor Button " + destinationFloor + ": " + state.name());
 	}
 
 	/**
