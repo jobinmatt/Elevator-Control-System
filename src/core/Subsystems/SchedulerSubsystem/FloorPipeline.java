@@ -21,6 +21,7 @@ import core.Exceptions.CommunicationException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
+import core.Messages.ElevatorMessage;
 import core.Messages.ElevatorSysMessageFactory;
 import core.Messages.FloorMessage;
 import core.Messages.SubsystemMessage;
@@ -45,6 +46,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	
 	private SubsystemConstants objectType;
 	private int pipeNumber;
+	private boolean shutdown = false;
 
 	public FloorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
@@ -69,8 +71,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	@Override
 	public void run() {
 
-		logger.info("\n" + this.getName());
-		while (true) {
+		while (!shutdown) {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			try {
 				HostActions.receive(packet, receiveSocket);
@@ -112,13 +113,20 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	}
 
 	public void sendElevatorStateToFloor(FloorMessage fMsg) throws HostActionsException, CommunicationException {
+		
 		byte[] data = fMsg.generatePacketData();
 		DatagramPacket fPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
 		HostActions.send(fPacket, Optional.of(sendSocket));
 	}
 	
-	public void terminate() {		
-		this.receiveSocket.close();
+	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
+		
+		logger.info("Sending shutdown message...");
+		shutdown = true;
+		FloorMessage message = new FloorMessage();
+		byte[] data = message.generateShutdownMessage();
+		DatagramPacket floorPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
+		HostActions.send(floorPacket, Optional.of(sendSocket));
 	}
 
 	public SubsystemConstants getObjectType() {
@@ -145,4 +153,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		return this.pipeNumber;
 	}
 
+	public void terminate() {		
+		this.receiveSocket.close();
+	}
 }

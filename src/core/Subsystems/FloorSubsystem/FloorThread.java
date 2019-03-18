@@ -46,6 +46,8 @@ public class FloorThread extends Thread {
 	private int numOfElevators=0;
 	private int[] elevatorFloorStates;
 	private DatagramPacket floorPacket;
+	private boolean shutdown = false;
+	
 	/**
 	 * Creates a floor thread
 	 */
@@ -97,17 +99,22 @@ public class FloorThread extends Thread {
 	@Override
 	public void run() {
 
-		while(true) {
+		while (!shutdown) {
 		
-
-				try {
-					this.receivePacket(this.floorPacket);
-				} catch (CommunicationException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			try {
+				FloorMessage floorMessage = receivePacket(this.floorPacket);
+				
+				if (floorMessage.getShutdown()) {
+					shutdown = true;
+					atFloorTimer.cancel();
+					break;
 				}
-
+				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
+				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+			} catch (CommunicationException | IOException e) {
+			}
         }
+		logger.info("Shutting down floor");
     } 
 
     private void serviceRequest(SimulationRequest event) throws GeneralException {
@@ -161,13 +168,10 @@ public class FloorThread extends Thread {
 			this.elevatorFloorStates[index] = floorNum; 
 		}
 	}
-	public void receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
-		
-		
+	public FloorMessage receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
+				
 		this.receiveSocket.receive(packet);
 		
-		FloorMessage floorMessage = new FloorMessage(packet.getData(), packet.getLength());
-		updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
-		logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+		return new FloorMessage(packet.getData(), packet.getLength());
 	}
 }

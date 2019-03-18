@@ -57,6 +57,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	
 	private SubsystemConstants objectType;
 	private int pipeNumber;
+	private boolean shutdown = false;
 
 
 	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
@@ -84,7 +85,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	@Override
 	public void run() {
 
-		logger.info("\n" + this.getName());
 		synchronized (elevatorEvents) {
 			if(elevatorEvents.isEmpty()) {
 				try {
@@ -95,7 +95,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 			}
 		}
 
-		while (true) {
+		while (!shutdown) {
 			if (!elevatorEvents.isEmpty()) {								
 				try {
 
@@ -120,7 +120,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					int elevatorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
 					int elevatorDoorTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
 					
-					if (!(timer.getDelta() <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
+					if (!(timer.getDelta()/1000000 <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
 						schedulerSubsystem.removeElevator(elevator.getElevatorId());
 						break;
 					}
@@ -138,10 +138,9 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 						logger.info("Arrival sensor recieved: " + timer.getDelta() + " nanoseconds");
 						updateStates(elevatorRecieveMessage);
 					}
-					
-					
+								
 				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException | ConfigurationParserException e) {
-					logger.error("Unable to send/recieve packet", e);
+					logger.error("Unab`le to send/recieve packet", e);
 				}
 			}
 		}		
@@ -150,10 +149,12 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	
 	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
 		
+		logger.info("Sending shutdown message...");
 		ElevatorMessage okayMessage = new ElevatorMessage();
-		byte[] data = okayMessage.generateForceCloseMessage();
+		byte[] data = okayMessage.generateShutdownMessage();
 		DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 		HostActions.send(elevatorPacket, Optional.of(sendSocket));
+		shutdown = true;
 	}
 	
 	public void addEvent(SchedulerRequest request) {
@@ -187,6 +188,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException, HostActionsException {
 			
 		elevator.setCurrentFloor(request.getCurrentFloor());
+		
 		List<SchedulerRequest> tempList = new ArrayList<>();
 		for (SchedulerRequest event: elevatorEvents) {
 			if (event.getDestFloor() == elevator.getCurrentFloor() && event.getRequestDirection().equals(elevator.getRequestDirection())) {

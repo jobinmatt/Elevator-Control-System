@@ -10,6 +10,7 @@ package core.Messages;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 import core.Direction;
 import core.Exceptions.CommunicationException;
@@ -24,11 +25,12 @@ public class FloorMessage implements SubsystemMessage {
 
 	private byte FLOOR_FLAG = (byte) 0;
 	private byte SPACER = (byte) 0;
+	
+	private String SHUTDOWN = "Shutdown";
 
 	private final static byte[] UP = {1, 1};
 	private final static byte[] DOWN = {1, 2};
 	private final static byte[] STATIONARY = {1, 3};
-
 
 	private int sourceFloor = -1; //THIS IS THE SOURCE FLOOR
 	private Direction direction;
@@ -36,8 +38,14 @@ public class FloorMessage implements SubsystemMessage {
 	private boolean isValid = true;
 	private int errorCode;
 	private int errorFloor;
-	
 	private int elevatorNum =0; //this is needed for updateing elevator states in the floor
+	private boolean shutdown = false;
+	
+	
+	public FloorMessage() {
+		
+	}
+	
 	/**
 	 *
 	 * @param direction Direction
@@ -64,6 +72,13 @@ public class FloorMessage implements SubsystemMessage {
 
 		isValid = true;
 
+		
+		String str = new String(data, 0, dataLength, StandardCharsets.UTF_8);
+		if (str.equals(SHUTDOWN)) {
+			shutdown = true;
+			return;
+		}
+		
 		//format:
 
 		// FLOOR_FLAG Direction Direction SPACER sourceFloor SPACER  targetFloor SPACER elevNum SPACER errorCode SPACER errorFloor SPACER
@@ -197,6 +212,27 @@ public class FloorMessage implements SubsystemMessage {
 		return true;
 	}
 
+	public byte[] generateShutdownMessage() throws CommunicationException {
+
+		return generateCustomMessage(SHUTDOWN);
+	}
+	
+	public byte[] generateCustomMessage(String message) throws CommunicationException {
+
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			stream.write(message.getBytes());
+			isValid = true;
+			return stream.toByteArray();
+		}  catch (NullPointerException | IOException e) {
+			throw new CommunicationException("Unable to generate packet", e);
+		}
+	}
+	
+	public boolean getShutdown() {
+		return shutdown;
+	}
+	
 	public int getSourceFloor() {
 		return sourceFloor;
 	}

@@ -373,8 +373,13 @@ public class SchedulerSubsystem {
 				
 				if (!areMoving) {
 					logger.info("Shutting down elevators!");
+					
 					for (ElevatorPipeline e: elevatorListeners) {
 						e.sendShutdownMessage();
+					}
+					
+					for (FloorPipeline f: floorListeners) {
+						f.sendShutdownMessage();
 					}
 				}				
 			}
