@@ -4,34 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.HashMap;
-
-import org.junit.After;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.runners.MethodSorters;
 
-import core.ConfigurationParser;
 import core.Direction;
 import core.Exceptions.CommunicationException;
-import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.GeneralException;
-import core.Exceptions.HostActionsException;
-import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
-import core.Subsystems.ElevatorSubsystem.ElevatorSubsystem;
-import core.Subsystems.FloorSubsystem.FloorSubsystem;
-import core.Subsystems.SchedulerSubsystem.Elevator;
 import core.Subsystems.SchedulerSubsystem.SchedulerRequest;
 import core.Subsystems.SchedulerSubsystem.SchedulerSubsystem;
 import core.Utils.SubsystemConstants;
 
+//*****************************THESE TESTS WILL ONLY WORK IF THERE ARE 2 ELEVATORS IN THE SYSTEM*******************************
 //test1: Check if the event get scheduled right
 //test2: Check if all elevetors are busy nothing gets scheduled 
 
