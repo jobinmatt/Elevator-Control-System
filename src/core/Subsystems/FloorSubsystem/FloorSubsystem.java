@@ -101,6 +101,17 @@ public class FloorSubsystem {
 		}
 	}
 	
+	public void shutdown() {
+
+		for (int i = 1; i <= numberOfFloors; i++) {
+			if (floors.get(FLOOR_NAME + i) != null) {
+				floors.get(FLOOR_NAME + i).terminate();
+			}
+		}
+		LoggingManager.terminate();
+	
+	}
+	
 	private void receivePortsFromScheduler(int listenPort) throws FloorSubsystemException {
 		try {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);

@@ -109,6 +109,22 @@ public class SchedulerSubsystem {
 		});
 	}
 	
+	public void shutDown() {
+
+		for (ElevatorPipeline listener: elevatorListeners) {
+			if (listener != null) {
+				listener.terminate();
+			}
+		}
+		for (FloorPipeline listener: floorListeners) {
+			if (listener != null) {
+				listener.terminate();
+			}
+		}
+		LoggingManager.terminate();
+	
+	}
+	
 	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException, UnknownHostException {
 		try {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
@@ -332,26 +348,25 @@ public class SchedulerSubsystem {
 		for (int i = 1; i <= numberOfElevators; i++) {
 			Elevator elevator = elevatorStatus.get(i);
 			if (elevator != null) {
-				if (elevator.getNumRequests() == 0) {
+				if(elevator.getNumRequests() == 0) {
 					return elevator;
-				} else {
-					if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
-						if (tempElevator == null) {
+				}
+				if (elevator.getRequestDirection().equals(request.getRequestDirection())) {
+					if (tempElevator == null) {
+						tempElevator = elevator;
+					}
+					if (elevator.getRequestDirection().equals(Direction.DOWN)
+							&& elevator.getCurrentFloor() > request.getSourceFloor()) {
+						if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
 							tempElevator = elevator;
 						}
-						if (elevator.getRequestDirection().equals(Direction.DOWN)
-								&& elevator.getCurrentFloor() > request.getSourceFloor()) {
-							if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
-								tempElevator = elevator;
-							}
-						} else if (elevator.getRequestDirection().equals(Direction.UP)
-								&& elevator.getCurrentFloor() < request.getDestFloor()) {
-							if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
-								tempElevator = elevator;
-							}
+					} else if (elevator.getRequestDirection().equals(Direction.UP)
+							&& elevator.getCurrentFloor() < request.getDestFloor()) {
+						if (elevator.getNumRequests() < tempElevator.getNumRequests()) {
+							tempElevator = elevator;
 						}
 					}
-				} 
+				}
 			}
 		}
 		return tempElevator;
@@ -410,5 +425,13 @@ public class SchedulerSubsystem {
 
 	public void setFloorSubsystemAddress(InetAddress floorSubsystemAddress) {
 		this.floorSubsystemAddress = floorSubsystemAddress;
+	}
+	
+	public Set<SchedulerRequest> getUnscheduledEventsSet(){
+		return SchedulerSubsystem.unscheduledEvents;
+	}
+	
+	public HashMap<Integer, Elevator> getElevatorStatusMap(){
+		return this.elevatorStatus;
 	}
 }

@@ -86,6 +86,12 @@ class StartupUtility {
 	public FloorSubsystem getFloorSubsystem() {
 		return StartupUtility.floor;
 	}
+	
+	public static void tearDownSystems() {
+		scheduler.shutDown();
+		elevator.shutdown();
+		floor.shutdown();
+	}
 }
 
 class SubsystemStartThread implements Runnable{
