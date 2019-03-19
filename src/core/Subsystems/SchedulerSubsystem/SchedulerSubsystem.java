@@ -109,6 +109,22 @@ public class SchedulerSubsystem {
 		});
 	}
 
+	public void shutDown() {
+
+		for (ElevatorPipeline listener: elevatorListeners) {
+			if (listener != null) {
+				listener.terminate();
+			}
+		}
+		for (FloorPipeline listener: floorListeners) {
+			if (listener != null) {
+				listener.terminate();
+			}
+		}
+		LoggingManager.terminate();
+	
+	}
+	
 	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException, UnknownHostException {
 		try {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
@@ -411,10 +427,11 @@ public class SchedulerSubsystem {
 		this.floorSubsystemAddress = floorSubsystemAddress;
 	}
 
+	
 	public Set<SchedulerRequest> getUnscheduledEventsSet(){
 		return SchedulerSubsystem.unscheduledEvents;
 	}
-
+	
 	public HashMap<Integer, Elevator> getElevatorStatusMap(){
 		return this.elevatorStatus;
 	}

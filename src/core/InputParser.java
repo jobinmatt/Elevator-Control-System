@@ -112,12 +112,12 @@ public class InputParser {
 			}
 
 			Collections.sort(simulationEvents);
-			baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
-
-			for (SimulationRequest e : simulationEvents) {
-				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
+			if (!simulationEvents.isEmpty()) {
+				baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
+				for (SimulationRequest e : simulationEvents) {
+					e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
+				} 
 			}
-
 			logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 			return simulationEvents;
 		} catch (NumberFormatException | IOException | ParseException e) {

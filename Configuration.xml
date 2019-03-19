@@ -4,7 +4,7 @@
 
     <Config>
 
-        <NumberOfElevators>4</NumberOfElevators>
+        <NumberOfElevators>2</NumberOfElevators>
 
         <NumberOfFloors>10</NumberOfFloors>
 
@@ -12,7 +12,7 @@
 
         <ElevatorFloorTravelTimeSeconds>5</ElevatorFloorTravelTimeSeconds>
         
-        <SimulationEventListFile>testing_2.csv</SimulationEventListFile>
+        <SimulationEventListFile>testing_3.csv</SimulationEventListFile>
         
         <SchedulerAddress>localhost</SchedulerAddress>
         
