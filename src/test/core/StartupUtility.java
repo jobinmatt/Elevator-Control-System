@@ -20,7 +20,7 @@ class StartupUtility {
 	private static SchedulerSubsystem scheduler;
 	private static ElevatorSubsystem elevator;
 	private static FloorSubsystem floor;
-	
+
 	public synchronized static StartupUtility getInstance() {
 		if(startupUtility == null) {
 			startupUtility = new StartupUtility();
@@ -30,7 +30,7 @@ class StartupUtility {
 
 	public static void startupSubsystems() throws IOException, GeneralException, InterruptedException {
 		ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-		int numElevators = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
+		int numElevators = 2;
 		int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 		int elevatorInitPort = configurationParser.getInt(ConfigurationParser.ELEVATOR_INIT_PORT);
 		int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
@@ -39,7 +39,7 @@ class StartupUtility {
 		//input the right address
 		Thread schedulerStartup = new Thread(new SubsystemStartThread(numElevators, numFloors, elevatorInitPort, floorInitPort, scheduler, t), "SchedulerStartup");
 		schedulerStartup.start();
-		
+
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
@@ -56,7 +56,7 @@ class StartupUtility {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		Thread floorStartup = new Thread(new FloorStartThread(numFloors, numElevators, floorInitPort, schedulerAddress, floor, t), "FloorStartup");
 		floorStartup.start();
 		try {
@@ -68,17 +68,17 @@ class StartupUtility {
 		schedulerStartup.join();
 		elevatorStartup.join();
 		floorStartup.join();
-		
+
 		scheduler = t.getS();
 		elevator = t.getE();
 		floor = t.getF();
-		
+
 	}
-	
+
 	public SchedulerSubsystem getScheduler() {
 		return StartupUtility.scheduler;
 	}
-	
+
 	public ElevatorSubsystem getElevatorSubsystem() {
 		return StartupUtility.elevator;
 	}
@@ -86,7 +86,7 @@ class StartupUtility {
 	public FloorSubsystem getFloorSubsystem() {
 		return StartupUtility.floor;
 	}
-	
+
 	public static void tearDownSystems() {
 		scheduler.shutDown();
 		elevator.shutdown();
@@ -104,7 +104,7 @@ class SubsystemStartThread implements Runnable{
 
 	public SubsystemStartThread(int numElevators, int numFloors, int elevatorInitPort, int floorInitPort, SchedulerSubsystem subsystem, SubsystemWrapper t) {
 		super();
-		
+
 		this.numElevatorsScheduler = numElevators;
 		this.numFloorsScheduler = numFloors;
 		this.elevatorInitPort = elevatorInitPort;
@@ -114,7 +114,7 @@ class SubsystemStartThread implements Runnable{
 	}
 
 	public void run() {
-		
+
 		try {
 			subsystem = new SchedulerSubsystem(numElevatorsScheduler, numFloorsScheduler, elevatorInitPort, floorInitPort);
 		} catch (SchedulerPipelineException e) {
@@ -136,7 +136,7 @@ class SubsystemStartThread implements Runnable{
 		t.setS(subsystem);
 		Thread.currentThread().interrupt();
 	}
-	
+
 }
 
 class ElevatorStartThread implements Runnable{
@@ -203,6 +203,6 @@ class FloorStartThread implements Runnable{
 		t.setF(subsystem);
 		Thread.currentThread().interrupt();
 	}
-	
+
 }
 
