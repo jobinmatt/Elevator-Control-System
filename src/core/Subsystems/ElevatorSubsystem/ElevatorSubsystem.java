@@ -76,6 +76,17 @@ public class ElevatorSubsystem {
 		receivePortsFromScheduler(initSchedulerPort);
 	}
 	
+	public void shutdown() {
+
+		for (Map.Entry<String, ElevatorCarThread> car : carPool.entrySet()) {
+			if (car != null) {
+				car.getValue().terminate();
+			}
+		}
+		LoggingManager.terminate();
+	
+	}
+	
 	private void receivePortsFromScheduler(int listenPort) throws ElevatorSubsystemException {
 		try {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
