@@ -115,7 +115,6 @@ public class ElevatorCarThread extends Thread {
 				logger.info(MARKER, "Packet took: " + timer.getDelta() + " nanoseconds");
 				
 				if (ePacket.getShutdownStatus()) {
-					
 					shutDown = true;
 				}
 				else {
@@ -229,6 +228,10 @@ public class ElevatorCarThread extends Thread {
 		
 		logger.info("\nElevator Motor: " + state.name());
 		carProperties.replace(ElevatorComponentConstants.ELEV_MOTOR, state);
+	}
+
+	public synchronized  void updateButtonStatus(ElevatorComponentStates state, int destinationFloor) {
+		logger.info("\nElevator Floor Button " + destinationFloor + ": " + state.name());
 	}
 
 	/**
