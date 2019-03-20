@@ -122,8 +122,8 @@ public class SchedulerSubsystem {
 				listener.terminate();
 			}
 		}
+		
 		LoggingManager.terminate();
-
 	}
 
 	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException, UnknownHostException {
@@ -387,7 +387,7 @@ public class SchedulerSubsystem {
 				}
 
 				if (!areMoving) {
-					logger.info("Shutting down elevators!");
+					logger.info("Shutting down pipelines!");
 
 					for (ElevatorPipeline e: elevatorListeners) {
 						e.sendShutdownMessage();

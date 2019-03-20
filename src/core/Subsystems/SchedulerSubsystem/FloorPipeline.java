@@ -7,6 +7,7 @@
 //***************************************************************************
 package core.Subsystems.SchedulerSubsystem;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -17,11 +18,11 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import core.PerformanceTimer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
-import core.Messages.ElevatorMessage;
 import core.Messages.ElevatorSysMessageFactory;
 import core.Messages.FloorMessage;
 import core.Messages.SubsystemMessage;
@@ -47,6 +48,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	private SubsystemConstants objectType;
 	private int pipeNumber;
 	private boolean shutdown = false;
+	private PerformanceTimer timer;
 
 	public FloorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
@@ -57,6 +59,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		this.setName(threadName);
 		this.floorSubSystemAddress = subsystem.getFloorSubsystemAddress();
 		this.sendPort = schedulerSubsystem.getFloorPorts().get(portOffset);
+		this.timer = new PerformanceTimer();
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
@@ -74,11 +77,23 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		while (!shutdown) {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			try {
-				HostActions.receive(packet, receiveSocket);
+				timer.start();
+				receive(packet, receiveSocket);
+				timer.end();
 				parsePacket(packet);
 			} catch (CommunicationException | HostActionsException e) {
-				logger.error("Failed to receive packet", e);
 			}
+		}
+	}
+	
+	
+	public static void receive(DatagramPacket packet, DatagramSocket socket) throws HostActionsException {
+
+		try {
+			socket.setSoTimeout(10000);
+			socket.receive(packet);
+		} catch (IOException e) {
+			throw new HostActionsException("Data packet not received.", e);
 		}
 	}
 	
@@ -121,12 +136,11 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	
 	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
 		
-		logger.info("Sending shutdown message...");
-		shutdown = true;
 		FloorMessage message = new FloorMessage();
 		byte[] data = message.generateShutdownMessage();
 		DatagramPacket floorPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
 		HostActions.send(floorPacket, Optional.of(sendSocket));
+		shutdown = true;
 	}
 
 	public SubsystemConstants getObjectType() {

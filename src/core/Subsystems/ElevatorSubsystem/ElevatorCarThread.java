@@ -25,7 +25,7 @@ import org.apache.logging.log4j.MarkerManager;
 import core.ConfigurationParser;
 import core.Direction;
 import core.LoggingManager;
-import core.Timer;
+import core.PerformanceTimer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubsystemException;
@@ -60,6 +60,7 @@ public class ElevatorCarThread extends Thread {
 	private int destinationFloor;
 	private boolean sentArrivalSensor;
 	private boolean shutDown;
+	private PerformanceTimer timer; 
 	
 	/**
 	 * Constructor for elevator car
@@ -74,9 +75,10 @@ public class ElevatorCarThread extends Thread {
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfFloors = numFloors;
 		this.setSentArrivalSensor(false);
-		shutDown = false;
-		selectedFloors = new boolean[this.numberOfFloors];
-		elevatorNumber = Integer.parseInt(name.substring(name.length()-1));
+		this.shutDown = false;
+		this.selectedFloors = new boolean[this.numberOfFloors];
+		this.elevatorNumber = Integer.parseInt(name.substring(name.length()-1));
+		this.timer = new PerformanceTimer();
 		
 		//initialize component states
 		carProperties = new HashMap<ElevatorComponentConstants, ElevatorComponentStates>();
@@ -107,12 +109,9 @@ public class ElevatorCarThread extends Thread {
 			// if soure < dest doing up
 			// if source = dest here
 			try {
-				
-				Timer timer = new Timer();
 				timer.start();
 				this.receivePacket(elevatorPacket);
 				timer.end();
-				logger.info(MARKER, "Packet took: " + timer.getDelta() + " nanoseconds");
 				
 				if (ePacket.getShutdownStatus()) {
 					shutDown = true;
@@ -152,7 +151,11 @@ public class ElevatorCarThread extends Thread {
 						if (ePacket.getErrorCode() == TRANSIENT_CODE) {
 							logger.info(MARKER, "Unable to Close Doors");
 							sendFailureDoorRequest();
+							
+							timer.start();
 							this.receivePacket(elevatorPacket);
+							timer.end();
+							
 							if (ePacket.getForceCloseStatus()) {
 								logger.info(MARKER, "Force Closing door in " + WAIT_TIME / 1000 + " seconds");
 								Utils.Sleep(WAIT_TIME);
@@ -321,6 +324,7 @@ public class ElevatorCarThread extends Thread {
 		System.out.println("\nTearDown Elevator...");
 		this.elevatorSocket.close();
 		LoggingManager.createLoggerFile(logger, MARKER.getName());
+		timer.print("Elevator Interface");
 		System.out.println("TearDown Complete");
 	}
 }

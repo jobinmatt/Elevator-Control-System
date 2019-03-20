@@ -22,7 +22,7 @@ import java.util.TimerTask;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import core.Timer;
+import core.PerformanceTimer;
 import core.ConfigurationParser;
 import core.Direction;
 import core.Exceptions.CommunicationException;
@@ -58,6 +58,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	private SubsystemConstants objectType;
 	private int pipeNumber;
 	private boolean shutdown = false;
+	private PerformanceTimer timer;
 
 
 	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
@@ -66,11 +67,12 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		this.pipeNumber = portOffset;
 		this.setName(ELEVATOR_PIPELINE + portOffset);
 		this.schedulerSubsystem = subsystem;
-		elevatorEvents = new LinkedList<SchedulerRequest>();
-		elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
+		this.elevatorEvents = new LinkedList<SchedulerRequest>();
+		this.elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
 		this.elevatorSubsystemAddress = subsystem.getElevatorSubsystemAddress();
 		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
-
+		this.timer = new PerformanceTimer();
+		
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
@@ -112,7 +114,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
 					
-					Timer timer = new Timer();
 					timer.start();
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					timer.end();
@@ -134,8 +135,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					}
 					
 					if (elevatorRecieveMessage.getArrivalSensor()) {
-						timer.end();
-						logger.info("Arrival sensor recieved: " + timer.getDelta() + " nanoseconds");
 						updateStates(elevatorRecieveMessage);
 					}
 								
@@ -149,7 +148,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	
 	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
 		
-		logger.info("Sending shutdown message...");
 		ElevatorMessage okayMessage = new ElevatorMessage();
 		byte[] data = okayMessage.generateShutdownMessage();
 		DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
@@ -220,7 +218,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 	public void terminate() {
 		this.receiveSocket.close();
-		//cleanup goes here
+		timer.print("The arrival sensor");
 	}
 
 	public SubsystemConstants getObjectType() {

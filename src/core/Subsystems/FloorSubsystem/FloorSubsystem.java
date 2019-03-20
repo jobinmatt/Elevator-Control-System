@@ -54,7 +54,6 @@ public class FloorSubsystem {
 	private InetAddress schedulerAddress;
 	private int floorInitPort;
 	private Timer sharedTimer;
-	private int numOfElevators;
 	/**
 	 * Creates a floorSubsystem object
 	 * 
@@ -66,7 +65,6 @@ public class FloorSubsystem {
 		
 		this.floors = new HashMap<String, FloorThread>();
 		this.numberOfFloors = numOfFloors;
-		this.numOfElevators = numOfElevators;
 		this.setSchedulerAddress(schedulerAddress);
 		this.setFloorInitPort(floorInitPort);
 		this.sharedTimer = new Timer();
