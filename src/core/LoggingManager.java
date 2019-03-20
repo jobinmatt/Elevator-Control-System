@@ -83,7 +83,7 @@ public class LoggingManager {
         try {
 
             FileAppender fp = (FileAppender) LoggingManager.getAppender("IndividualLogger");
-            fp.addFilter(MarkerFilter.createFilter(marker, Filter.Result.ACCEPT, Filter.Result.DENY));
+            fp.addFilter(MarkerFilter.createFilter(marker, Filter.Result.DENY, Filter.Result.ACCEPT));
             File src = new File(fp.getFileName());
 
             if (!Utils.isFileExists(src)) {

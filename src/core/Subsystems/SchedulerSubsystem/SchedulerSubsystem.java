@@ -62,6 +62,7 @@ public class SchedulerSubsystem {
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
 	private InetAddress floorSubsystemAddress;
+	private boolean end = false;
 	
 	public SchedulerSubsystem(int numElevators, int numFloors,
 			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException, ConfigurationParserException, HostActionsException, IOException {
@@ -357,10 +358,31 @@ public class SchedulerSubsystem {
 		return tempElevator;
 	}
 
-	public void updateElevatorState(Elevator elevator) throws SchedulerSubsystemException, CommunicationException {
+	public void updateElevatorState(Elevator elevator) throws SchedulerSubsystemException, CommunicationException, HostActionsException {
 		synchronized (elevatorStatus) {
 			elevatorStatus.put(elevator.getElevatorId(), elevator);
 			this.reEvaluateEvents();
+			
+			if (end) {
+				boolean areMoving = false; 
+				for (int i: elevatorStatus.keySet()) {
+					if (elevatorStatus.get(i).getRequestDirection() != Direction.STATIONARY) {
+						areMoving = true;
+					}
+				}
+				
+				if (!areMoving) {
+					logger.info("Shutting down elevators!");
+					
+					for (ElevatorPipeline e: elevatorListeners) {
+						e.sendShutdownMessage();
+					}
+					
+					for (FloorPipeline f: floorListeners) {
+						f.sendShutdownMessage();
+					}
+				}				
+			}
 		}
 	}
 	
@@ -373,7 +395,7 @@ public class SchedulerSubsystem {
 		else
 			dir = Direction.STATIONARY;
 			
-		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, 0, 0); // source floor will be current floor, and dont need dest becuase we dont care
+		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, 0, 0); // source floor will be current floor, and dont need dest becuase this goes to floors to update buttons
 		floorState.setElevatorNum(elevator.getElevatorNumber());
 		for (FloorPipeline listeners : this.floorListeners) {
 			listeners.sendElevatorStateToFloor(floorState);
@@ -410,5 +432,9 @@ public class SchedulerSubsystem {
 
 	public void setFloorSubsystemAddress(InetAddress floorSubsystemAddress) {
 		this.floorSubsystemAddress = floorSubsystemAddress;
+	}
+	
+	public void end() {
+		this.end = true;
 	}
 }

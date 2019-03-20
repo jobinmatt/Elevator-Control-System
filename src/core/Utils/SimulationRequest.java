@@ -22,14 +22,23 @@ import core.Exceptions.GeneralException;
 
 public class SimulationRequest implements Comparable<SimulationRequest> {
 
-	private final Date startTime;
-	private final int floor;
-	private final Direction floorButton;
-	private final int carButton;
+	private static final String END = "End";
+	
+	private Date startTime;
+	private int floor;
+	private Direction floorButton;
+	private int carButton;
 	private long intervalTime;
-	private final int errorCode;
-	private final int errorElevator;
+	private int errorCode;
+	private int errorElevator;
+	private boolean end;
 
+	public SimulationRequest(boolean end) {
+
+		super();
+		this.end = true;
+	}
+	
 	public SimulationRequest(Date startTime, int floor, Direction floorButton, int carButton, int errorCode, int errorFloor) {
 
 		super();
@@ -53,6 +62,11 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		this.errorElevator = errorFloor;
 	}
 
+	public void setStartTime(Date time) {
+		
+		this.startTime = time; 
+	}
+	
 	public Date getStartTime() {
 
 		return startTime;
@@ -90,10 +104,18 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 	public int getErrorElevator() {
 		return this.errorElevator;
 	}
+	
+	public boolean getEnd() {
+		return this.end;
+	}
 
 	@Override
 	public int compareTo(SimulationRequest o) {
 
+		if (end) {
+			return -1;
+		}
+		
 		if (getStartTime() == null || o.getStartTime() == null) {
 			return 0;
 		}
@@ -102,6 +124,10 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 
 	@Override
 	public String toString() {
+		
+		if (end) {
+			return "end";
+		}
 		return "Time: " + startTime + " Floor: " + floor + " Direction: " + floorButton.toString()
 		+ " Destination floor: " + carButton;
 	}
@@ -111,6 +137,11 @@ public class SimulationRequest implements Comparable<SimulationRequest> {
 		////The order:Date startTime, int floor, boolean floorButton, int carButton
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
 		try {
+			
+			if (end) {
+				data.write(Utils.toByteArray(END));
+				return data.toByteArray();
+			}
 			data.write(Utils.toByteArray(startTime.toString()));
 			data.write(Utils.toByteArray(String.valueOf(floor)));
 			data.write(Utils.toByteArray(floorButton.toString()));

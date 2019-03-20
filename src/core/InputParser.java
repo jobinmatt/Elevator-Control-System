@@ -43,6 +43,7 @@ public class InputParser {
 
 	private static Logger logger = LogManager.getLogger(InputParser.class);
 
+	private static final String END = "End";
 	private static final String TIME_FORMAT = "HH:mm:ss.SSS";
 	private static final String TIME_HEADER = "Time";
 	private static final String FLOOR_BUTTON_HEADER = "Floor_Button";
@@ -50,6 +51,8 @@ public class InputParser {
 	private static final String FLOOR_HEADER = "Floor";
 	private static final String ERROR_CODE_HEADER = "ErrorCode";
 	private static final String ERROR_FLOOR_HEADER = "ErrorFloor";
+	
+	private static boolean end = false;
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public static List<SimulationRequest> parseCVSFile() throws InputParserException {
@@ -76,6 +79,12 @@ public class InputParser {
 					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
 
 					if (isValidData(eventInfo)) {
+						
+						if (eventInfo.get(TIME_HEADER).equalsIgnoreCase(END)) {
+							end = true;
+							continue;
+						}
+						
 						String timeString = eventInfo.get(TIME_HEADER);
 						Date simulationDate = df.parse(timeString);
 						Date todayDate = new Date();
@@ -118,6 +127,9 @@ public class InputParser {
 				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
 			}
 
+			if (end) {
+				simulationEvents.add(simulationEvents.size(), new SimulationRequest(true));
+			}
 			logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 			return simulationEvents;
 		} catch (NumberFormatException | IOException | ParseException e) {
@@ -142,15 +154,23 @@ public class InputParser {
 				if(isNumber(eventInfo.get(ERROR_CODE_HEADER)) && Integer.parseInt(eventInfo.get(ERROR_CODE_HEADER)) == 2) {
 					if(isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
 						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && eventInfo.get(ERROR_FLOOR_HEADER) == null) {
+						
 						return true;
 					}
 				}
 				else if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
 						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && isNumber(eventInfo.get(ERROR_FLOOR_HEADER))) {
+					
 					return true;
 				}
 			}
 		}
+		
+		if (!StringUtils.isEmpty(eventInfo.get(TIME_HEADER)) && eventInfo.get(TIME_HEADER).equalsIgnoreCase(END)) {
+			
+			return true;
+		}
+		
 		throw new InputParserException(eventInfo.toString() + ": not in the proper format or empty");
 	}
 
