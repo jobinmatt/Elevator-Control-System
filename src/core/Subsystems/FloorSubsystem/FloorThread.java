@@ -174,4 +174,7 @@ public class FloorThread extends Thread {
 		
 		return new FloorMessage(packet.getData(), packet.getLength());
 	}
+	public int[] getElevatorFloorStates() {
+		return elevatorFloorStates;
+	}
 }
