@@ -112,7 +112,9 @@ public class ElevatorCarThread extends Thread {
 					logger.info("Hard error message received, elevator thread being interrupted");
 					break;
 				}
-				
+
+				updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_ON, destinationFloor);
+
 				if (currentFloor > destinationFloor) {
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 					moveFloor(ePacket, Direction.DOWN);
@@ -127,12 +129,17 @@ public class ElevatorCarThread extends Thread {
 
 					updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);					
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
-					
+
+
 					Utils.Sleep(doorSleepTime);
 					
 					if (destinationFloor != -1) {
 						selectedFloors[ePacket.getDestinationFloor()] = true;
 						logger.info("User Selected Floor: " + ePacket.getDestinationFloor());
+						updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_ON, ePacket.getDestinationFloor());
+					}else{
+						selectedFloors[ePacket.getDestinationFloor()] = false; //arrived at destination
+						updateButtonStatus(ElevatorComponentStates.ELEV_FLOOR_BUTTON_OFF, ePacket.getDestinationFloor());
 					}
 					
 					if (ePacket.getErrorCode() == TRANSIENT_CODE) {
@@ -146,7 +153,7 @@ public class ElevatorCarThread extends Thread {
 					}
 					
 					updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-										
+
 					logger.debug("Arrived destination\n");
 				}
 				sendArrivalSensorPacket();
@@ -211,6 +218,10 @@ public class ElevatorCarThread extends Thread {
 		
 		logger.info("\nElevator Motor: " + state.name());
 		carProperties.replace(ElevatorComponentConstants.ELEV_MOTOR, state);
+	}
+
+	public synchronized  void updateButtonStatus(ElevatorComponentStates state, int destinationFloor) {
+		logger.info("\nElevator Floor Button " + destinationFloor + ": " + state.name());
 	}
 
 	/**

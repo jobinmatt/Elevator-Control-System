@@ -18,6 +18,10 @@ public enum ElevatorComponentStates {
 	//doors
 	ELEV_DOORS_OPEN,
 	ELEV_DOORS_CLOSE,
-	ELEV_DOORS_ERROR
+	ELEV_DOORS_ERROR,
+
+	//buttons
+	ELEV_FLOOR_BUTTON_ON,
+	ELEV_FLOOR_BUTTON_OFF
 
 }
