@@ -9,6 +9,7 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.Direction;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.GeneralException;
 import core.Messages.ElevatorMessage;
@@ -39,6 +40,8 @@ public class FloorThread extends Thread {
 	private int port; //port to communicate with the scheduler
 	private Queue<SimulationRequest> events;
 	private int floorNumber;
+	private FloorType floorType;
+	private FloorButton[] floorButtons;
 	DatagramSocket receiveSocket;
 	private InetAddress schedulerAddress;
 	private Timer atFloorTimer;
@@ -51,7 +54,7 @@ public class FloorThread extends Thread {
 	/**
 	 * Creates a floor thread
 	 */
-	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer, int numElev) throws GeneralException {
+	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer, int numElev, FloorType floorType) throws GeneralException {
 
 		super(name);
 
@@ -61,6 +64,21 @@ public class FloorThread extends Thread {
 		this.atFloorTimer = sharedTimer;
 		this.numOfElevators = numElev;
 		this.elevatorFloorStates = new int[this.numOfElevators];
+		this.setFloorType(floorType);
+		if(this.floorType.equals(FloorType.TOP)) {
+			floorButtons = new FloorButton[1];
+			floorButtons[0] = new FloorButton(Direction.DOWN);
+		}
+		else if(this.floorType.equals(FloorType.BOTTOM)) {
+			floorButtons = new FloorButton[1];
+			floorButtons[0] = new FloorButton(Direction.UP);
+		}
+		else {
+			floorButtons = new FloorButton[2];
+			floorButtons[0] = new FloorButton(Direction.DOWN);
+			floorButtons[1] = new FloorButton(Direction.UP);
+		}
+		
 		byte[] b = new byte[DATA_SIZE];
 		this.floorPacket = new DatagramPacket(b, b.length);
 		
@@ -176,5 +194,13 @@ public class FloorThread extends Thread {
 	}
 	public int[] getElevatorFloorStates() {
 		return elevatorFloorStates;
+	}
+
+	public FloorType getFloorType() {
+		return floorType;
+	}
+
+	public void setFloorType(FloorType floorType) {
+		this.floorType = floorType;
 	}
 }

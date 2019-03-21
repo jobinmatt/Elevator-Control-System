@@ -76,8 +76,18 @@ public class FloorSubsystem {
 			//****** ?? send List<SimulationEvent> events to the scheduler ?? ****
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
+				FloorType floorType;
+				if(i == 1) {
+					floorType = FloorType.BOTTOM;
+				}
+				else if(i == numOfFloors) {
+					floorType = FloorType.TOP;
+				}
+				else {
+					floorType = FloorType.NORMAL;
+				}
 				floors.put(FLOOR_NAME + i,
-						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer, numOfElevators));
+						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer, numOfElevators, floorType));
 			}
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
