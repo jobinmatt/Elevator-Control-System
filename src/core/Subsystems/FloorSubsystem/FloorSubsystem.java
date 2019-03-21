@@ -198,8 +198,15 @@ public class FloorSubsystem {
 	}
 
 	private void addEvents() {
+		
 		for(SimulationRequest e: events) {
-			floors.get(FLOOR_NAME + e.getFloor()).addEvent(e);
+			
+			if (e.getEnd()) {
+				e.setStartTime(events.get(events.size() - 2).getStartTime());
+				floors.get(FLOOR_NAME + 1).addEvent(e);
+			} else {
+				floors.get(FLOOR_NAME + e.getFloor()).addEvent(e);
+			}
 		}
 	}
 
@@ -237,4 +244,7 @@ public class FloorSubsystem {
 		this.floorInitPort = floorInitPort;
 	}
 
+	public FloorThread getFirstFloor() {
+		return floors.get(FLOOR_NAME+"1");
+	}
 }
