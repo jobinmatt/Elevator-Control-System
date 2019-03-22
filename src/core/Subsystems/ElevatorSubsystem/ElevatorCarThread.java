@@ -286,10 +286,6 @@ public class ElevatorCarThread extends Thread {
 		}
 	}
 	
-	public void notifyFloor() {
-		
-	}
-	
 	public void sendFailureDoorRequest() throws ElevatorSubsystemException{
 
 		try {
