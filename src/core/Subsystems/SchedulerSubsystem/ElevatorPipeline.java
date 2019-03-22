@@ -214,7 +214,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	public void terminate() {
 		this.receiveSocket.close();
 		try {
-			timer.printScheduler("The arrival sensor");
+			timer.printMinusTravelTime("The arrival sensor");
 		} catch (ConfigurationParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -167,7 +167,9 @@ public class FloorThread extends Thread {
 
 	public void terminate() {
 		receiveSocket.close();
-		timer.print("Floor Interface: ");
+		try {
+			timer.printMinusTravelTime("Floor Interface: ");
+		} catch (Exception e) {}
 	}
 	
 	/**

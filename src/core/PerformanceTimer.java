@@ -68,7 +68,7 @@ public class PerformanceTimer {
 		System.out.println(name + " took " + getMean()/1000000 + " miliseconds on Average. The variance is: " + getVariance()/1000000);
 	}
 	
-	public void printScheduler(String name) throws ConfigurationParserException {
+	public void printMinusTravelTime(String name) throws ConfigurationParserException {
 		
 		System.out.println(name + " took " + ((getMean()/1000000)-(ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000)) + " miliseconds on Average. The variance is: " + getVariance()/1000000);
 	}
