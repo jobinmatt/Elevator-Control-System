@@ -153,7 +153,7 @@ public class ElevatorCarThread extends Thread {
 						Utils.Sleep(doorSleepTime);
 
 						if (destinationFloor != -1) {
-							selectedFloors[ePacket.getDestinationFloor()] = true;
+							selectedFloors[ePacket.getDestinationFloor()-1] = true;
 							logger.info(MARKER, "User Selected Floor: " + ePacket.getDestinationFloor());
 						}
 

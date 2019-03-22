@@ -25,7 +25,10 @@ public class PerformanceTimer {
 	public void end() {
 		
 		endTime = System.nanoTime();
-		times.add((endTime - startTime)/1000000);
+		try {
+			times.add(((endTime - startTime)- (ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000)) /1000000);
+		} catch (ConfigurationParserException e) {
+		}
 		System.out.println("Delta = " + (endTime - startTime)/1000000);
 	}
 	
@@ -70,7 +73,7 @@ public class PerformanceTimer {
 	
 	public void printMinusTravelTime(String name) throws ConfigurationParserException {
 		
-		System.out.println(name + " took " + (getMean()-(ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000)) + " milliseconds on Average. The variance is: " + getVariance());
+		System.out.println(name + " took " + getMean() + " milliseconds on Average. The variance is: " + getVariance());
 	}
 
 }
