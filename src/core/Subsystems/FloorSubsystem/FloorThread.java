@@ -48,6 +48,7 @@ public class FloorThread extends Thread {
 	private DatagramPacket floorPacket;
 	private boolean shutdown = false;
 	private PerformanceTimer timer;
+	private boolean firstStart = true;
 	
 	/**
 	 * Creates a floor thread
@@ -104,9 +105,15 @@ public class FloorThread extends Thread {
 		while (!shutdown) {
 		
 			try {
-				timer.start();
-				FloorMessage floorMessage = receivePacket(this.floorPacket);
-				timer.end();
+				FloorMessage floorMessage;
+				if (!firstStart) {
+					timer.start();
+					floorMessage = receivePacket(this.floorPacket);
+					timer.end();
+				} else {
+					floorMessage = receivePacket(this.floorPacket);
+					firstStart = false;
+				}
 				
 				if (floorMessage.getShutdown()) {
 					shutdown = true;
@@ -178,6 +185,7 @@ public class FloorThread extends Thread {
 		
 		return new FloorMessage(packet.getData(), packet.getLength());
 	}
+	
 	public int[] getElevatorFloorStates() {
 		return elevatorFloorStates;
 	}

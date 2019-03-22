@@ -40,7 +40,7 @@ public class FloorMessage implements SubsystemMessage {
 	private int errorFloor;
 	private int elevatorNum =0; //this is needed for updateing elevator states in the floor
 	private boolean shutdown = false;
-	
+	private long startTime = 0;
 	
 	public FloorMessage() {
 		
@@ -227,6 +227,11 @@ public class FloorMessage implements SubsystemMessage {
 		}  catch (NullPointerException | IOException e) {
 			throw new CommunicationException("Unable to generate packet", e);
 		}
+	}
+	
+	public void setStartTime(long startTime) {
+		
+		this.startTime = startTime;
 	}
 	
 	public boolean getShutdown() {

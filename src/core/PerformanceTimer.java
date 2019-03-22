@@ -2,6 +2,8 @@ package core;
 
 import java.util.ArrayList;
 
+import core.Exceptions.ConfigurationParserException;
+
 public class PerformanceTimer {
 	
 	private long startTime;
@@ -24,6 +26,7 @@ public class PerformanceTimer {
 		
 		endTime = System.nanoTime();
 		times.add(endTime - startTime);
+		System.out.println("Delta = " + (endTime - startTime)/1000000);
 	}
 	
 	public long getDelta() {
@@ -62,7 +65,12 @@ public class PerformanceTimer {
 	
 	public void print(String name) {
 	
-		System.out.println(name + " took " + getMean() + " nanoseconds on Average. The variance is: " + getVariance());
+		System.out.println(name + " took " + getMean()/1000000 + " miliseconds on Average. The variance is: " + getVariance()/1000000);
+	}
+	
+	public void printScheduler(String name) throws ConfigurationParserException {
+		
+		System.out.println(name + " took " + ((getMean()/1000000)-(ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS)*1000)) + " miliseconds on Average. The variance is: " + getVariance()/1000000);
 	}
 
 }

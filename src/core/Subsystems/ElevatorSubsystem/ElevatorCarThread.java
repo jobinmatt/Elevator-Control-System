@@ -60,7 +60,8 @@ public class ElevatorCarThread extends Thread {
 	private int destinationFloor;
 	private boolean sentArrivalSensor;
 	private boolean shutDown;
-	private PerformanceTimer timer; 
+	private PerformanceTimer timer;
+	private boolean firstStart = true;
 	
 	/**
 	 * Constructor for elevator car
@@ -109,9 +110,15 @@ public class ElevatorCarThread extends Thread {
 			// if soure < dest doing up
 			// if source = dest here
 			try {
-				timer.start();
-				this.receivePacket(elevatorPacket);
-				timer.end();
+				
+				if (!firstStart) {
+					timer.start();
+					this.receivePacket(elevatorPacket);
+					timer.end();
+				} else {
+					this.receivePacket(elevatorPacket);
+					firstStart = false;
+				}
 				
 				if (ePacket.getShutdownStatus()) {
 					shutDown = true;
@@ -126,21 +133,23 @@ public class ElevatorCarThread extends Thread {
 						logger.info(MARKER, "Hard error message received, elevator thread being interrupted");
 						break;
 					}
+					
 					if (currentFloor > destinationFloor) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 						moveFloor(ePacket, Direction.DOWN);
-
+						sendArrivalSensorPacket();
 					} else if (currentFloor < destinationFloor) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
 						moveFloor(ePacket, Direction.UP);
-
+						sendArrivalSensorPacket();
 					}
-					if (currentFloor == destinationFloor
-							&& getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
+					
+					if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
 
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
 
+						sendArrivalSensorPacket();
 						Utils.Sleep(doorSleepTime);
 
 						if (destinationFloor != -1) {
@@ -161,12 +170,9 @@ public class ElevatorCarThread extends Thread {
 								Utils.Sleep(WAIT_TIME);
 							}
 						}
-
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-
 						logger.debug("Arrived destination\n");
 					}
-					sendArrivalSensorPacket();
 				}
 				
 			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {

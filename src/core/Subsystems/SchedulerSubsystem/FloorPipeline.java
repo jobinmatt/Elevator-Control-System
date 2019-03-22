@@ -82,6 +82,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 				timer.end();
 				parsePacket(packet);
 			} catch (CommunicationException | HostActionsException e) {
+
 			}
 		}
 	}

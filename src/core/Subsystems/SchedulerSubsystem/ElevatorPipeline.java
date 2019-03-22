@@ -17,8 +17,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.TimerTask;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,15 +25,12 @@ import core.ConfigurationParser;
 import core.Direction;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
-import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Messages.ElevatorMessage;
-import core.Subsystems.ElevatorSubsystem.ElevatorComponentStates;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
-import core.Utils.Utils;
 
 /**
  * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
@@ -180,7 +175,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		elevator.setRequestDirection(packet.getRequestDirection());
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
-		schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+
 	}
 	
 	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException, HostActionsException {
@@ -218,7 +213,12 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 	public void terminate() {
 		this.receiveSocket.close();
-		timer.print("The arrival sensor");
+		try {
+			timer.printScheduler("The arrival sensor");
+		} catch (ConfigurationParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public SubsystemConstants getObjectType() {
