@@ -21,7 +21,6 @@ import core.Exceptions.CommunicationException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
-import core.Messages.ElevatorMessage;
 import core.Messages.ElevatorSysMessageFactory;
 import core.Messages.FloorMessage;
 import core.Messages.SubsystemMessage;
@@ -29,26 +28,28 @@ import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
 
 /**
- * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent 
+ * SchedulerPipeline is a receives incoming packets to the Scheduler and parses
+ * the data to a SchedulerEvent
  **/
-public class FloorPipeline extends Thread implements SchedulerPipeline{
+public class FloorPipeline extends Thread implements SchedulerPipeline {
 
 	private static Logger logger = LogManager.getLogger(FloorPipeline.class);
 	private static final String FLOOR_PIPELINE = "Floor pipeline ";
 	private static final int DATA_SIZE = 50;
 
 	private DatagramSocket receiveSocket;
-	private DatagramSocket sendSocket; 
+	private DatagramSocket sendSocket;
 	private int sendPort;
 	private int receivePort;
 	private SchedulerSubsystem schedulerSubsystem;
 	private InetAddress floorSubSystemAddress;
-	
+
 	private SubsystemConstants objectType;
 	private int pipeNumber;
 	private boolean shutdown = false;
 
-	public FloorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public FloorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem)
+			throws SchedulerPipelineException {
 
 		this.objectType = objectType;
 		this.pipeNumber = portOffset;
@@ -58,12 +59,11 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		this.floorSubSystemAddress = subsystem.getFloorSubsystemAddress();
 		this.sendPort = schedulerSubsystem.getFloorPorts().get(portOffset);
 		try {
-			//need to make sure data is received the same way, matching the ports
+			// need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
 			this.receivePort = receiveSocket.getLocalPort();
 			this.sendSocket = new DatagramSocket();
-		}
-		catch(SocketException e) {
+		} catch (SocketException e) {
 			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
 		}
 	}
@@ -81,7 +81,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 			}
 		}
 	}
-	
+
 	/**
 	 * Creates and returns a SchedulerEvent based on the DatagramPacket
 	 * 
@@ -91,9 +91,9 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	 * @throws HostActionsException
 	 */
 	public void parsePacket(DatagramPacket packet) throws CommunicationException {
-		
+
 		try {
-			
+
 			String str = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
 			if (str.equalsIgnoreCase("End")) {
 				schedulerSubsystem.end();
@@ -106,21 +106,21 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 				SchedulerRequest schedulerPacket = floorPacket.toSchedulerRequest(packet.getAddress(),
 						packet.getPort());
 				schedulerSubsystem.scheduleEvent(schedulerPacket);
-			} 
+			}
 		} catch (SchedulerSubsystemException e) {
 			logger.error(e.getLocalizedMessage());
 		}
 	}
 
 	public void sendElevatorStateToFloor(FloorMessage fMsg) throws HostActionsException, CommunicationException {
-		
+
 		byte[] data = fMsg.generatePacketData();
 		DatagramPacket fPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
 		HostActions.send(fPacket, Optional.of(sendSocket));
 	}
-	
+
 	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
-		
+
 		logger.info("Sending shutdown message...");
 		shutdown = true;
 		FloorMessage message = new FloorMessage();
@@ -136,7 +136,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	public DatagramSocket getSendSocket() {
 		return this.sendSocket;
 	}
-	
+
 	public DatagramSocket getReceiveSocket() {
 		return this.receiveSocket;
 	}
@@ -153,7 +153,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 		return this.pipeNumber;
 	}
 
-	public void terminate() {		
+	public void terminate() {
 		this.receiveSocket.close();
 	}
 }

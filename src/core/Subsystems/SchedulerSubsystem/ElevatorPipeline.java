@@ -17,50 +17,47 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.TimerTask;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import core.Timer;
 import core.ConfigurationParser;
 import core.Direction;
+import core.Timer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
-import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
 import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Messages.ElevatorMessage;
-import core.Subsystems.ElevatorSubsystem.ElevatorComponentStates;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
-import core.Utils.Utils;
 
 /**
- * SchedulerPipeline is a receives incoming packets to the Scheduler and parses the data to a SchedulerEvent
- * */
-public class ElevatorPipeline extends Thread implements SchedulerPipeline{
+ * SchedulerPipeline is a receives incoming packets to the Scheduler and parses
+ * the data to a SchedulerEvent
+ */
+public class ElevatorPipeline extends Thread implements SchedulerPipeline {
 
 	private static Logger logger = LogManager.getLogger(ElevatorPipeline.class);
 	private static final String ELEVATOR_PIPELINE = "Elevator pipeline ";
 	private static final int DATA_SIZE = 50;
-	
+
 	private DatagramSocket receiveSocket;
-	private DatagramSocket sendSocket; 
+	private DatagramSocket sendSocket;
 	private int sendPort;
 	private int receivePort;
 	private SchedulerSubsystem schedulerSubsystem;
 	private Elevator elevator;
 	private LinkedList<SchedulerRequest> elevatorEvents;
 	private InetAddress elevatorSubsystemAddress;
-	
+
 	private SubsystemConstants objectType;
 	private int pipeNumber;
 	private boolean shutdown = false;
 
-
-	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
+	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem)
+			throws SchedulerPipelineException {
 
 		this.objectType = objectType;
 		this.pipeNumber = portOffset;
@@ -72,12 +69,11 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
 
 		try {
-			//need to make sure data is received the same way, matching the ports
+			// need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
 			this.receivePort = receiveSocket.getLocalPort();
 			this.sendSocket = new DatagramSocket();
-		}
-		catch(SocketException e) {
+		} catch (SocketException e) {
 			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
 		}
 	}
@@ -86,7 +82,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	public void run() {
 
 		synchronized (elevatorEvents) {
-			if(elevatorEvents.isEmpty()) {
+			if (elevatorEvents.isEmpty()) {
 				try {
 					elevatorEvents.wait();
 				} catch (InterruptedException e) {
@@ -96,7 +92,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		}
 
 		while (!shutdown) {
-			if (!elevatorEvents.isEmpty()) {								
+			if (!elevatorEvents.isEmpty()) {
 				try {
 
 					if (elevator.getRequestDirection() == Direction.UP) {
@@ -105,50 +101,56 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 						Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
 					}
 					updateSubsystem(elevatorEvents.getFirst());
-					
-					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevatorEvents.getFirst().getErrorCode(), elevatorEvents.getFirst().getErrorFloor());	
-					
+
+					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(),
+							elevator.getDestFloor(), elevator.getElevatorId(), elevatorEvents.getFirst().getErrorCode(),
+							elevatorEvents.getFirst().getErrorFloor());
+
 					byte[] data = elevatorMessage.generatePacketData();
-					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
+					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress,
+							getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
-					
+
 					Timer timer = new Timer();
 					timer.start();
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					timer.end();
-					
-					int elevatorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
-					int elevatorDoorTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
-					
-					if (!(timer.getDelta()/1000000 <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
+
+					int elevatorTravelTime = ConfigurationParser.getInstance()
+							.getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
+					int elevatorDoorTime = ConfigurationParser.getInstance()
+							.getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
+
+					if (!(timer.getDelta() / 1000000 <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
 						schedulerSubsystem.removeElevator(elevator.getElevatorId());
 						break;
 					}
-					
+
 					if (elevatorRecieveMessage.getDoorFailureStatus()) {
-						ElevatorMessage msg = new ElevatorMessage();	
+						ElevatorMessage msg = new ElevatorMessage();
 						data = msg.generateForceCloseMessage();
-						DatagramPacket packet = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
+						DatagramPacket packet = new DatagramPacket(data, data.length, elevatorSubsystemAddress,
+								getSendPort());
 						HostActions.send(packet, Optional.of(sendSocket));
 						elevatorRecieveMessage = recieve();
 					}
-					
+
 					if (elevatorRecieveMessage.getArrivalSensor()) {
 						timer.end();
 						logger.info("Arrival sensor recieved: " + timer.getDelta() + " nanoseconds");
 						updateStates(elevatorRecieveMessage);
 					}
-								
-				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException | ConfigurationParserException e) {
+
+				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException
+						| ConfigurationParserException e) {
 					logger.error("Unab`le to send/recieve packet", e);
 				}
 			}
-		}		
+		}
 	}
 
-	
 	public void sendShutdownMessage() throws CommunicationException, HostActionsException {
-		
+
 		logger.info("Sending shutdown message...");
 		ElevatorMessage okayMessage = new ElevatorMessage();
 		byte[] data = okayMessage.generateShutdownMessage();
@@ -156,16 +158,16 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		HostActions.send(elevatorPacket, Optional.of(sendSocket));
 		shutdown = true;
 	}
-	
+
 	public void addEvent(SchedulerRequest request) {
 		synchronized (elevatorEvents) {
 			elevatorEvents.add(request);
 			elevatorEvents.notifyAll();
 		}
 	}
-	
+
 	public ElevatorMessage recieve() throws CommunicationException {
-		
+
 		DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 		try {
 			HostActions.receive(packet, receiveSocket);
@@ -175,23 +177,27 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		}
 		return new ElevatorMessage(packet.getData(), packet.getLength());
 	}
-	
-	private void updateSubsystem(SchedulerRequest packet) throws SchedulerSubsystemException, CommunicationException, HostActionsException {
-		
+
+	private void updateSubsystem(SchedulerRequest packet)
+			throws SchedulerSubsystemException, CommunicationException, HostActionsException {
+
 		elevator.setDestFloor(packet.getDestFloor());
 		elevator.setRequestDirection(packet.getRequestDirection());
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
-		schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+		// schedulerSubsystem.updateFloorStates(new
+		// ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(),
+		// elevator.getElevatorId()));
 	}
-	
-	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException, HostActionsException {
-			
+
+	private void updateStates(ElevatorMessage request)
+			throws CommunicationException, SchedulerSubsystemException, HostActionsException {
+
 		elevator.setCurrentFloor(request.getCurrentFloor());
-		
 		List<SchedulerRequest> tempList = new ArrayList<>();
-		for (SchedulerRequest event: elevatorEvents) {
-			if (event.getDestFloor() == elevator.getCurrentFloor() && event.getRequestDirection().equals(elevator.getRequestDirection())) {
+		for (SchedulerRequest event : elevatorEvents) {
+			if (event.getDestFloor() == elevator.getCurrentFloor()
+					&& event.getRequestDirection().equals(elevator.getRequestDirection())) {
 				tempList.add(event);
 			}
 		}
@@ -199,13 +205,13 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 			logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
 		}
 		elevatorEvents.removeAll(tempList);
-		
+
 		if (elevator.getRequestDirection() == Direction.UP) {
 			Collections.sort(elevatorEvents, SchedulerRequest.BY_ASCENDING);
 		} else {
 			Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
 		}
-		
+
 		if (!elevatorEvents.isEmpty()) {
 			elevator.setDestFloor(elevatorEvents.getFirst().getDestFloor());
 			elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
@@ -214,13 +220,16 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		}
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
-		schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+		schedulerSubsystem.updateFloorStates(
+				new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+		// right not the target floor gets updated so target != source floor until the
+		// elevator services all its requests.
 		logger.debug("Elevator status updated: " + elevator.toString() + "\n ");
 	}
 
 	public void terminate() {
 		this.receiveSocket.close();
-		//cleanup goes here
+		// cleanup goes here
 	}
 
 	public SubsystemConstants getObjectType() {
@@ -230,7 +239,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	public DatagramSocket getSendSocket() {
 		return this.sendSocket;
 	}
-	
+
 	public DatagramSocket getReceiveSocket() {
 		return this.receiveSocket;
 	}

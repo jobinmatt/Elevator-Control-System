@@ -9,16 +9,6 @@
 
 package core.Subsystems.FloorSubsystem;
 
-import core.Direction;
-import core.Exceptions.CommunicationException;
-import core.Exceptions.GeneralException;
-import core.Messages.ElevatorMessage;
-import core.Messages.FloorMessage;
-import core.Utils.HostActions;
-import core.Utils.SimulationRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -31,13 +21,24 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import core.Direction;
+import core.Exceptions.CommunicationException;
+import core.Exceptions.GeneralException;
+import core.Messages.FloorMessage;
+import core.Utils.HostActions;
+import core.Utils.SimulationRequest;
+
 /**
- * The FloorThread represents a floor on which a person can request an elevator. Maintains a queue of events.
+ * The FloorThread represents a floor on which a person can request an elevator.
+ * Maintains a queue of events.
  */
 public class FloorThread extends Thread {
 
 	private static Logger logger = LogManager.getLogger(FloorThread.class);
-	private int port; //port to communicate with the scheduler
+	private int port; // port to communicate with the scheduler
 	private Queue<SimulationRequest> events;
 	private int floorNumber;
 	private FloorType floorType;
@@ -46,15 +47,16 @@ public class FloorThread extends Thread {
 	private InetAddress schedulerAddress;
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
-	private int numOfElevators=0;
+	private int numOfElevators = 0;
 	private int[] elevatorFloorStates;
 	private DatagramPacket floorPacket;
 	private boolean shutdown = false;
-	
+
 	/**
 	 * Creates a floor thread
 	 */
-	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer, int numElev, FloorType floorType) throws GeneralException {
+	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer, int numElev,
+			FloorType floorType) throws GeneralException {
 
 		super(name);
 
@@ -65,23 +67,21 @@ public class FloorThread extends Thread {
 		this.numOfElevators = numElev;
 		this.elevatorFloorStates = new int[this.numOfElevators];
 		this.setFloorType(floorType);
-		if(this.floorType.equals(FloorType.TOP)) {
+		if (this.floorType.equals(FloorType.TOP)) {
 			floorButtons = new FloorButton[1];
 			floorButtons[0] = new FloorButton(Direction.DOWN);
-		}
-		else if(this.floorType.equals(FloorType.BOTTOM)) {
+		} else if (this.floorType.equals(FloorType.BOTTOM)) {
 			floorButtons = new FloorButton[1];
 			floorButtons[0] = new FloorButton(Direction.UP);
-		}
-		else {
+		} else {
 			floorButtons = new FloorButton[2];
 			floorButtons[0] = new FloorButton(Direction.DOWN);
 			floorButtons[1] = new FloorButton(Direction.UP);
 		}
-		
+
 		byte[] b = new byte[DATA_SIZE];
 		this.floorPacket = new DatagramPacket(b, b.length);
-		
+
 		try {
 			receiveSocket = new DatagramSocket();
 			this.port = receiveSocket.getLocalPort();
@@ -92,16 +92,17 @@ public class FloorThread extends Thread {
 
 	/**
 	 * Add a SimulationEvent to the queue
+	 * 
 	 * @param e
 	 */
 	public void addEvent(SimulationRequest e) {
 
 		events.add(e);
 
-		this.atFloorTimer.schedule(new TimerTask () {
+		this.atFloorTimer.schedule(new TimerTask() {
 			public void run() {
 				try {
-					logger.info("Scheduling request: "+e.toString());
+					logger.info("Scheduling request: " + e.toString());
 					serviceRequest(e);
 				} catch (GeneralException e) {
 					logger.error(e);
@@ -112,86 +113,138 @@ public class FloorThread extends Thread {
 	}
 
 	/**
-	 *Services each floor request
+	 * Services each floor request
 	 */
 	@Override
 	public void run() {
-
 		while (!shutdown) {
-		
+
 			try {
 				FloorMessage floorMessage = receivePacket(this.floorPacket);
-				
+				if (floorMessage.getDirection().equals(Direction.STATIONARY)) {
+					logger.info("Elevator is stationary!!! reported by: " + this.floorNumber);
+				}
 				if (floorMessage.getShutdown()) {
 					shutdown = true;
 					atFloorTimer.cancel();
 					break;
 				}
-				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
-				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+				updateFloorButtonState(floorMessage);
+				updateElevatorFloorState(floorMessage.getElevatorNum() - 1, floorMessage.getSourceFloor());
+				logger.info("Updated elevator floor: " + Arrays.toString(this.elevatorFloorStates));
+
 			} catch (CommunicationException | IOException e) {
 			}
-        }
+		}
 		logger.info("Shutting down floor");
-    } 
-
-    private void serviceRequest(SimulationRequest event) throws GeneralException {
-    	
-        FloorMessage floorPacket = null;
-        byte[] temp = new byte[DATA_SIZE]; //data to be sent to the Scheduler
-        byte[] data = new byte[DATA_SIZE]; //data to be sent to the Scheduler
-        
-        if (event.getEnd()) {
-        	data = "End".getBytes();
-        } else {
-	        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton(), event.getErrorCode(), event.getErrorElevator());
-	        data = floorPacket.generatePacketData();
-        }
-            
-        DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
-        tempPacket.setData(data);
-        tempPacket.setAddress(this.schedulerAddress);
-        tempPacket.setPort(FloorSubsystem.getSchedulerPorts().get(floorNumber));
-        logger.info("Buffer Data: "+ Arrays.toString(data));
-        HostActions.send(tempPacket, Optional.of(receiveSocket));
-    }
-    
-    /** 
-	 * Get the port that the socket is running on 
-	 * @return port: int
-	 * */
-	public int getPort() {		
-		return this.port;
 	}
-	
+
+	private void updateFloorButtonState(FloorMessage floorMessage) {
+		if (this.floorNumber == floorMessage.getSourceFloor() && this.floorNumber == floorMessage.getTargetFloor()) {
+			if (this.floorType.equals(FloorType.TOP) || this.floorType.equals(FloorType.BOTTOM)) {
+				if (this.floorButtons[0].getStatus()) {
+					this.floorButtons[0].setButtonNotPressed();
+					logger.info("Floor Number: " + this.floorNumber + " - Button turned OFF.");
+				}
+			} else {
+				if (floorButtons[0].getStatus()) {
+					if (floorMessage.getDirection().equals(floorButtons[0].getDirection())) {
+						this.floorButtons[0].setButtonNotPressed();
+					}
+				} else {
+					if (floorMessage.getDirection().equals(floorButtons[1].getDirection())) {
+						this.floorButtons[1].setButtonNotPressed();
+					}
+				}
+			}
+		}
+	}
+
+	private void serviceRequest(SimulationRequest event) throws GeneralException {
+
+		FloorMessage floorPacket = null;
+		byte[] temp = new byte[DATA_SIZE]; // data to be sent to the Scheduler
+		byte[] data = new byte[DATA_SIZE]; // data to be sent to the Scheduler
+
+		if (event.getEnd()) {
+			data = "End".getBytes();
+		} else {
+
+			if (this.floorType.equals(FloorType.BOTTOM) || this.floorType.equals(FloorType.TOP)) {
+				this.floorButtons[0].setButtonPressed();
+				logger.info("Floor Number: " + this.floorNumber + " - Button turned ON.");
+			} else {
+				if (event.getFloorButton().equals(Direction.UP)) {// This is probably redundant we could force NORMAL
+																	// floors to follow a specific pattern for floor
+																	// buttons.
+					if (this.floorButtons[0].getDirection().equals(Direction.UP)) {
+						this.floorButtons[0].setButtonPressed();
+					} else {
+						this.floorButtons[1].setButtonPressed();
+					}
+					logger.info("Floor Number: " + this.floorNumber + " - UP button turned ON.");
+				} else {
+					if (this.floorButtons[0].getDirection().equals(Direction.DOWN)) {
+						this.floorButtons[0].setButtonPressed();
+					} else {
+						this.floorButtons[1].setButtonPressed();
+					}
+					logger.info("Floor Number: " + this.floorNumber + " - DOWN button turned ON.");
+				}
+			}
+			floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton(),
+					event.getErrorCode(), event.getErrorElevator());
+			data = floorPacket.generatePacketData();
+		}
+
+		DatagramPacket tempPacket = new DatagramPacket(temp, temp.length);
+		tempPacket.setData(data);
+		tempPacket.setAddress(this.schedulerAddress);
+		tempPacket.setPort(FloorSubsystem.getSchedulerPorts().get(floorNumber));
+		logger.info("Buffer Data: " + Arrays.toString(data));
+		HostActions.send(tempPacket, Optional.of(receiveSocket));
+	}
+
 	/**
 	 * Get the port that the socket is running on
+	 * 
+	 * @return port: int
+	 */
+	public int getPort() {
+		return this.port;
+	}
+
+	/**
+	 * Get the port that the socket is running on
+	 * 
 	 * @return floorNumber: int
-	 * */
-	public int getFloorNumber() {		
+	 */
+	public int getFloorNumber() {
 		return this.floorNumber;
 	}
 
 	public void terminate() {
 		receiveSocket.close();
-		//cleanup goes here
+		// cleanup goes here
 	}
-	
+
 	/**
-	 * updates the current position of the elevator as the floor sees it
-	 * index = elevNum-1
-	 * */
-	private void updateElevatorFloorState(int index, int floorNum) { 
-		synchronized(elevatorFloorStates) {
-			this.elevatorFloorStates[index] = floorNum; 
+	 * updates the current position of the elevator as the floor sees it index =
+	 * elevNum-1
+	 */
+	private void updateElevatorFloorState(int index, int floorNum) {
+		synchronized (elevatorFloorStates) {
+			this.elevatorFloorStates[index] = floorNum;
 		}
 	}
-	public FloorMessage receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
-				
+
+	public FloorMessage receivePacket(DatagramPacket packet) throws IOException, CommunicationException {
+
 		this.receiveSocket.receive(packet);
-		
+
 		return new FloorMessage(packet.getData(), packet.getLength());
 	}
+
 	public int[] getElevatorFloorStates() {
 		return elevatorFloorStates;
 	}

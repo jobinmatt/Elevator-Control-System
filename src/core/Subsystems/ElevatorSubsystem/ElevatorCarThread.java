@@ -142,6 +142,7 @@ public class ElevatorCarThread extends Thread {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
 
+						//We will need to tell the floor the elevator reached the floor here (for floor buttons to update)
 						Utils.Sleep(doorSleepTime);
 
 						if (destinationFloor != -1) {
@@ -283,6 +284,10 @@ public class ElevatorCarThread extends Thread {
 		} catch (CommunicationException | IOException e) {
 			throw new ElevatorSubsystemException(e);
 		}
+	}
+	
+	public void notifyFloor() {
+		
 	}
 	
 	public void sendFailureDoorRequest() throws ElevatorSubsystemException{
