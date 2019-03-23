@@ -31,7 +31,7 @@ public class FloorSubsystemMain {
 			int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 			
 
-			InetAddress schedulerSubsystemAddress =InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
+			InetAddress schedulerSubsystemAddress = InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
 			int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 			int numElev = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, schedulerSubsystemAddress, floorInitPort, numElev);

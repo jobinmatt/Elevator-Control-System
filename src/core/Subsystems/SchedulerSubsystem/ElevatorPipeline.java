@@ -49,6 +49,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	private Elevator elevator;
 	private LinkedList<SchedulerRequest> elevatorEvents;
 	private InetAddress elevatorSubsystemAddress;
+	private int portOffset;
 	
 	private SubsystemConstants objectType;
 	private int pipeNumber;
@@ -58,15 +59,14 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
+		this.setName(ELEVATOR_PIPELINE + portOffset);
 		this.objectType = objectType;
 		this.pipeNumber = portOffset;
-		this.setName(ELEVATOR_PIPELINE + portOffset);
+		this.portOffset = portOffset;
 		this.schedulerSubsystem = subsystem;
+
 		this.elevatorEvents = new LinkedList<SchedulerRequest>();
 		this.elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
-		this.elevatorSubsystemAddress = subsystem.getElevatorSubsystemAddress();
-		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
-		this.timer = new PerformanceTimer();
 		
 		try {
 			//need to make sure data is received the same way, matching the ports
@@ -75,13 +75,17 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 			this.sendSocket = new DatagramSocket();
 		}
 		catch(SocketException e) {
-			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
+			logger.info("Unable to create a DatagramSocket on Scheduler");
 		}
 	}
 
 	@Override
 	public void run() {
 
+		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
+		this.elevatorSubsystemAddress = schedulerSubsystem.getElevatorSubsystemAddress();
+		this.timer = new PerformanceTimer();
+		
 		synchronized (elevatorEvents) {
 			if(elevatorEvents.isEmpty()) {
 				try {
@@ -134,10 +138,11 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					}
 								
 				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException | ConfigurationParserException e) {
-					logger.error("Unab`le to send/recieve packet", e);
+					logger.error("Unable to send/recieve packet", e);
 				}
 			}
-		}		
+		}
+		terminate();
 	}
 
 	
@@ -182,32 +187,34 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 			
 		elevator.setCurrentFloor(request.getCurrentFloor());
 		
-		List<SchedulerRequest> tempList = new ArrayList<>();
-		for (SchedulerRequest event: elevatorEvents) {
-			if (event.getDestFloor() == elevator.getCurrentFloor() && event.getRequestDirection().equals(elevator.getRequestDirection())) {
-				tempList.add(event);
+		if (!shutdown) {
+			List<SchedulerRequest> tempList = new ArrayList<>();
+			for (SchedulerRequest event: elevatorEvents) {
+				if (event.getDestFloor() == elevator.getCurrentFloor() && event.getRequestDirection().equals(elevator.getRequestDirection())) {
+					tempList.add(event);
+				}
 			}
+			if (!tempList.isEmpty()) {
+				logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
+			}
+			elevatorEvents.removeAll(tempList);
+			
+			if (elevator.getRequestDirection() == Direction.UP) {
+				Collections.sort(elevatorEvents, SchedulerRequest.BY_ASCENDING);
+			} else {
+				Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
+			}
+			
+			if (!elevatorEvents.isEmpty()) {
+				elevator.setDestFloor(elevatorEvents.getFirst().getDestFloor());
+				elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
+			} else {
+				elevator.setRequestDirection(Direction.STATIONARY);
+			}
+			elevator.setNumRequests(elevatorEvents.size());
+			schedulerSubsystem.updateElevatorState(elevator);
+			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
 		}
-		if (!tempList.isEmpty()) {
-			logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
-		}
-		elevatorEvents.removeAll(tempList);
-		
-		if (elevator.getRequestDirection() == Direction.UP) {
-			Collections.sort(elevatorEvents, SchedulerRequest.BY_ASCENDING);
-		} else {
-			Collections.sort(elevatorEvents, SchedulerRequest.BY_DECENDING);
-		}
-		
-		if (!elevatorEvents.isEmpty()) {
-			elevator.setDestFloor(elevatorEvents.getFirst().getDestFloor());
-			elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
-		} else {
-			elevator.setRequestDirection(Direction.STATIONARY);
-		}
-		elevator.setNumRequests(elevatorEvents.size());
-		schedulerSubsystem.updateElevatorState(elevator);
-		schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
 		logger.debug("Elevator status updated: " + elevator.toString() + "\n ");
 	}
 

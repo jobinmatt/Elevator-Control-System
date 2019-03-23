@@ -15,6 +15,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import core.ConfigurationParser;
 import core.InputParser;
 import core.LoggingManager;
 import core.Exceptions.CommunicationException;
+import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.FloorSubsystemException;
 import core.Exceptions.GeneralException;
 import core.Exceptions.HostActionsException;
@@ -36,6 +38,7 @@ import core.Exceptions.InputParserException;
 import core.Messages.InitMessage;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
+import core.Utils.Utils;
 
 
 /**
@@ -90,10 +93,7 @@ public class FloorSubsystem {
 			});
 			
 			sendPortsToScheduler(floorInitPort);
-			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-			int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
-			receivePortsFromScheduler(initSchedulerPort + 1);//to avoid conflict with Elevator
-
+			
 		} catch (InputParserException e) {
 			throw new FloorSubsystemException(e);
 		}
@@ -110,29 +110,11 @@ public class FloorSubsystem {
 	
 	}
 	
-	private void receivePortsFromScheduler(int listenPort) throws FloorSubsystemException {
-		try {
-			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
-			DatagramSocket receiveSocket = new DatagramSocket(listenPort);
-			try {
-				logger.info("Waiting to receive port information from SCHEDULER...");
-				HostActions.receive(packet, receiveSocket);
-				receiveSocket.close();
-				convertPacketToMap(packet.getData(), packet.getLength());
-			} catch (HostActionsException e) {
-				throw new FloorSubsystemException("Unable to receive scheduler ports packet", e);
-			}
-		} catch (SocketException e) {
-			throw new FloorSubsystemException("Unable to create a DatagramSocket", e);
-		}
-	}
-
 	private void convertPacketToMap(byte[] data, int length) throws FloorSubsystemException {
 		if(data != null && data[0] != SPACER) {			
 			HashMap<Integer, Integer> tempPorts = new HashMap<>();
 			for(int i = 0; i < length; i = i + 8) {
 				int pipelineNumber = data[i];
-				
 				byte[] portNumInByte = {data[i+2], data[i+3], data[i+4], data[i+5]};
 				int schedulerPort = ByteBuffer.wrap(portNumInByte).getInt();
 				tempPorts.put(pipelineNumber, schedulerPort);
@@ -153,9 +135,35 @@ public class FloorSubsystem {
 	 * @throws CommunicationException 
 	 */
 	public void sendPortsToScheduler(int initPort) throws HostActionsException, IOException, CommunicationException {
-		byte[] packetData = createPortsArray((HashMap<String, FloorThread>) floors);
-		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, schedulerAddress, initPort);
-	    HostActions.send(packet, Optional.empty());
+		
+		boolean received = false; 
+	    
+		try {
+			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
+			int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
+		
+			while (!received) {
+				
+				byte[] packetData = createPortsArray((HashMap<String, FloorThread>) floors);
+				DatagramPacket packet = new DatagramPacket(packetData, packetData.length, schedulerAddress, initPort);
+			    HostActions.send(packet, Optional.empty());
+				
+			    DatagramPacket recievePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
+				DatagramSocket receiveSocket = new DatagramSocket(initSchedulerPort + 1);
+				logger.info("Waiting to receive port information from SCHEDULER...");
+				receiveSocket.setSoTimeout(10000);
+				receiveSocket.receive(recievePacket);
+				received = true;
+				receiveSocket.close();
+				convertPacketToMap(recievePacket.getData(), recievePacket.getLength());
+			}
+		} catch (ConfigurationParserException e) {
+			logger.info("Unable to get Configuration Parser");
+		} catch (FloorSubsystemException fse) {
+
+		} catch (SocketTimeoutException ste) {
+			sendPortsToScheduler(floorInitPort);
+		}
 	}
 	
 	/**
@@ -166,10 +174,10 @@ public class FloorSubsystem {
 	 * @throws CommunicationException 
 	 */
 	private byte[] createPortsArray(HashMap<String, FloorThread> map) throws IOException, CommunicationException {
+		
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
 		data.write(new InitMessage().generatePacketData());
 		for (Map.Entry<String, FloorThread> entry : map.entrySet()) {
-	        System.out.println(entry.getKey() + ":" + entry.getValue());
 	        int floorNumber = entry.getValue().getFloorNumber();
 	        int floorPort = entry.getValue().getPort();
 	        data.write(floorNumber);

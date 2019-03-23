@@ -44,6 +44,7 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 	private int receivePort;
 	private SchedulerSubsystem schedulerSubsystem;
 	private InetAddress floorSubSystemAddress;
+	private int portOffset;
 	
 	private SubsystemConstants objectType;
 	private int pipeNumber;
@@ -52,14 +53,12 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 
 	public FloorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
 
+		this.setName(FLOOR_PIPELINE + portOffset);
 		this.objectType = objectType;
 		this.pipeNumber = portOffset;
 		this.schedulerSubsystem = subsystem;
-		String threadName = FLOOR_PIPELINE + portOffset;
-		this.setName(threadName);
-		this.floorSubSystemAddress = subsystem.getFloorSubsystemAddress();
-		this.sendPort = schedulerSubsystem.getFloorPorts().get(portOffset);
-		this.timer = new PerformanceTimer();
+		this.portOffset = portOffset;
+		
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
@@ -67,13 +66,17 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 			this.sendSocket = new DatagramSocket();
 		}
 		catch(SocketException e) {
-			throw new SchedulerPipelineException("Unable to create a DatagramSocket on Scheduler", e);
+			logger.info("Unable to create a DatagramSocket on Scheduler");
 		}
 	}
 
 	@Override
 	public void run() {
 
+		this.sendPort = schedulerSubsystem.getFloorPorts().get(portOffset);
+		this.floorSubSystemAddress = schedulerSubsystem.getFloorSubsystemAddress();
+		this.timer = new PerformanceTimer();
+		
 		while (!shutdown) {
 			DatagramPacket packet = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 			try {
