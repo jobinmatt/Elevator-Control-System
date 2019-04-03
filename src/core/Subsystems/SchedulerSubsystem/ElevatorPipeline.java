@@ -217,10 +217,11 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
 			} else {
 				elevator.setRequestDirection(Direction.STATIONARY);
+				logger.debug("Elevator is stationary");
 			}
 			elevator.setNumRequests(elevatorEvents.size());
 			schedulerSubsystem.updateElevatorState(elevator);
-			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevator.getRequestDirection()));
 		}
 		logger.debug("Elevator status updated: " + elevator.toString() + "\n ");
 	}
