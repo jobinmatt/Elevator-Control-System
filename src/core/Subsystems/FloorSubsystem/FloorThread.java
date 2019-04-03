@@ -49,7 +49,6 @@ public class FloorThread extends Thread {
 	private final int DATA_SIZE = 1024;
 	private int numOfElevators=0;
 	private FloorStatus[] elevatorFloorStates;
-	private HashMap<Integer, Direction> previousElevatorDirectionMap;
 	private DatagramPacket floorPacket;
 	private boolean shutdown = false;
 	private PerformanceTimer timer;
@@ -68,13 +67,9 @@ public class FloorThread extends Thread {
 		this.atFloorTimer = sharedTimer;
 		this.numOfElevators = numElev;
 		this.elevatorFloorStates = new FloorStatus[numElev];
-		this.previousElevatorDirectionMap = new HashMap<Integer, Direction>();
 		for (int i=0;i<numElev;i++) {
 			this.elevatorFloorStates[i] = new FloorStatus(i+1, 1, core.Direction.STATIONARY);
 
-		}
-		for(int i = 1; i<=this.numOfElevators; i++) {
-			previousElevatorDirectionMap.put(i,Direction.STATIONARY);
 		}
 		this.setFloorType(floorType);
 		if (this.floorType.equals(FloorType.TOP)) {
@@ -148,10 +143,7 @@ public class FloorThread extends Thread {
 				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor(), floorMessage.getDirection());
 				updateFloorButtonState(floorMessage);
 				if(floorMessage.getDirection().equals(Direction.STATIONARY) && this.floorNumber == floorMessage.getSourceFloor()) {
-					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! was moving "+this.previousElevatorDirectionMap.get(floorMessage.getElevatorNum())+", Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
-				}
-				if(!floorMessage.getDirection().equals(this.previousElevatorDirectionMap.get(floorMessage.getElevatorNum()))) {
-					this.previousElevatorDirectionMap.put(floorMessage.getElevatorNum(),floorMessage.getDirection());
+					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! , Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
 				}
 				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
 			} catch (CommunicationException | IOException e) {
@@ -161,23 +153,19 @@ public class FloorThread extends Thread {
     } 
 	
 	private void updateFloorButtonState(FloorMessage floorMessage) {
-		if ((this.floorNumber == floorMessage.getSourceFloor()) && (floorMessage.getTargetFloor() == floorMessage.getSourceFloor())) {
+		if ((this.floorNumber == floorMessage.getSourceFloor()) && (floorMessage.getDirection().equals(Direction.STATIONARY))) {
 			if (this.floorType.equals(FloorType.TOP) || this.floorType.equals(FloorType.BOTTOM)) {
 				if (this.floorButtons[0].getStatus()) {
 					this.floorButtons[0].setButtonNotPressed();
 					logger.info("Floor Number: " + this.floorNumber + " - Button turned OFF.");
 				}
 			} else {
-				if (floorButtons[0].getStatus()) {
-					if (this.previousElevatorDirectionMap.get(floorMessage.getElevatorNum()).equals(floorButtons[0].getDirection())) {
-						this.floorButtons[0].setButtonNotPressed();
-						logger.info("Floor Number: " + this.floorNumber + " - DOWN turned OFF.");
-					}
-				} else {
-					if (this.previousElevatorDirectionMap.get(floorMessage.getElevatorNum()).equals(floorButtons[1].getDirection())) {
-						this.floorButtons[1].setButtonNotPressed();
-						logger.info("Floor Number: " + this.floorNumber + " - UP turned OFF.");
-					}
+				if (floorButtons[0].getStatus()&&floorMessage.getTargetFloor()<this.floorNumber) {
+					this.floorButtons[0].setButtonNotPressed();
+					logger.info("Floor Number: " + this.floorNumber + " - DOWN turned OFF.");
+				} else if(floorButtons[1].getStatus()&&floorMessage.getTargetFloor()>this.floorNumber){
+					this.floorButtons[1].setButtonNotPressed();
+					logger.info("Floor Number: " + this.floorNumber + " - UP turned OFF.");
 				}
 			}
 		}
