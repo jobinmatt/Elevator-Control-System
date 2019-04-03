@@ -3,6 +3,7 @@ package ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import core.Subsystems.FloorSubsystem.FloorStatus;
 import core.Subsystems.FloorSubsystem.FloorSubsystem;
 import core.Subsystems.FloorSubsystem.FloorThread;
 public class FloorSystemView extends JFrame implements Runnable{
@@ -32,6 +34,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 			labelCol.add(new JLabel("1",SwingConstants.CENTER));
 			labelCol.get(i).setBackground(Color.BLACK);
 			labelCol.get(i).setBorder(BorderFactory.createLineBorder(Color.black));
+			labelCol.get(i).setFont(new Font("Arial", Font.PLAIN, 44));
 		}
 		
 		for (int i=0;i<elevNum;i++) {
@@ -49,7 +52,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 		this.setTitle("Elevator Status");
 		this.pack();
 		this.setVisible(true);
-		//this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 	}
 	
@@ -62,9 +65,9 @@ public class FloorSystemView extends JFrame implements Runnable{
 	@Override
 	public void run() {
 		while(true) {
-			int[] states = this.ref.getElevatorFloorStates();
+			FloorStatus[] states = this.ref.getFloorStatus();
 			for (int i=0;i<this.elevNum;i++) {
-				labelCol.get(i).setText(Integer.toString(states[i]));
+				labelCol.get(i).setText(states[i].getFloorStatus() + states[i].getDir().name());
 				this.repaint();
 			}
 		}

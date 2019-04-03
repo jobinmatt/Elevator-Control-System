@@ -13,7 +13,10 @@ import core.Exceptions.SchedulerPipelineException;
 import core.Exceptions.SchedulerSubsystemException;
 import core.Subsystems.ElevatorSubsystem.ElevatorSubsystem;
 import core.Subsystems.FloorSubsystem.FloorSubsystem;
+import core.Subsystems.SchedulerSubsystem.ElevatorPipeline;
+import core.Subsystems.SchedulerSubsystem.FloorPipeline;
 import core.Subsystems.SchedulerSubsystem.SchedulerSubsystem;
+import core.Utils.SubsystemConstants;
 
 class StartupUtility {
 	private static StartupUtility startupUtility = null;
@@ -35,19 +38,18 @@ class StartupUtility {
 		int elevatorInitPort = configurationParser.getInt(ConfigurationParser.ELEVATOR_INIT_PORT);
 		int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 		InetAddress schedulerAddress = InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
-		SubsystemWrapper t = new SubsystemWrapper();
+		SubsystemWrapper subsystemWrapper = new SubsystemWrapper();
 		//input the right address
-		Thread schedulerStartup = new Thread(new SubsystemStartThread(numElevators, numFloors, elevatorInitPort, floorInitPort, scheduler, t), "SchedulerStartup");
+		Thread schedulerStartup = new Thread(new SubsystemStartThread(numElevators, numFloors, elevatorInitPort, floorInitPort, scheduler, subsystemWrapper), "SchedulerStartup");
 		schedulerStartup.start();
-
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		Thread elevatorStartup = new Thread(new ElevatorStartThread(numElevators, numFloors, elevatorInitPort, schedulerAddress, elevator, t), "ElevatorStartup");
+		
+		Thread elevatorStartup = new Thread(new ElevatorStartThread(numElevators, numFloors, elevatorInitPort, schedulerAddress, elevator, subsystemWrapper), "ElevatorStartup");
 		elevatorStartup.start();
 
 		try {
@@ -57,7 +59,7 @@ class StartupUtility {
 			e.printStackTrace();
 		}
 
-		Thread floorStartup = new Thread(new FloorStartThread(numFloors, numElevators, floorInitPort, schedulerAddress, floor, t), "FloorStartup");
+		Thread floorStartup = new Thread(new FloorStartThread(numFloors, numElevators, floorInitPort, schedulerAddress, floor, subsystemWrapper), "FloorStartup");
 		floorStartup.start();
 		try {
 			Thread.sleep(1000);
@@ -69,9 +71,9 @@ class StartupUtility {
 		elevatorStartup.join();
 		floorStartup.join();
 
-		scheduler = t.getS();
-		elevator = t.getE();
-		floor = t.getF();
+		scheduler = subsystemWrapper.getS();
+		elevator = subsystemWrapper.getE();
+		floor = subsystemWrapper.getF();
 
 	}
 
@@ -116,7 +118,21 @@ class SubsystemStartThread implements Runnable{
 	public void run() {
 
 		try {
-			subsystem = new SchedulerSubsystem(numElevatorsScheduler, numFloorsScheduler, elevatorInitPort, floorInitPort);
+			subsystem = new SchedulerSubsystem(numElevatorsScheduler);
+			
+			ElevatorPipeline[] elevatorListeners = new ElevatorPipeline[numElevatorsScheduler];
+			FloorPipeline[] floorListeners = new FloorPipeline[numFloorsScheduler];
+
+			for (int i = 0; i < numElevatorsScheduler; i++) {
+				elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, subsystem);
+			}
+			for (int i = 0; i < numFloorsScheduler; i++) {
+				floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i+1, subsystem);
+			}
+			
+			subsystem.addListeners(elevatorListeners, floorListeners);
+			subsystem.start(elevatorInitPort, floorInitPort);
+			
 		} catch (SchedulerPipelineException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

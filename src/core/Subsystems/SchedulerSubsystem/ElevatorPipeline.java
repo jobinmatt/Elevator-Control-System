@@ -67,7 +67,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 		this.elevatorEvents = new LinkedList<SchedulerRequest>();
 		this.elevator = new Elevator(portOffset, 1, -1, Direction.STATIONARY);
-		
+		this.timer = new PerformanceTimer();
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
@@ -84,7 +84,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 
 		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
 		this.elevatorSubsystemAddress = schedulerSubsystem.getElevatorSubsystemAddress();
-		this.timer = new PerformanceTimer();
 		
 
 		while (!shutdown) {

@@ -35,11 +35,11 @@ public class FloorSubsystemMain {
 			int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 			int numElev = configurationParser.getInt(ConfigurationParser.NUMBER_OF_ELEVATORS);
 			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, schedulerSubsystemAddress, floorInitPort, numElev);
-			//FloorSystemView view = new FloorSystemView(numElev, floorSystem);
-			//Thread t1 = new Thread(view);
+			FloorSystemView view = new FloorSystemView(numElev, floorSystem);
+			Thread t1 = new Thread(view);
 			
 			floorSystem.startFloorThreads();
-			//t1.start();
+			t1.start();
 		} catch (Exception e) {
 			logger.error("", e);
 			System.exit(-1);
