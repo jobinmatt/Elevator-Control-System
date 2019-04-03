@@ -177,6 +177,7 @@ class ElevatorStartThread implements Runnable{
 
 		try {
 			subsystem = new ElevatorSubsystem(numElevatorsElevator, numFloorsElevator, elevatorInitPort, schedulerAddress);
+			subsystem.activateElevators();
 		} catch (ElevatorSubsystemException | ConfigurationParserException | HostActionsException
 				| CommunicationException | IOException e) {
 			// TODO Auto-generated catch block
