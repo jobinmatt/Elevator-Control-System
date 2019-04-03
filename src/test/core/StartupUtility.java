@@ -116,7 +116,7 @@ class SubsystemStartThread implements Runnable{
 	public void run() {
 
 		try {
-			subsystem = new SchedulerSubsystem(numElevatorsScheduler, numFloorsScheduler, elevatorInitPort, floorInitPort);
+			subsystem = new SchedulerSubsystem(numElevatorsScheduler);
 		} catch (SchedulerPipelineException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
