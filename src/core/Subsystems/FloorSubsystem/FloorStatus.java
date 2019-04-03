@@ -30,7 +30,7 @@ public class FloorStatus{
 		
 		@Override
 		public String toString() {
-			return "Elevr Num: "+ elevatorNum+ " Dir:"+ dir;
+			return "Elev_" + elevatorNum + ": Dir:" + dir + " Floor:" + floorStatus;
 		}
 		
 }
