@@ -4,9 +4,9 @@
 
     <Config>
 
-        <NumberOfElevators>1</NumberOfElevators>
+        <NumberOfElevators>4</NumberOfElevators>
 
-        <NumberOfFloors>10</NumberOfFloors>
+        <NumberOfFloors>22</NumberOfFloors>
 
         <ElevatorDoorTimeSeconds>1</ElevatorDoorTimeSeconds>
 

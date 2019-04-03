@@ -38,9 +38,11 @@ public class ShutdownThread extends Thread {
 						for (FloorPipeline f: floorListeners) {
 							f.sendShutdownMessage();
 						}
+						break;
 					}
 				} catch (Exception e) {System.out.println(e);}
 			}
+			
 		}
 	}
 }

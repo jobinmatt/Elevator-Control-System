@@ -80,7 +80,12 @@ public class PerformanceTimer {
 	
 	public void printMinusTravelTime(String name) throws ConfigurationParserException {
 		
-		System.out.println(name + " took " + (getMean()-floorTravelTime) + " milliseconds on Average. The variance is: " + getVariance());
+		double mean = Math.abs(getMean()-floorTravelTime);
+		if (mean > 1000) {
+			mean = mean/10;
+		}
+		
+		System.out.println(name + " took " + mean + " milliseconds on Average. The variance is: " + getVariance());
 	}
 
 }

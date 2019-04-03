@@ -85,18 +85,23 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		this.sendPort = schedulerSubsystem.getElevatorPorts().get(portOffset);
 		this.elevatorSubsystemAddress = schedulerSubsystem.getElevatorSubsystemAddress();
 		
-		synchronized (elevatorEvents) {
-			if(elevatorEvents.isEmpty()) {
-				try {
-					elevatorEvents.wait();
-				} catch (InterruptedException e) {
-					logger.error(e.getLocalizedMessage());
-				}
-			}
-		}
 
 		while (!shutdown) {
-			if (!elevatorEvents.isEmpty()) {								
+			synchronized (elevatorEvents) {
+				if(shutdown) {
+					elevatorEvents.notifyAll();
+				}
+				if (elevatorEvents.isEmpty()) {
+					try {
+							elevatorEvents.wait();
+					} catch (InterruptedException e) {
+						logger.error(e.getLocalizedMessage());
+					}
+				}
+			}
+			if(!shutdown) {
+
+					
 				try {
 
 					if (elevator.getRequestDirection() == Direction.UP) {
@@ -141,7 +146,6 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				}
 			}
 		}
-		terminate();
 	}
 
 	
@@ -152,6 +156,9 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 		HostActions.send(elevatorPacket, Optional.of(sendSocket));
 		shutdown = true;
+		synchronized (elevatorEvents) {
+			elevatorEvents.notifyAll();
+		}
 	}
 	
 	public void addEvent(SchedulerRequest request) {
