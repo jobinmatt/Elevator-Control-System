@@ -25,7 +25,7 @@ import org.apache.logging.log4j.MarkerManager;
 import core.ConfigurationParser;
 import core.Direction;
 import core.LoggingManager;
-import core.Timer;
+import core.PerformanceTimer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.ConfigurationParserException;
 import core.Exceptions.ElevatorSubsystemException;
@@ -60,6 +60,8 @@ public class ElevatorCarThread extends Thread {
 	private int destinationFloor;
 	private boolean sentArrivalSensor;
 	private boolean shutDown;
+	private PerformanceTimer timer;
+	private boolean firstStart = true;
 	
 	/**
 	 * Constructor for elevator car
@@ -74,9 +76,10 @@ public class ElevatorCarThread extends Thread {
 		this.schedulerAddress = schedulerAddress;
 		this.numberOfFloors = numFloors;
 		this.setSentArrivalSensor(false);
-		shutDown = false;
-		selectedFloors = new boolean[this.numberOfFloors];
-		elevatorNumber = Integer.parseInt(name.substring(name.length()-1));
+		this.shutDown = false;
+		this.selectedFloors = new boolean[this.numberOfFloors];
+		this.elevatorNumber = Integer.parseInt(name.substring(name.length()-1));
+		this.timer = new PerformanceTimer();
 		
 		//initialize component states
 		carProperties = new HashMap<ElevatorComponentConstants, ElevatorComponentStates>();
@@ -108,11 +111,14 @@ public class ElevatorCarThread extends Thread {
 			// if source = dest here
 			try {
 				
-				Timer timer = new Timer();
-				timer.start();
-				this.receivePacket(elevatorPacket);
-				timer.end();
-				logger.info(MARKER, "Packet took: " + timer.getDelta() + " nanoseconds");
+				if (!firstStart) {
+					timer.start();
+					this.receivePacket(elevatorPacket);
+					timer.end();
+				} else {
+					this.receivePacket(elevatorPacket);
+					firstStart = false;
+				}
 				
 				if (ePacket.getShutdownStatus()) {
 					shutDown = true;
@@ -127,43 +133,46 @@ public class ElevatorCarThread extends Thread {
 						logger.info(MARKER, "Hard error message received, elevator thread being interrupted");
 						break;
 					}
+					
 					if (currentFloor > destinationFloor) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 						moveFloor(ePacket, Direction.DOWN);
-
+						sendArrivalSensorPacket();
 					} else if (currentFloor < destinationFloor) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
 						moveFloor(ePacket, Direction.UP);
-
+						sendArrivalSensorPacket();
 					}
-					if (currentFloor == destinationFloor
-							&& getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
+					
+					if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
 
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
 
+						sendArrivalSensorPacket();
 						Utils.Sleep(doorSleepTime);
 
 						if (destinationFloor != -1) {
-							selectedFloors[ePacket.getDestinationFloor()] = true;
+							selectedFloors[ePacket.getDestinationFloor()-1] = true;
 							logger.info(MARKER, "User Selected Floor: " + ePacket.getDestinationFloor());
 						}
 
 						if (ePacket.getErrorCode() == TRANSIENT_CODE) {
 							logger.info(MARKER, "Unable to Close Doors");
 							sendFailureDoorRequest();
+							
+							timer.start();
 							this.receivePacket(elevatorPacket);
+							timer.end();
+							
 							if (ePacket.getForceCloseStatus()) {
 								logger.info(MARKER, "Force Closing door in " + WAIT_TIME / 1000 + " seconds");
 								Utils.Sleep(WAIT_TIME);
 							}
 						}
-
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_CLOSE);
-
 						logger.debug("Arrived destination\n");
 					}
-					sendArrivalSensorPacket();
 				}
 				
 			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
@@ -321,6 +330,7 @@ public class ElevatorCarThread extends Thread {
 		System.out.println("\nTearDown Elevator...");
 		this.elevatorSocket.close();
 		LoggingManager.createLoggerFile(logger, MARKER.getName());
+		timer.print("Elevator Interface");
 		System.out.println("TearDown Complete");
 	}
 }
