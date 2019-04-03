@@ -24,6 +24,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
@@ -44,7 +45,7 @@ public class FloorThread extends Thread {
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
 	private int numOfElevators=0;
-	private int[] elevatorFloorStates;
+	private FloorStatus[] elevatorFloorStates;
 	private DatagramPacket floorPacket;
 	private boolean shutdown = false;
 	private PerformanceTimer timer;
@@ -62,11 +63,14 @@ public class FloorThread extends Thread {
 		this.schedulerAddress = schedulerAddress;
 		this.atFloorTimer = sharedTimer;
 		this.numOfElevators = numElev;
-		this.elevatorFloorStates = new int[this.numOfElevators];
+		this.elevatorFloorStates = new FloorStatus[numElev];
 		byte[] b = new byte[DATA_SIZE];
 		this.floorPacket = new DatagramPacket(b, b.length);
 		this.timer = new PerformanceTimer();
-		
+		for (int i=0;i<numElev;i++) {
+			this.elevatorFloorStates[i] = new FloorStatus(i+1, 1, core.Direction.STATIONARY);
+
+		}
 		try {
 			receiveSocket = new DatagramSocket();
 			this.port = receiveSocket.getLocalPort();
@@ -120,7 +124,7 @@ public class FloorThread extends Thread {
 					atFloorTimer.cancel();
 					break;
 				}
-				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
+				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor(), floorMessage.getDirection());
 				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
 			} catch (CommunicationException | IOException e) {
 			}
@@ -176,9 +180,10 @@ public class FloorThread extends Thread {
 	 * updates the current position of the elevator as the floor sees it
 	 * index = elevNum-1
 	 * */
-	private void updateElevatorFloorState(int index, int floorNum) { 
+	private void updateElevatorFloorState(int index, int floorNum, core.Direction dir) { 
 		synchronized(elevatorFloorStates) {
-			this.elevatorFloorStates[index] = floorNum; 
+			this.elevatorFloorStates[index].setFloorStatus(floorNum);
+			this.elevatorFloorStates[index].setDir(dir);
 		}
 	}
 	public FloorMessage receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
@@ -188,7 +193,8 @@ public class FloorThread extends Thread {
 		return new FloorMessage(packet.getData(), packet.getLength());
 	}
 	
-	public int[] getElevatorFloorStates() {
+	public FloorStatus[] getFloorStatus() {
 		return elevatorFloorStates;
 	}
+	
 }
