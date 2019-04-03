@@ -60,10 +60,8 @@ public class SchedulerSubsystem {
 	private final byte SPACER = (byte) 0;
 	private static final int DATA_SIZE = 1024;
 	private static int numberOfElevators;
-	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
 	private InetAddress floorSubsystemAddress;
-
 	private boolean end = false;
 
 	public SchedulerSubsystem(int numElevators) throws SchedulerPipelineException, SchedulerSubsystemException, ConfigurationParserException, HostActionsException, IOException {

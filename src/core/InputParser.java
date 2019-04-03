@@ -79,6 +79,12 @@ public class InputParser {
 					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
 
 					if (isValidData(eventInfo)) {
+						
+						if (eventInfo.get(TIME_HEADER).equalsIgnoreCase(END)) {
+							end = true;
+							continue;
+						}
+						
 						String timeString = eventInfo.get(TIME_HEADER);
 						Date simulationDate = df.parse(timeString);
 						Date todayDate = new Date();
