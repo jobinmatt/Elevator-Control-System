@@ -9,9 +9,9 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.PerformanceTimer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.GeneralException;
-import core.Messages.ElevatorMessage;
 import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SimulationRequest;
@@ -47,6 +47,8 @@ public class FloorThread extends Thread {
 	private int[] elevatorFloorStates;
 	private DatagramPacket floorPacket;
 	private boolean shutdown = false;
+	private PerformanceTimer timer;
+	private boolean firstStart = true;
 	
 	/**
 	 * Creates a floor thread
@@ -63,6 +65,7 @@ public class FloorThread extends Thread {
 		this.elevatorFloorStates = new int[this.numOfElevators];
 		byte[] b = new byte[DATA_SIZE];
 		this.floorPacket = new DatagramPacket(b, b.length);
+		this.timer = new PerformanceTimer();
 		
 		try {
 			receiveSocket = new DatagramSocket();
@@ -102,7 +105,15 @@ public class FloorThread extends Thread {
 		while (!shutdown) {
 		
 			try {
-				FloorMessage floorMessage = receivePacket(this.floorPacket);
+				FloorMessage floorMessage;
+				if (!firstStart) {
+					timer.start();
+					floorMessage = receivePacket(this.floorPacket);
+					timer.end();
+				} else {
+					floorMessage = receivePacket(this.floorPacket);
+					firstStart = false;
+				}
 				
 				if (floorMessage.getShutdown()) {
 					shutdown = true;
@@ -156,7 +167,9 @@ public class FloorThread extends Thread {
 
 	public void terminate() {
 		receiveSocket.close();
-		//cleanup goes here
+		try {
+			timer.print("Floor Interface: ");
+		} catch (Exception e) {}
 	}
 	
 	/**
@@ -174,6 +187,7 @@ public class FloorThread extends Thread {
 		
 		return new FloorMessage(packet.getData(), packet.getLength());
 	}
+	
 	public int[] getElevatorFloorStates() {
 		return elevatorFloorStates;
 	}

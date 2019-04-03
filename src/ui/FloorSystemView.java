@@ -41,10 +41,6 @@ public class FloorSystemView extends JFrame implements Runnable{
 			mainCol.get(i).add(labelCol.get(i), BorderLayout.CENTER);
 		}
 		
-		
-		
-		
-		
 		for (JPanel jpnl : mainCol) {
 			this.add(jpnl);
 		}
@@ -53,6 +49,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 		this.setTitle("Elevator Status");
 		this.pack();
 		this.setVisible(true);
+		//this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 	}
 	

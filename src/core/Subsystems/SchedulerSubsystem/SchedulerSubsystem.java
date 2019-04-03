@@ -41,6 +41,7 @@ import core.Messages.ElevatorMessage;
 import core.Messages.FloorMessage;
 import core.Utils.HostActions;
 import core.Utils.SubsystemConstants;
+import core.Utils.Utils;
 
 /**
  * This creates SchedulerThreads based on the number of elevators and floors and starts it.
@@ -53,7 +54,7 @@ public class SchedulerSubsystem {
 	private ElevatorPipeline[] elevatorListeners;
 	private FloorPipeline[] floorListeners;
 	private static Set<SchedulerRequest> unscheduledEvents = new HashSet<SchedulerRequest>();
-	private HashMap<Integer, Elevator> elevatorStatus = new HashMap<Integer, Elevator>();
+	public HashMap<Integer, Elevator> elevatorStatus = new HashMap<Integer, Elevator>();
 	private Map<Integer, Integer> elevatorPorts = new HashMap<>();
 	private Map<Integer, Integer> floorPorts = new HashMap<>();
 	private final byte SPACER = (byte) 0;
@@ -62,36 +63,23 @@ public class SchedulerSubsystem {
 	private static int numberOfFloors;
 	private InetAddress elevatorSubsystemAddress;
 	private InetAddress floorSubsystemAddress;
+
 	private boolean end = false;
 
-	public SchedulerSubsystem(int numElevators, int numFloors,
-			int elevatorInitPort, int floorInitPort) throws SchedulerPipelineException, SchedulerSubsystemException, ConfigurationParserException, HostActionsException, IOException {
+	public SchedulerSubsystem(int numElevators) throws SchedulerPipelineException, SchedulerSubsystemException, ConfigurationParserException, HostActionsException, IOException {
 
 		numberOfElevators = numElevators;
-		numberOfFloors = numFloors;
-
-		receiveInitPorts(elevatorInitPort, SubsystemConstants.ELEVATOR);
-		receiveInitPorts(floorInitPort, SubsystemConstants.FLOOR);
-
-		this.elevatorListeners = new ElevatorPipeline[numberOfElevators];
-		this.floorListeners = new FloorPipeline[numberOfFloors];
-
-		for (int i = 0; i < numberOfElevators; i++) {
-			this.elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, this);
-		}
-		for (int i = 0; i < numberOfFloors; i++) {
-			this.floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i+1, this);
-		}
-
-		ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-		int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
-		sendSchedulerPorts(initSchedulerPort, SubsystemConstants.ELEVATOR);
-		sendSchedulerPorts(initSchedulerPort + 1, SubsystemConstants.FLOOR);
 
 		for (int i = 0; i < numberOfElevators; i++) {
 			elevatorStatus.put(i+1, new Elevator(i + 1, 1, -1, Direction.STATIONARY));
 		}
+	}
 
+	public void addListeners(ElevatorPipeline[] elev, FloorPipeline[] floor) {
+		
+		elevatorListeners = elev;
+		floorListeners = floor;
+		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -109,7 +97,22 @@ public class SchedulerSubsystem {
 			}
 		});
 	}
-
+	
+	public void start(int elevatorInitPort, int floorInitPort) {
+		
+		try {			
+			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
+			int initSchedulerPort = configurationParser.getInt(ConfigurationParser.SCHEDULER_INIT_PORT);
+			
+			receiveInitPorts(elevatorInitPort, SubsystemConstants.ELEVATOR);
+			sendSchedulerPorts(initSchedulerPort, SubsystemConstants.ELEVATOR);
+			receiveInitPorts(floorInitPort, SubsystemConstants.FLOOR);
+			sendSchedulerPorts(initSchedulerPort + 1, SubsystemConstants.FLOOR);
+		} catch (Exception e) {
+			logger.info("Unable to connect to subsystems");
+		}
+	}
+	
 	public void shutDown() {
 
 		for (ElevatorPipeline listener: elevatorListeners) {
@@ -122,8 +125,8 @@ public class SchedulerSubsystem {
 				listener.terminate();
 			}
 		}
+		
 		LoggingManager.terminate();
-
 	}
 
 	private void receiveInitPorts(int listenPort, SubsystemConstants systemType) throws SchedulerSubsystemException, UnknownHostException {
@@ -192,6 +195,7 @@ public class SchedulerSubsystem {
 			sendAddress = getFloorSubsystemAddress();
 		}
 		DatagramPacket packet = new DatagramPacket(packetData, packetData.length, sendAddress, sendPort);
+		System.out.println("The data sent is: " + Utils.bytesToHex(packetData));
 		HostActions.send(packet, Optional.empty());
 	}
 
@@ -218,25 +222,6 @@ public class SchedulerSubsystem {
 		}
 		data.write(SPACER);
 		return data.toByteArray();
-	}
-
-	/**
-	 * Starts the listener threads for the scheduler
-	 * @throws InterruptedException
-	 */
-	public void startListeners() throws InterruptedException {
-
-		logger.info("Starting listeners...");
-		for (int i = 0; i < elevatorListeners.length; i++) {
-			this.elevatorListeners[i].start();
-			Thread.sleep(100);
-		}
-
-		for (int i = 0; i < floorListeners.length; i++) {
-			this.floorListeners[i].start();
-			Thread.sleep(100);
-		}
-		logger.log(LoggingManager.getSuccessLevel(), LoggingManager.SUCCESS_MESSAGE);
 	}
 
 	/** @formatter:off
@@ -377,27 +362,6 @@ public class SchedulerSubsystem {
 		synchronized (elevatorStatus) {
 			elevatorStatus.put(elevator.getElevatorId(), elevator);
 			this.reEvaluateEvents();
-
-			if (end) {
-				boolean areMoving = false;
-				for (int i: elevatorStatus.keySet()) {
-					if (elevatorStatus.get(i).getRequestDirection() != Direction.STATIONARY) {
-						areMoving = true;
-					}
-				}
-
-				if (!areMoving) {
-					logger.info("Shutting down elevators!");
-
-					for (ElevatorPipeline e: elevatorListeners) {
-						e.sendShutdownMessage();
-					}
-
-					for (FloorPipeline f: floorListeners) {
-						f.sendShutdownMessage();
-					}
-				}
-			}
 		}
 	}
 
@@ -441,6 +405,9 @@ public class SchedulerSubsystem {
 		this.end = true;
 	}
 
+	public boolean getEnd() {
+		return end;
+	}
 	public void setElevatorSubsystemAddress(InetAddress elevatorSubsystemAddress) {
 		this.elevatorSubsystemAddress = elevatorSubsystemAddress;
 	}

@@ -79,12 +79,6 @@ public class InputParser {
 					LinkedHashMap<String, String> eventInfo = (LinkedHashMap<String, String>) event;
 
 					if (isValidData(eventInfo)) {
-						
-						if (eventInfo.get(TIME_HEADER).equalsIgnoreCase(END)) {
-							end = true;
-							continue;
-						}
-						
 						String timeString = eventInfo.get(TIME_HEADER);
 						Date simulationDate = df.parse(timeString);
 						Date todayDate = new Date();
@@ -121,12 +115,12 @@ public class InputParser {
 			}
 
 			Collections.sort(simulationEvents);
-			baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
-
-			for (SimulationRequest e : simulationEvents) {
-				e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
+			if (!simulationEvents.isEmpty()) {
+				baseIntervalTime = simulationEvents.get(0).getStartTime().getTime();
+				for (SimulationRequest e : simulationEvents) {
+					e.setIntervalTime(e.getStartTime().getTime() - baseIntervalTime);
+				} 
 			}
-
 			if (end) {
 				simulationEvents.add(simulationEvents.size(), new SimulationRequest(true));
 			}
@@ -160,7 +154,6 @@ public class InputParser {
 				}
 				else if (isNumber(eventInfo.get(FLOOR_HEADER)) && isNumber(eventInfo.get(CAR_BUTTON_HEADER)) &&
 						isNumber(eventInfo.get(ERROR_CODE_HEADER)) && isNumber(eventInfo.get(ERROR_FLOOR_HEADER))) {
-					
 					return true;
 				}
 			}
