@@ -202,7 +202,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 		@Override
 		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
-			if (arg0.getSourceFloor() < arg1.getSourceFloor()) {
+			if (arg0.getSourceFloor() > arg1.getSourceFloor()) {
 				return 1;
 			}
 			else if(arg0.getSourceFloor() == arg1.getSourceFloor()) {
@@ -216,7 +216,7 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 
 		@Override
 		public int compare(SchedulerRequest arg0, SchedulerRequest arg1) {
-			if (arg0.getSourceFloor() > arg1.getSourceFloor()) {
+			if (arg0.getSourceFloor() < arg1.getSourceFloor()) {
 				return 1;
 			}
 			else if(arg0.getSourceFloor() == arg1.getSourceFloor()) {

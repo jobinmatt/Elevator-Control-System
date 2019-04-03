@@ -372,7 +372,7 @@ public class SchedulerSubsystem {
 		else
 			dir = Direction.STATIONARY;
 
-		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, 0, 0); // source floor will be current floor, and dont need dest becuase this goes to floors to update buttons
+		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, elevator.getErrorCode(), elevator.getErrorFloor()); // source floor will be current floor, and dont need dest becuase this goes to floors to update buttons
 		floorState.setElevatorNum(elevator.getElevatorNumber());
 		for (FloorPipeline listeners : this.floorListeners) {
 			listeners.sendElevatorStateToFloor(floorState);

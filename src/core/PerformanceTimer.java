@@ -33,7 +33,6 @@ public class PerformanceTimer {
 		
 		endTime = System.nanoTime();
 		times.add(((endTime - startTime)/1000000));
-		System.out.println("Delta = " + (endTime - startTime));
 	}
 	
 	public long getDelta() {

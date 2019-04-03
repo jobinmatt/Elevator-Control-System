@@ -120,8 +120,14 @@ public class FloorThread extends Thread {
 					atFloorTimer.cancel();
 					break;
 				}
+
 				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
-				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+				
+				if (floorMessage.getErrorCode() >= 0) {
+					logger.info("Updated elevator floor: "+ Arrays.toString(this.elevatorFloorStates) + "Error Code: " + floorMessage.getErrorCode());
+				} else {
+					logger.info("Updated elevator floor: "+ Arrays.toString(this.elevatorFloorStates));
+				}
 			} catch (CommunicationException | IOException e) {
 			}
         }

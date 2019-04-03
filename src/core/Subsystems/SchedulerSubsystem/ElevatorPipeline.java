@@ -50,6 +50,8 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	private LinkedList<SchedulerRequest> elevatorEvents;
 	private InetAddress elevatorSubsystemAddress;
 	private int portOffset;
+	private int errorCode;
+	private int errorFloor;
 	
 	private SubsystemConstants objectType;
 	private int pipeNumber;
@@ -130,6 +132,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					}
 					
 					if (elevatorRecieveMessage.getDoorFailureStatus()) {
+						schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevatorRecieveMessage.getErrorCode(), 0));
 						ElevatorMessage msg = new ElevatorMessage();	
 						data = msg.generateForceCloseMessage();
 						DatagramPacket packet = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
@@ -186,7 +189,12 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		elevator.setRequestDirection(packet.getRequestDirection());
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
-
+		
+		if (packet.getErrorCode() == 1) { 
+			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), packet.getErrorCode(), packet.getErrorFloor()));
+		} else {
+			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+		}
 	}
 	
 	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException, HostActionsException {
@@ -219,7 +227,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 			}
 			elevator.setNumRequests(elevatorEvents.size());
 			schedulerSubsystem.updateElevatorState(elevator);
-			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+			
 		}
 		logger.debug("Elevator status updated: " + elevator.toString() + "\n ");
 	}
