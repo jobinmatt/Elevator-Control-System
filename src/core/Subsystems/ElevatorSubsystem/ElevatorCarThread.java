@@ -98,6 +98,13 @@ public class ElevatorCarThread extends Thread {
 		} catch (ConfigurationParserException | SocketException e) {
 			throw new ElevatorSubsystemException(e);
 		}
+		
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				getElevSocket().close();
+			}
+		});
 	}
 
 	@Override
@@ -261,6 +268,10 @@ public class ElevatorCarThread extends Thread {
 		return this.port; 
 	}
 	
+	public DatagramSocket getElevSocket() {
+		return this.elevatorSocket;
+	}
+	
 	public void moveFloor(ElevatorMessage em, Direction dir) throws ElevatorSubsystemException {
 		
 		moveFloor(em, dir, floorSleepTime);
@@ -324,6 +335,10 @@ public class ElevatorCarThread extends Thread {
 
 	public void setSentArrivalSensor(boolean sentArrivalSensor) {
 		this.sentArrivalSensor = sentArrivalSensor;
+	}
+	
+	public int getCurrentFloor() {
+		return this.currentFloor;
 	}
 	
 	public void terminate() {
