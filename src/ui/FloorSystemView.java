@@ -2,9 +2,11 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +23,9 @@ import core.Subsystems.FloorSubsystem.FloorSubsystem;
 import core.Subsystems.FloorSubsystem.FloorThread;
 public class FloorSystemView extends JFrame implements Runnable{
 
+	private final int FRAME_TO_SCREEN_RATIO = 2; 
+	private int frame_width;
+	private int frame_height;
 	private List<JPanel>mainCol;
 	private List<JLabel> labelCol;
 	private FloorThread ref;
@@ -48,9 +53,13 @@ public class FloorSystemView extends JFrame implements Runnable{
 			this.add(jpnl);
 		}
 		
-		
 		this.setTitle("Elevator Status");
-		this.pack();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		frame_width = (int) (screenSize.getWidth()/FRAME_TO_SCREEN_RATIO);
+		frame_height = (int) (screenSize.getHeight()/FRAME_TO_SCREEN_RATIO);		
+		this.setPreferredSize(new Dimension(frame_width, frame_height));
+		this.pack();//pack needs to be after setting all preferred sizes 
+		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
