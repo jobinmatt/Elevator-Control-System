@@ -68,7 +68,7 @@ public class FloorThread extends Thread {
 		this.numOfElevators = numElev;
 		this.elevatorFloorStates = new FloorStatus[numElev];
 		for (int i=0;i<numElev;i++) {
-			this.elevatorFloorStates[i] = new FloorStatus(i+1, 1, core.Direction.STATIONARY);
+			this.elevatorFloorStates[i] = new FloorStatus(i+1, 1, core.Direction.STATIONARY,0,0);
 
 		}
 		this.setFloorType(floorType);
@@ -140,8 +140,8 @@ public class FloorThread extends Thread {
 					atFloorTimer.cancel();
 					break;
 				}
-				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor(), floorMessage.getDirection());
-				updateFloorButtonState(floorMessage);
+				updateElevatorFloorState(floorMessage);
+				
 				if(floorMessage.getDirection().equals(Direction.STATIONARY) && this.floorNumber == floorMessage.getSourceFloor()) {
 					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! , Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
 				}
@@ -152,6 +152,13 @@ public class FloorThread extends Thread {
 		logger.info("Shutting down floor");
     } 
 	
+	private void updateErrorStatus(FloorMessage floorMessage) {
+		synchronized(elevatorFloorStates) {
+			int index = floorMessage.getElevatorNum()-1;
+			this.elevatorFloorStates[index].setErrorCode(floorMessage.getErrorCode());
+			this.elevatorFloorStates[index].setErrorFloor(floorMessage.getErrorFloor());
+		}
+	}
 	private void updateFloorButtonState(FloorMessage floorMessage) {
 		if ((this.floorNumber == floorMessage.getSourceFloor()) && (floorMessage.getDirection().equals(Direction.STATIONARY))) {
 			if (this.floorType.equals(FloorType.TOP) || this.floorType.equals(FloorType.BOTTOM)) {
@@ -245,10 +252,13 @@ public class FloorThread extends Thread {
 	 * updates the current position of the elevator as the floor sees it
 	 * index = elevNum-1
 	 * */
-	private void updateElevatorFloorState(int index, int floorNum, core.Direction dir) { 
+	private void updateElevatorFloorState(FloorMessage floorMessage) { 
 		synchronized(elevatorFloorStates) {
-			this.elevatorFloorStates[index].setFloorStatus(floorNum);
-			this.elevatorFloorStates[index].setDir(dir);
+			int index = floorMessage.getElevatorNum()-1;
+			this.elevatorFloorStates[index].setFloorStatus(floorMessage.getSourceFloor());
+			this.elevatorFloorStates[index].setDir(floorMessage.getDirection());
+			updateErrorStatus(floorMessage);
+			updateFloorButtonState(floorMessage);
 		}
 	}
 	public FloorMessage receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {

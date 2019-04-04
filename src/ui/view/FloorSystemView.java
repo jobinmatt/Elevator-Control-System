@@ -24,6 +24,7 @@ import core.Subsystems.FloorSubsystem.FloorSubsystem;
 import core.Subsystems.FloorSubsystem.FloorThread;
 
 import ui.core.ButtonImagePanel;
+import ui.core.FaultDescPanel;
 public class FloorSystemView extends JFrame implements Runnable{
 
 	private final int FRAME_TO_SCREEN_RATIO = 2; 
@@ -32,6 +33,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 	private List<JPanel>mainCol;
 	private List<JLabel> labelCol;
 	private List<ButtonImagePanel> pnlButtonPanel;
+	private List<FaultDescPanel> pnlFault;
 	private FloorThread ref;
 	private int elevNum;
 	public FloorSystemView(int elevNum) {
@@ -39,10 +41,11 @@ public class FloorSystemView extends JFrame implements Runnable{
 		this.setLayout(new GridLayout(1, elevNum));
 		mainCol = new ArrayList<JPanel>();
 		labelCol = new ArrayList<JLabel>();
+		pnlFault = new ArrayList<FaultDescPanel>();
 		pnlButtonPanel = new ArrayList<ButtonImagePanel>();
 		for (int i=0;i<elevNum;i++) {
 			pnlButtonPanel.add( new ButtonImagePanel());
-			
+			pnlFault.add(new FaultDescPanel(0,0));
 		}
 		for (int i=0;i<elevNum;i++) {
 			labelCol.add(new JLabel("1",SwingConstants.CENTER));
@@ -56,6 +59,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 			mainCol.get(i).setBackground(new Color(255,255,255));
 			mainCol.get(i).add(labelCol.get(i), BorderLayout.CENTER);
 			mainCol.get(i).add(pnlButtonPanel.get(i), BorderLayout.NORTH);
+			mainCol.get(i).add(pnlFault.get(i), BorderLayout.SOUTH);
 			mainCol.get(i).setBorder(BorderFactory.createLineBorder(Color.black));
 		}
 		
@@ -89,6 +93,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 				labelCol.get(i).setText(Integer.toString(states[i].getFloorStatus()));
 				
 				pnlButtonPanel.get(i).setDirection(states.clone()[i].getDir());
+				pnlFault.get(i).setStatus(states.clone()[i].getErrorCode(), states.clone()[i].getErrorFloor());
 				this.repaint();
 			}
 		}
