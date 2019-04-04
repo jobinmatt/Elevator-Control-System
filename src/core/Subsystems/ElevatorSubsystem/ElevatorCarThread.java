@@ -133,6 +133,7 @@ public class ElevatorCarThread extends Thread {
 					
 					currentFloor = ePacket.getCurrentFloor();
 					destinationFloor = ePacket.getDestinationFloor();
+					
 					if (ePacket.getErrorCode() == HARD_CODE && ePacket.getErrorFloor() == currentFloor) {
 						Utils.Sleep(floorSleepTime + WAIT_TIME);
 						logger.info(MARKER, "Hard error message received, elevator thread being interrupted");
@@ -177,6 +178,8 @@ public class ElevatorCarThread extends Thread {
 					}
 					sendArrivalSensorPacket();
 				}
+				
+				sendArrivalSensorPacket();
 				
 			} catch (CommunicationException | IOException | ElevatorSubsystemException e) {
 				logger.error(e);

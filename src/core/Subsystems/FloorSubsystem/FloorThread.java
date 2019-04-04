@@ -140,12 +140,14 @@ public class FloorThread extends Thread {
 					atFloorTimer.cancel();
 					break;
 				}
+
 				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor(), floorMessage.getDirection());
 				updateFloorButtonState(floorMessage);
 				if(floorMessage.getDirection().equals(Direction.STATIONARY) && this.floorNumber == floorMessage.getSourceFloor()) {
 					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! , Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
 				}
 				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+
 			} catch (CommunicationException | IOException e) {
 			}
         }
