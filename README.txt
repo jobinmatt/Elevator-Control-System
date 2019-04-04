@@ -1,16 +1,11 @@
 
 ******************* README *******************
 List of Team Members and Responsibilities:
-Brij Patel - Worked on InputParser.java and Scheduler Algorithm and Communication between Subsystems
-			 Worked on scheduler refactor
-Dharina Hanumunthadu - Worked on Floor Subsystem, HostActions.java and Floor Packet.java
-                       Worked on making systems run on single computer
-Jobin Mathew - Worked on StateDiagram, Unit test, README and setup Scheduler Subsystem
-               Worked on making systems run on single computer
-Rajat Bansal - Worked on Floor Subsystem, ConfigurationParser.java
-			   Worked on scheduler refactor
-Shounak Amladi - Worked On Elevator Subsystem, ElevatorPacket.java
-                 Refactored entire packet system
+Brij Patel - jUnit for elevator and scheduler
+Dharina Hanumunthadu - Rate monotionic Diagram
+Jobin Mathew - Fixed floor buttons and bugs in GUI
+Rajat Bansal - Error handeling in GUI
+Shounak Amladi - GUI
                  
 **********************************************
 List of Files:
