@@ -1,4 +1,4 @@
-package ui;
+package ui.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,9 +18,12 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import core.Direction;
 import core.Subsystems.FloorSubsystem.FloorStatus;
 import core.Subsystems.FloorSubsystem.FloorSubsystem;
 import core.Subsystems.FloorSubsystem.FloorThread;
+
+import ui.core.ButtonImagePanel;
 public class FloorSystemView extends JFrame implements Runnable{
 
 	private final int FRAME_TO_SCREEN_RATIO = 2; 
@@ -28,6 +31,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 	private int frame_height;
 	private List<JPanel>mainCol;
 	private List<JLabel> labelCol;
+	private List<ButtonImagePanel> pnlButtonPanel;
 	private FloorThread ref;
 	private int elevNum;
 	public FloorSystemView(int elevNum) {
@@ -35,10 +39,14 @@ public class FloorSystemView extends JFrame implements Runnable{
 		this.setLayout(new GridLayout(1, elevNum));
 		mainCol = new ArrayList<JPanel>();
 		labelCol = new ArrayList<JLabel>();
+		pnlButtonPanel = new ArrayList<ButtonImagePanel>();
+		for (int i=0;i<elevNum;i++) {
+			pnlButtonPanel.add( new ButtonImagePanel());
+			
+		}
 		for (int i=0;i<elevNum;i++) {
 			labelCol.add(new JLabel("1",SwingConstants.CENTER));
 			labelCol.get(i).setBackground(Color.BLACK);
-			labelCol.get(i).setBorder(BorderFactory.createLineBorder(Color.black));
 			labelCol.get(i).setFont(new Font("Arial", Font.PLAIN, 44));
 		}
 		
@@ -47,6 +55,8 @@ public class FloorSystemView extends JFrame implements Runnable{
 			mainCol.get(i).setLayout(new BorderLayout());
 			mainCol.get(i).setBackground(new Color(255,255,255));
 			mainCol.get(i).add(labelCol.get(i), BorderLayout.CENTER);
+			mainCol.get(i).add(pnlButtonPanel.get(i), BorderLayout.NORTH);
+			mainCol.get(i).setBorder(BorderFactory.createLineBorder(Color.black));
 		}
 		
 		for (JPanel jpnl : mainCol) {
@@ -76,7 +86,9 @@ public class FloorSystemView extends JFrame implements Runnable{
 		while(true) {
 			FloorStatus[] states = this.ref.getFloorStatus();
 			for (int i=0;i<this.elevNum;i++) {
-				labelCol.get(i).setText(states[i].getFloorStatus() + states[i].getDir().name());
+				labelCol.get(i).setText(Integer.toString(states[i].getFloorStatus()));
+				
+				pnlButtonPanel.get(i).setDirection(states.clone()[i].getDir());
 				this.repaint();
 			}
 		}

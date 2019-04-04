@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import core.ConfigurationParser;
 import core.LoggingManager;
-import ui.FloorSystemView;
+import ui.view.FloorSystemView;
 
 import java.net.InetAddress;
 
