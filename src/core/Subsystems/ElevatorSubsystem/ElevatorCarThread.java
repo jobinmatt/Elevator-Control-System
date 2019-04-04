@@ -98,6 +98,12 @@ public class ElevatorCarThread extends Thread {
 		} catch (ConfigurationParserException | SocketException e) {
 			throw new ElevatorSubsystemException(e);
 		}
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				getElevSocket().close();
+			}
+		});
 	}
 
 	@Override
@@ -129,7 +135,6 @@ public class ElevatorCarThread extends Thread {
 					destinationFloor = ePacket.getDestinationFloor();
 					if (ePacket.getErrorCode() == HARD_CODE && ePacket.getErrorFloor() == currentFloor) {
 						Utils.Sleep(floorSleepTime + WAIT_TIME);
-//						sendArrivalSensorPacket();
 						logger.info(MARKER, "Hard error message received, elevator thread being interrupted");
 						break;
 					}
@@ -137,11 +142,9 @@ public class ElevatorCarThread extends Thread {
 					if (currentFloor > destinationFloor) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_DOWN);
 						moveFloor(ePacket, Direction.DOWN);
-//						sendArrivalSensorPacket();
 					} else if (currentFloor < destinationFloor) {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_UP);
 						moveFloor(ePacket, Direction.UP);
-//						sendArrivalSensorPacket();
 					}
 					
 					if (currentFloor == destinationFloor && getMotorStatus() != ElevatorComponentStates.ELEV_MOTOR_IDLE) {
@@ -149,7 +152,6 @@ public class ElevatorCarThread extends Thread {
 						updateMotorStatus(ElevatorComponentStates.ELEV_MOTOR_IDLE);
 						updateDoorStatus(ElevatorComponentStates.ELEV_DOORS_OPEN);
 
-//						sendArrivalSensorPacket();
 						Utils.Sleep(doorSleepTime);
 
 						if (destinationFloor != -1) {
@@ -262,6 +264,10 @@ public class ElevatorCarThread extends Thread {
 		return this.port; 
 	}
 	
+	public DatagramSocket getElevSocket() {
+		return this.elevatorSocket;
+	}
+	
 	public void moveFloor(ElevatorMessage em, Direction dir) throws ElevatorSubsystemException {
 		
 		moveFloor(em, dir, floorSleepTime);
@@ -325,6 +331,10 @@ public class ElevatorCarThread extends Thread {
 
 	public void setSentArrivalSensor(boolean sentArrivalSensor) {
 		this.sentArrivalSensor = sentArrivalSensor;
+	}
+	
+	public int getCurrentFloor() {
+		return this.currentFloor;
 	}
 	
 	public void terminate() {

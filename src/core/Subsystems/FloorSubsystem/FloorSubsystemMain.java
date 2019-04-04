@@ -24,7 +24,7 @@ public class FloorSubsystemMain {
 	public static void main(String[] args) throws Exception {
 
 		logger.info(LoggingManager.BANNER + "Floor Subsystem\n");
-
+		Thread.sleep(500);
 		try {
 			ConfigurationParser configurationParser = ConfigurationParser.getInstance();
 			
@@ -37,7 +37,6 @@ public class FloorSubsystemMain {
 			FloorSubsystem floorSystem = new FloorSubsystem(numFloors, schedulerSubsystemAddress, floorInitPort, numElev);
 			FloorSystemView view = new FloorSystemView(numElev, floorSystem);
 			Thread t1 = new Thread(view);
-			
 			floorSystem.startFloorThreads();
 			t1.start();
 		} catch (Exception e) {
