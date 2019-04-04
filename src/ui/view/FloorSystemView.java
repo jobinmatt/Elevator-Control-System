@@ -45,7 +45,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 		pnlButtonPanel = new ArrayList<ButtonImagePanel>();
 		for (int i=0;i<elevNum;i++) {
 			pnlButtonPanel.add( new ButtonImagePanel());
-			pnlFault.add(new FaultDescPanel(0,0));
+			pnlFault.add(new FaultDescPanel(0,0,0));
 		}
 		for (int i=0;i<elevNum;i++) {
 			labelCol.add(new JLabel("1",SwingConstants.CENTER));
@@ -93,7 +93,7 @@ public class FloorSystemView extends JFrame implements Runnable{
 				labelCol.get(i).setText(Integer.toString(states[i].getFloorStatus()));
 				
 				pnlButtonPanel.get(i).setDirection(states.clone()[i].getDir());
-				pnlFault.get(i).setStatus(states.clone()[i].getErrorCode(), states.clone()[i].getErrorFloor());
+				pnlFault.get(i).setStatus(states.clone()[i].getErrorCode(), states.clone()[i].getErrorFloor(), states.clone()[i].getFloorStatus());
 				this.repaint();
 			}
 		}

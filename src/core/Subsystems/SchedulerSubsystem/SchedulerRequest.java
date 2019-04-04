@@ -245,6 +245,6 @@ public class SchedulerRequest implements Comparable<SchedulerRequest>{
 	}
 	
 	public SubsystemMessage toElevatorPacket() {
-		return new ElevatorMessage(this.sourceFloor, this.destFloor, this.targetFloor, this.errorCode, this.errorFloor);
+		return new ElevatorMessage(this.sourceFloor, this.destFloor, this.targetFloor, this.getRequestDirection(), this.errorCode, this.errorFloor);
 	}
 }

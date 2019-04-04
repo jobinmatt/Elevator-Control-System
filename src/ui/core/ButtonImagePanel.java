@@ -47,7 +47,8 @@ public class ButtonImagePanel extends JPanel{
 	    		lblDown.setVisible(false);
 	    	}
 	    	else {
-	    		//do nothing
+	    		lblUp.setVisible(false);
+	    		lblDown.setVisible(false);
 	    	}
 	    }
 }

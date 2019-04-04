@@ -78,13 +78,14 @@ public class ElevatorMessage implements SubsystemMessage {
 		this.setDirection(direction);
 	}
 	
-	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber, int errorCode, int errorFloor) {
+	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber, Direction direction, int errorCode, int errorFloor) {
 
 		this.currentFloor = currentFloor;
 		this.destinationFloor = destinationFloor;
 		this.elevatorNumber = elevNumber;
 		this.errorCode = errorCode; 
 		this.errorFloor = errorFloor;
+		this.setDirection(direction);
 	}
 
 	public ElevatorMessage(byte[] data, int dataLength) {

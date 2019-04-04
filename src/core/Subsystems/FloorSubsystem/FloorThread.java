@@ -142,10 +142,10 @@ public class FloorThread extends Thread {
 				}
 				updateElevatorFloorState(floorMessage);
 				
-				if(floorMessage.getDirection().equals(Direction.STATIONARY) && this.floorNumber == floorMessage.getSourceFloor()) {
-					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! , Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
-				}
-				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+//				if(floorMessage.getDirection().equals(Direction.STATIONARY) && this.floorNumber == floorMessage.getSourceFloor()) {
+//					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! , Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
+//				}
+//				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
 			} catch (CommunicationException | IOException e) {
 			}
         }
@@ -164,15 +164,15 @@ public class FloorThread extends Thread {
 			if (this.floorType.equals(FloorType.TOP) || this.floorType.equals(FloorType.BOTTOM)) {
 				if (this.floorButtons[0].getStatus()) {
 					this.floorButtons[0].setButtonNotPressed();
-					logger.info("Floor Number: " + this.floorNumber + " - Button turned OFF.");
+//					logger.info("Floor Number: " + this.floorNumber + " - Button turned OFF.");
 				}
 			} else {
 				if (floorButtons[0].getStatus()&&floorMessage.getTargetFloor()<this.floorNumber) {
 					this.floorButtons[0].setButtonNotPressed();
-					logger.info("Floor Number: " + this.floorNumber + " - DOWN turned OFF.");
+//					logger.info("Floor Number: " + this.floorNumber + " - DOWN turned OFF.");
 				} else if(floorButtons[1].getStatus()&&floorMessage.getTargetFloor()>this.floorNumber){
 					this.floorButtons[1].setButtonNotPressed();
-					logger.info("Floor Number: " + this.floorNumber + " - UP turned OFF.");
+//					logger.info("Floor Number: " + this.floorNumber + " - UP turned OFF.");
 				}
 			}
 		}
