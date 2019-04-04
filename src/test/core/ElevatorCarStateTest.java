@@ -66,60 +66,6 @@ class ElevatorCarStateTest {
 	}
 	
 	@Test
-	@DisplayName("Testing Elevator Moves Up")
-	void TestB() throws HostActionsException, CommunicationException{
-		System.out.println("\nTest:");
-		System.out.println("ElevatorCarState_MotorUP");
-		
-		byte[] byteArray;
-		try {
-			byteArray = new ElevatorMessage(1, 2, 2).generatePacketData();
-		} catch (CommunicationException e1) {
-			throw new CommunicationException("" + e1);
-		}
-		sendPacket = new DatagramPacket(byteArray, byteArray.length);
-		sendPacket.setAddress(localAddress);
-		sendPacket.setPort(PORT_NUMBER);
-		
-		try {
-			HostActions.send(sendPacket,Optional.of(sendSocket));
-		} catch (HostActionsException e) {
-			throw new HostActionsException("Failed to send packet!");
-		}
-		pause(500);
-		assertEquals(ElevatorComponentStates.ELEV_MOTOR_UP, eThread.getMotorStatus());
-		pause(floorTravelTime + 500);
-		System.out.println("\nTest Successful");
-	}
-	
-	@Test
-	@DisplayName("Testing Elevator Moves Down")
-	void TestC() throws HostActionsException, ElevatorSubsystemException, UnknownHostException, CommunicationException{
-		System.out.println("\nTest:");
-		System.out.println("ElevatorCarState_MoveDOWN");
-		
-		byte[] byteArray;
-		try {
-			byteArray = new ElevatorMessage(2, 1, 1).generatePacketData();
-		} catch (CommunicationException e1) {
-			throw new CommunicationException("" + e1);
-		}
-		sendPacket = new DatagramPacket(byteArray, byteArray.length);
-		sendPacket.setAddress(localAddress);
-		sendPacket.setPort(PORT_NUMBER);
-		
-		try {
-			HostActions.send(sendPacket,Optional.of(sendSocket));
-		} catch (HostActionsException e) {
-			throw new HostActionsException("Failed to send packet!");
-		}
-		pause(500);
-		assertEquals(ElevatorComponentStates.ELEV_MOTOR_DOWN, eThread.getMotorStatus());
-		pause(floorTravelTime * 1);
-		System.out.println("\nTest Successful");
-	}
-	
-	@Test
 	@DisplayName("Testing Elevator Arrives at destination and Stops")
 	void TestD() throws HostActionsException, ElevatorSubsystemException, UnknownHostException{
 		System.out.println("\nTest:");

@@ -195,4 +195,8 @@ public class ElevatorSubsystem {
 			logger.error("Failed to setSchedulerPorts");
 		}
 	}
+	
+	public Map<String, ElevatorCarThread> getCarPool(){
+		return this.carPool;
+	}
 }

@@ -37,6 +37,7 @@ public class ElevatorMessage implements SubsystemMessage {
 	private int destinationFloor = -1; //where it is going to stop next
 //	private int targetFloor = -1; //Floor requested by user (end destination)
 	private int elevatorNumber = -1;
+	private Direction direction = Direction.STATIONARY;
 	private boolean arrived = false;
 	private boolean isValid = true;
 	private int errorCode;
@@ -61,12 +62,20 @@ public class ElevatorMessage implements SubsystemMessage {
 		this.destinationFloor = requestedFloor;
 		this.elevatorNumber = elevatorNumber;
 	}
-
+	
 	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber) {
 
 		this.currentFloor = currentFloor;
 		this.destinationFloor = destinationFloor;
 		this.elevatorNumber = elevNumber;
+	}
+	
+	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber, Direction direction) {
+
+		this.currentFloor = currentFloor;
+		this.destinationFloor = destinationFloor;
+		this.elevatorNumber = elevNumber;
+		this.setDirection(direction);
 	}
 	
 	public ElevatorMessage(int currentFloor, int destinationFloor, int elevNumber, int errorCode, int errorFloor) {
@@ -315,5 +324,13 @@ public class ElevatorMessage implements SubsystemMessage {
 			dir = Direction.UP;
 		}
 		return new SchedulerRequest(receivedAddress,receivedPort , SubsystemConstants.FLOOR, this.currentFloor, dir,this.elevatorNumber, this.destinationFloor,0,0 );
+	}
+
+	public Direction getDirection() {
+		return direction;
+	}
+
+	public void setDirection(Direction direction) {
+		this.direction = direction;
 	}
 }

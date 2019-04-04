@@ -118,7 +118,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					byte[] data = elevatorMessage.generatePacketData();
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
-					
+					logger.debug("ELEVATOR MESSAGE SENT FOR ||"+ this.getName()+ "||:: " + elevatorMessage.toString());
 					timer.start();
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					timer.end();
@@ -180,7 +180,9 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 			logger.error("Failed to receive packet", e);
 			throw new CommunicationException(e);
 		}
-		return new ElevatorMessage(packet.getData(), packet.getLength());
+		ElevatorMessage recievedMessage = new ElevatorMessage(packet.getData(), packet.getLength());
+		logger.debug("ELEVATOR MESSAGE RECIEVED FOR ||"+ this.getName()+ "||:: " + recievedMessage.toString());
+		return recievedMessage;
 	}
 	
 	private void updateSubsystem(SchedulerRequest packet) throws SchedulerSubsystemException, CommunicationException, HostActionsException {
@@ -224,6 +226,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
 			} else {
 				elevator.setRequestDirection(Direction.STATIONARY);
+				logger.debug("Elevator is stationary");
 			}
 			elevator.setNumRequests(elevatorEvents.size());
 			schedulerSubsystem.updateElevatorState(elevator);

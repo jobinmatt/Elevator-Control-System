@@ -9,6 +9,7 @@
 
 package core.Subsystems.FloorSubsystem;
 
+import core.Direction;
 import core.PerformanceTimer;
 import core.Exceptions.CommunicationException;
 import core.Exceptions.GeneralException;
@@ -24,6 +25,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
@@ -39,12 +41,14 @@ public class FloorThread extends Thread {
 	private int port; //port to communicate with the scheduler
 	private Queue<SimulationRequest> events;
 	private int floorNumber;
+	private FloorType floorType;
+	private FloorButton[] floorButtons;
 	DatagramSocket receiveSocket;
 	private InetAddress schedulerAddress;
 	private Timer atFloorTimer;
 	private final int DATA_SIZE = 1024;
 	private int numOfElevators=0;
-	private int[] elevatorFloorStates;
+	private FloorStatus[] elevatorFloorStates;
 	private DatagramPacket floorPacket;
 	private boolean shutdown = false;
 	private PerformanceTimer timer;
@@ -53,7 +57,7 @@ public class FloorThread extends Thread {
 	/**
 	 * Creates a floor thread
 	 */
-	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer, int numElev) throws GeneralException {
+	public FloorThread(String name, int floorNumber, InetAddress schedulerAddress, Timer sharedTimer, int numElev, FloorType floorType) throws GeneralException {
 
 		super(name);
 
@@ -62,7 +66,23 @@ public class FloorThread extends Thread {
 		this.schedulerAddress = schedulerAddress;
 		this.atFloorTimer = sharedTimer;
 		this.numOfElevators = numElev;
-		this.elevatorFloorStates = new int[this.numOfElevators];
+		this.elevatorFloorStates = new FloorStatus[numElev];
+		for (int i=0;i<numElev;i++) {
+			this.elevatorFloorStates[i] = new FloorStatus(i+1, 1, core.Direction.STATIONARY);
+
+		}
+		this.setFloorType(floorType);
+		if (this.floorType.equals(FloorType.TOP)) {
+			floorButtons = new FloorButton[1];
+			floorButtons[0] = new FloorButton(Direction.DOWN);
+		} else if (this.floorType.equals(FloorType.BOTTOM)) {
+			floorButtons = new FloorButton[1];
+			floorButtons[0] = new FloorButton(Direction.UP);
+		} else {
+			floorButtons = new FloorButton[2];
+			floorButtons[0] = new FloorButton(Direction.DOWN);
+			floorButtons[1] = new FloorButton(Direction.UP);
+		}
 		byte[] b = new byte[DATA_SIZE];
 		this.floorPacket = new DatagramPacket(b, b.length);
 		this.timer = new PerformanceTimer();
@@ -121,18 +141,62 @@ public class FloorThread extends Thread {
 					break;
 				}
 
-				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor());
-				
-				if (floorMessage.getErrorCode() >= 0) {
-					logger.info("Updated elevator floor: "+ Arrays.toString(this.elevatorFloorStates) + "Error Code: " + floorMessage.getErrorCode());
-				} else {
-					logger.info("Updated elevator floor: "+ Arrays.toString(this.elevatorFloorStates));
+				updateElevatorFloorState(floorMessage.getElevatorNum()-1,floorMessage.getSourceFloor(), floorMessage.getDirection());
+				updateFloorButtonState(floorMessage);
+				if(floorMessage.getDirection().equals(Direction.STATIONARY) && this.floorNumber == floorMessage.getSourceFloor()) {
+					logger.debug("Elevator "+ (floorMessage.getElevatorNum()) +" is stationary! , Source Floor: "+floorMessage.getSourceFloor()+", Dest Floor: "+floorMessage.getTargetFloor());
 				}
+				logger.info("Updated elevator floor: "+Arrays.toString(this.elevatorFloorStates));
+
 			} catch (CommunicationException | IOException e) {
 			}
         }
 		logger.info("Shutting down floor");
     } 
+	
+	private void updateFloorButtonState(FloorMessage floorMessage) {
+		if ((this.floorNumber == floorMessage.getSourceFloor()) && (floorMessage.getDirection().equals(Direction.STATIONARY))) {
+			if (this.floorType.equals(FloorType.TOP) || this.floorType.equals(FloorType.BOTTOM)) {
+				if (this.floorButtons[0].getStatus()) {
+					this.floorButtons[0].setButtonNotPressed();
+					logger.info("Floor Number: " + this.floorNumber + " - Button turned OFF.");
+				}
+			} else {
+				if (floorButtons[0].getStatus()&&floorMessage.getTargetFloor()<this.floorNumber) {
+					this.floorButtons[0].setButtonNotPressed();
+					logger.info("Floor Number: " + this.floorNumber + " - DOWN turned OFF.");
+				} else if(floorButtons[1].getStatus()&&floorMessage.getTargetFloor()>this.floorNumber){
+					this.floorButtons[1].setButtonNotPressed();
+					logger.info("Floor Number: " + this.floorNumber + " - UP turned OFF.");
+				}
+			}
+		}
+	}
+	
+	private void turnOnFloorButton(SimulationRequest event) {
+		if (this.floorType.equals(FloorType.BOTTOM) || this.floorType.equals(FloorType.TOP)) {
+			this.floorButtons[0].setButtonPressed();
+			logger.info("Floor Number: " + this.floorNumber + " - Button turned ON.");
+		} else {
+			if (event.getFloorButton().equals(Direction.UP)) {// This is probably redundant we could force NORMAL
+																// floors to follow a specific pattern for floor
+																// buttons.
+				if (this.floorButtons[0].getDirection().equals(Direction.UP)) {
+					this.floorButtons[0].setButtonPressed();
+				} else {
+					this.floorButtons[1].setButtonPressed();
+				}
+				logger.info("Floor Number: " + this.floorNumber + " - UP button turned ON.");
+			} else {
+				if (this.floorButtons[0].getDirection().equals(Direction.DOWN)) {
+					this.floorButtons[0].setButtonPressed();
+				} else {
+					this.floorButtons[1].setButtonPressed();
+				}
+				logger.info("Floor Number: " + this.floorNumber + " - DOWN button turned ON.");
+			}
+		}
+	}
 
     private void serviceRequest(SimulationRequest event) throws GeneralException {
     	
@@ -143,6 +207,7 @@ public class FloorThread extends Thread {
         if (event.getEnd()) {
         	data = "End".getBytes();
         } else {
+        	turnOnFloorButton(event);
 	        floorPacket = new FloorMessage(event.getFloorButton(), event.getFloor(), event.getCarButton(), event.getErrorCode(), event.getErrorElevator());
 	        data = floorPacket.generatePacketData();
         }
@@ -182,9 +247,10 @@ public class FloorThread extends Thread {
 	 * updates the current position of the elevator as the floor sees it
 	 * index = elevNum-1
 	 * */
-	private void updateElevatorFloorState(int index, int floorNum) { 
+	private void updateElevatorFloorState(int index, int floorNum, core.Direction dir) { 
 		synchronized(elevatorFloorStates) {
-			this.elevatorFloorStates[index] = floorNum; 
+			this.elevatorFloorStates[index].setFloorStatus(floorNum);
+			this.elevatorFloorStates[index].setDir(dir);
 		}
 	}
 	public FloorMessage receivePacket(DatagramPacket packet)  throws IOException, CommunicationException {
@@ -194,7 +260,15 @@ public class FloorThread extends Thread {
 		return new FloorMessage(packet.getData(), packet.getLength());
 	}
 	
-	public int[] getElevatorFloorStates() {
+	public FloorStatus[] getFloorStatus() {
 		return elevatorFloorStates;
+	}
+	
+	public FloorType getFloorType() {
+		return floorType;
+	}
+
+	public void setFloorType(FloorType floorType) {
+		this.floorType = floorType;
 	}
 }
