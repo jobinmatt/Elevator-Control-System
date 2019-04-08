@@ -50,6 +50,7 @@ public class FloorSubsystem {
 	private final String FLOOR_NAME = "Floor";
 	private final byte SPACER = (byte) 0;
 	private static final int DATA_SIZE = 1024;
+	private final int PORT_TIMEOUT = 10000;
 	private static Map<Integer, Integer> schedulerPorts = new HashMap<>();
 	private Map<String, FloorThread> floors;
 	private List<SimulationRequest> events;
@@ -77,9 +78,20 @@ public class FloorSubsystem {
 			//****** ?? send List<SimulationEvent> events to the scheduler ?? ****
 
 			for (int i = 1; i <= numOfFloors; i++ ) { //since a floor will start at 1, i has to be 1
+				FloorType floorType;
+				if(i == 1) {
+					floorType = FloorType.BOTTOM;
+				}
+				else if(i == numOfFloors) {
+					floorType = FloorType.TOP;
+				}
+				else {
+					floorType = FloorType.NORMAL;
+				}
 				floors.put(FLOOR_NAME + i,
-						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer, numOfElevators));
+						new FloorThread(FLOOR_NAME + i, i, schedulerAddress, this.sharedTimer, numOfElevators, floorType));
 			}
+
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				public void run() {
@@ -151,7 +163,7 @@ public class FloorSubsystem {
 			    DatagramPacket recievePacket = new DatagramPacket(new byte[DATA_SIZE], DATA_SIZE);
 				DatagramSocket receiveSocket = new DatagramSocket(initSchedulerPort + 1);
 				logger.info("Waiting to receive port information from SCHEDULER...");
-				receiveSocket.setSoTimeout(10000);
+				receiveSocket.setSoTimeout(PORT_TIMEOUT);
 				receiveSocket.receive(recievePacket);
 				received = true;
 				receiveSocket.close();

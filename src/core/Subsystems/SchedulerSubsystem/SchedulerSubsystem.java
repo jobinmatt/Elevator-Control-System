@@ -364,15 +364,7 @@ public class SchedulerSubsystem {
 	}
 
 	public void updateFloorStates (ElevatorMessage elevator) throws HostActionsException, CommunicationException {
-		Direction dir;
-		if (elevator.getCurrentFloor()>elevator.getDestinationFloor())
-			dir = Direction.DOWN;
-		else if (elevator.getCurrentFloor()<elevator.getDestinationFloor())
-			dir = Direction.UP;
-		else
-			dir = Direction.STATIONARY;
-
-		FloorMessage floorState = new FloorMessage(dir, elevator.getCurrentFloor(), -1, 0, 0); // source floor will be current floor, and dont need dest becuase this goes to floors to update buttons
+		FloorMessage floorState = new FloorMessage(elevator.getDirection(), elevator.getCurrentFloor(), elevator.getDestinationFloor(), elevator.getErrorCode(), elevator.getErrorFloor()); // source floor will be current floor, and dont need dest becuase this goes to floors to update buttons
 		floorState.setElevatorNum(elevator.getElevatorNumber());
 		for (FloorPipeline listeners : this.floorListeners) {
 			listeners.sendElevatorStateToFloor(floorState);

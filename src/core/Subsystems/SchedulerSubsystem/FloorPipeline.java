@@ -133,9 +133,11 @@ public class FloorPipeline extends Thread implements SchedulerPipeline{
 
 	public void sendElevatorStateToFloor(FloorMessage fMsg) throws HostActionsException, CommunicationException {
 		
-		byte[] data = fMsg.generatePacketData();
-		DatagramPacket fPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
-		HostActions.send(fPacket, Optional.of(sendSocket));
+		if (floorSubSystemAddress != null) {
+			byte[] data = fMsg.generatePacketData();
+			DatagramPacket fPacket = new DatagramPacket(data, data.length, floorSubSystemAddress, getSendPort());
+			HostActions.send(fPacket, Optional.of(sendSocket));
+		}
 	}
 	
 	public void sendShutdownMessage() throws CommunicationException, HostActionsException {

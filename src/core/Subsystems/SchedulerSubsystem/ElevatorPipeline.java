@@ -55,6 +55,8 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 	private int pipeNumber;
 	private boolean shutdown = false;
 	private PerformanceTimer timer;
+	private boolean transientError = false;
+	private boolean hardErrorRecieved = false;
 
 
 	public ElevatorPipeline(SubsystemConstants objectType, int portOffset, SchedulerSubsystem subsystem) throws SchedulerPipelineException {
@@ -71,10 +73,14 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		try {
 			//need to make sure data is received the same way, matching the ports
 			this.receiveSocket = new DatagramSocket();
+			int elevatorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
+			int elevatorDoorTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
+			
+			receiveSocket.setSoTimeout(elevatorTravelTime + elevatorDoorTime + 3500);
 			this.receivePort = receiveSocket.getLocalPort();
 			this.sendSocket = new DatagramSocket();
 		}
-		catch(SocketException e) {
+		catch(SocketException | ConfigurationParserException e) {
 			logger.info("Unable to create a DatagramSocket on Scheduler");
 		}
 	}
@@ -111,12 +117,19 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					}
 					updateSubsystem(elevatorEvents.getFirst());
 					
-					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevatorEvents.getFirst().getErrorCode(), elevatorEvents.getFirst().getErrorFloor());	
+					Direction dir =null;
+					if (elevator.getDestFloor() > elevator.getCurrentFloor()) {
+						dir = Direction.UP;
+					} else if (elevator.getDestFloor() < elevator.getCurrentFloor()) {
+						dir = Direction.DOWN;
+					}
+					
+					ElevatorMessage elevatorMessage = new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), dir, elevatorEvents.getFirst().getErrorCode(), elevatorEvents.getFirst().getErrorFloor());	
 					
 					byte[] data = elevatorMessage.generatePacketData();
 					DatagramPacket elevatorPacket = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 					HostActions.send(elevatorPacket, Optional.of(sendSocket));
-					
+//					logger.debug("ELEVATOR MESSAGE SENT FOR ||"+ this.getName()+ "||:: " + elevatorMessage.toString());
 					timer.start();
 					ElevatorMessage elevatorRecieveMessage = recieve();
 					timer.end();
@@ -124,23 +137,24 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 					int elevatorTravelTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_FLOOR_TRAVEL_TIME_SECONDS) * 1000;
 					int elevatorDoorTime = ConfigurationParser.getInstance().getInt(ConfigurationParser.ELEVATOR_DOOR_TIME_SECONDS) * 1000;
 					
-					if (!(timer.getDelta()/1000000 <= (elevatorTravelTime + elevatorDoorTime + 3500))) {
+					if ((!(timer.getDelta()/1000000 <= (elevatorTravelTime + elevatorDoorTime + 3500)) || hardErrorRecieved)) {
 						schedulerSubsystem.removeElevator(elevator.getElevatorId());
 						break;
 					}
 					
 					if (elevatorRecieveMessage.getDoorFailureStatus()) {
+						transientError = true;
 						ElevatorMessage msg = new ElevatorMessage();	
 						data = msg.generateForceCloseMessage();
 						DatagramPacket packet = new DatagramPacket(data, data.length, elevatorSubsystemAddress, getSendPort());
 						HostActions.send(packet, Optional.of(sendSocket));
 						elevatorRecieveMessage = recieve();
 					}
-					
+
 					if (elevatorRecieveMessage.getArrivalSensor()) {
 						updateStates(elevatorRecieveMessage);
 					}
-								
+					
 				} catch (HostActionsException | CommunicationException | SchedulerSubsystemException | ConfigurationParserException e) {
 					logger.error("Unable to send/recieve packet", e);
 				}
@@ -174,10 +188,11 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		try {
 			HostActions.receive(packet, receiveSocket);
 		} catch (HostActionsException e) {
-			logger.error("Failed to receive packet", e);
-			throw new CommunicationException(e);
+			hardErrorRecieved = true;
 		}
-		return new ElevatorMessage(packet.getData(), packet.getLength());
+		ElevatorMessage recievedMessage = new ElevatorMessage(packet.getData(), packet.getLength());
+//		logger.debug("ELEVATOR MESSAGE RECIEVED FOR ||"+ this.getName()+ "||:: " + recievedMessage.toString());
+		return recievedMessage;
 	}
 	
 	private void updateSubsystem(SchedulerRequest packet) throws SchedulerSubsystemException, CommunicationException, HostActionsException {
@@ -186,7 +201,13 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 		elevator.setRequestDirection(packet.getRequestDirection());
 		elevator.setNumRequests(elevatorEvents.size());
 		schedulerSubsystem.updateElevatorState(elevator);
-
+		
+		if (packet.getErrorCode() == 1) {
+			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevator.getRequestDirection(), packet.getErrorCode(), packet.getErrorFloor()));
+		}
+		else {
+			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevator.getRequestDirection()));
+		}
 	}
 	
 	private void updateStates(ElevatorMessage request) throws CommunicationException, SchedulerSubsystemException, HostActionsException {
@@ -201,7 +222,7 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				}
 			}
 			if (!tempList.isEmpty()) {
-				logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
+//				logger.debug("\n" + "Removed events " + Arrays.toString(tempList.toArray()));
 			}
 			elevatorEvents.removeAll(tempList);
 			
@@ -216,12 +237,17 @@ public class ElevatorPipeline extends Thread implements SchedulerPipeline{
 				elevator.setRequestDirection(elevatorEvents.getFirst().getRequestDirection());
 			} else {
 				elevator.setRequestDirection(Direction.STATIONARY);
+//				logger.debug("Elevator is stationary");
 			}
 			elevator.setNumRequests(elevatorEvents.size());
-			schedulerSubsystem.updateElevatorState(elevator);
-			schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId()));
+			if (transientError) {
+				schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevator.getRequestDirection(), 2, 0));
+				transientError = false;
+
+			} else {
+				schedulerSubsystem.updateFloorStates(new ElevatorMessage(elevator.getCurrentFloor(), elevator.getDestFloor(), elevator.getElevatorId(), elevator.getRequestDirection()));
+			}
 		}
-		logger.debug("Elevator status updated: " + elevator.toString() + "\n ");
 	}
 
 	public void terminate() {
