@@ -25,21 +25,19 @@ class StartupUtility {
 	private static FloorSubsystem floor;
 
 	public synchronized static StartupUtility getInstance() {
-		if(startupUtility == null) {
+		if (startupUtility == null) {
 			startupUtility = new StartupUtility();
 		}
 		return startupUtility;
 	}
 
-	public static void startupSubsystems() throws IOException, GeneralException, InterruptedException {
+	public static void startupSubsystems(int numElevators, int numFloors) throws IOException, GeneralException, InterruptedException {
 		ConfigurationParser configurationParser = ConfigurationParser.getInstance();
-		int numElevators = 2;
-		int numFloors = configurationParser.getInt(ConfigurationParser.NUMBER_OF_FLOORS);
 		int elevatorInitPort = configurationParser.getInt(ConfigurationParser.ELEVATOR_INIT_PORT);
 		int floorInitPort = configurationParser.getInt(ConfigurationParser.FLOOR_INIT_PORT);
 		InetAddress schedulerAddress = InetAddress.getByName(configurationParser.getString(ConfigurationParser.SCHEDULER_ADDRESS));
 		SubsystemWrapper subsystemWrapper = new SubsystemWrapper();
-		//input the right address
+		// input the right address
 		Thread schedulerStartup = new Thread(new SubsystemStartThread(numElevators, numFloors, elevatorInitPort, floorInitPort, scheduler, subsystemWrapper), "SchedulerStartup");
 		schedulerStartup.start();
 		try {
@@ -48,7 +46,7 @@ class StartupUtility {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		Thread elevatorStartup = new Thread(new ElevatorStartThread(numElevators, numFloors, elevatorInitPort, schedulerAddress, elevator, subsystemWrapper), "ElevatorStartup");
 		elevatorStartup.start();
 
@@ -96,7 +94,7 @@ class StartupUtility {
 	}
 }
 
-class SubsystemStartThread implements Runnable{
+class SubsystemStartThread implements Runnable {
 	private int numElevatorsScheduler;
 	private int numFloorsScheduler;
 	private int elevatorInitPort;
@@ -112,27 +110,27 @@ class SubsystemStartThread implements Runnable{
 		this.elevatorInitPort = elevatorInitPort;
 		this.floorInitPort = floorInitPort;
 		this.subsystem = subsystem;
-		this.t= t;
+		this.t = t;
 	}
 
 	public void run() {
 
 		try {
 			subsystem = new SchedulerSubsystem(numElevatorsScheduler);
-			
+
 			ElevatorPipeline[] elevatorListeners = new ElevatorPipeline[numElevatorsScheduler];
 			FloorPipeline[] floorListeners = new FloorPipeline[numFloorsScheduler];
 
 			for (int i = 0; i < numElevatorsScheduler; i++) {
-				elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i+1, subsystem);
+				elevatorListeners[i] = new ElevatorPipeline(SubsystemConstants.ELEVATOR, i + 1, subsystem);
 			}
 			for (int i = 0; i < numFloorsScheduler; i++) {
-				floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i+1, subsystem);
+				floorListeners[i] = new FloorPipeline(SubsystemConstants.FLOOR, i + 1, subsystem);
 			}
-			
+
 			subsystem.addListeners(elevatorListeners, floorListeners);
 			subsystem.start(elevatorInitPort, floorInitPort);
-			
+
 		} catch (SchedulerPipelineException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -155,7 +153,7 @@ class SubsystemStartThread implements Runnable{
 
 }
 
-class ElevatorStartThread implements Runnable{
+class ElevatorStartThread implements Runnable {
 	private int numElevatorsElevator;
 	private int numFloorsElevator;
 	private int elevatorInitPort;
@@ -178,8 +176,7 @@ class ElevatorStartThread implements Runnable{
 		try {
 			subsystem = new ElevatorSubsystem(numElevatorsElevator, numFloorsElevator, elevatorInitPort, schedulerAddress);
 			subsystem.activateElevators();
-		} catch (ElevatorSubsystemException | ConfigurationParserException | HostActionsException
-				| CommunicationException | IOException e) {
+		} catch (ElevatorSubsystemException | ConfigurationParserException | HostActionsException | CommunicationException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -188,7 +185,7 @@ class ElevatorStartThread implements Runnable{
 	}
 }
 
-class FloorStartThread implements Runnable{
+class FloorStartThread implements Runnable {
 	private int numElevatorsFloor;
 	private int numFloorsFloor;
 	private int floorInitPort;
@@ -196,7 +193,7 @@ class FloorStartThread implements Runnable{
 	private InetAddress schedulerAddress;
 	private SubsystemWrapper t;
 
-	public FloorStartThread(int numFloors ,int numElevators, int floorInitPort, InetAddress schedulerAddress, FloorSubsystem subsystem, SubsystemWrapper t) {
+	public FloorStartThread(int numFloors, int numElevators, int floorInitPort, InetAddress schedulerAddress, FloorSubsystem subsystem, SubsystemWrapper t) {
 		super();
 		this.numElevatorsFloor = numElevators;
 		this.numFloorsFloor = numFloors;
@@ -222,4 +219,3 @@ class FloorStartThread implements Runnable{
 	}
 
 }
-
